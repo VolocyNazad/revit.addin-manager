@@ -16,7 +16,7 @@ public sealed partial class EditorViewModel : ObservableObject
     private EditorMode _mode = EditorMode.Form;
 
     [ObservableProperty]
-    private double _entriesFraction = 0.3;
+    private double _entriesFraction = 0.35;
 
     /// <summary>Создает зону.</summary>
     /// <param name="localizationService">Сервис языка — смена языка перечитывает тултипы режимов.</param>
