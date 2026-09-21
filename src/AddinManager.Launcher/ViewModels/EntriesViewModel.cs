@@ -104,6 +104,14 @@ public sealed partial class EntriesViewModel : ObservableObject
     [ObservableProperty]
     private bool _isLocked;
 
+    /// <summary>Сколько записей отмечено чекбоксом пакетного выбора.</summary>
+    [ObservableProperty]
+    private int _selectedCount;
+
+    /// <summary>Есть ли хоть одна отмеченная запись — видимость bulk-панели.</summary>
+    [ObservableProperty]
+    private bool _hasSelection;
+
     /// <summary>Ошибка последнего удаления — баннером под заголовком, как у формы.</summary>
     [ObservableProperty]
     private string? _errorMessage;
@@ -154,6 +162,58 @@ public sealed partial class EntriesViewModel : ObservableObject
     private bool CanDeleteEntry(AddinEntryRowViewModel? row) => row is not null && !IsLocked;
 
     /// <summary>
+    /// Переключатель "Выбрать все/Снять выбор": все видимые (после поиска) отмечены —
+    /// сбрасывает весь выбор, иначе отмечает все видимые.
+    /// </summary>
+    [RelayCommand]
+    public void ToggleSelectAll()
+    {
+        var visible = _entriesView.Cast<AddinEntryRowViewModel>().ToList();
+        if (visible.Count != 0 && !visible.All(e => e.IsSelected))
+        {
+            foreach (var row in visible)
+                row.IsSelected = true;
+        }
+        else
+        {
+            foreach (var row in Entries)
+                row.IsSelected = false;
+        }
+    }
+
+    private bool CanBulkDelete() => HasSelection && !IsLocked;
+
+    /// <summary>
+    /// Удаляет все отмеченные записи одним сохранением файла (после одного подтверждения).
+    /// Ошибка сохранения — в баннер, записи остаются.
+    /// </summary>
+    [RelayCommand(CanExecute = nameof(CanBulkDelete))]
+    public void DeleteSelected()
+    {
+        var targets = Entries.Where(e => e.IsSelected).ToList();
+        if (targets.Count == 0 || SelectedFile?.File is not { } file)
+            return;
+
+        if (!_dialogService.Confirm(_localizer["DeleteEntriesConfirm", targets.Count]))
+            return;
+
+        var condemned = new HashSet<Guid>(targets.Select(e => e.Entry.AddInId));
+        var remaining = file.Manifest.Entries.Where(e => !condemned.Contains(e.AddInId)).ToList();
+        var xml = _parser.ToXml(file.Manifest with { Entries = remaining });
+
+        try
+        {
+            _markupService.Save(file, xml);
+            ErrorMessage = null;
+            _listViewModel.Refresh();
+        }
+        catch (Exception ex) when (ex is AddinManifestFormatException or IOException or RevitRunningException)
+        {
+            ErrorMessage = ex.Message;
+        }
+    }
+
+    /// <summary>
     /// Удаляет запись из файла навсегда (после подтверждения): выкидывает её из манифеста,
     /// пишет файл целиком тем же атомарным путём, что форма, и обновляет список.
     /// </summary>
@@ -198,14 +258,18 @@ public sealed partial class EntriesViewModel : ObservableObject
         // открытую форму, сбрасывая SelectedEntry — тот же приём, что ListViewModel.Refresh
         // уже применяет к SelectedFile по (FileName, Scope, Version).
         var previousEntryId = SelectedEntry?.Entry.AddInId;
+        var previousBulkSelection = new HashSet<Guid>(Entries.Where(e => e.IsSelected).Select(e => e.Entry.AddInId));
 
         SelectedFile = file;
+        foreach (var row in Entries)
+            row.PropertyChanged -= OnRowPropertyChanged;
         Entries.Clear();
         ErrorMessage = null;
 
         if (file is null)
         {
             SelectedEntry = null;
+            RefreshSelectionSnapshot();
             return;
         }
 
@@ -217,7 +281,10 @@ public sealed partial class EntriesViewModel : ObservableObject
         foreach (var entry in entries)
         {
             var duplicateInFile = inFileCounts.TryGetValue(entry.AddInId, out var count) && count > 1;
-            Entries.Add(_rowFactory.Create(entry, index++, duplicateInFile, acrossFiles.Contains(entry.AddInId)));
+            var row = _rowFactory.Create(entry, index++, duplicateInFile, acrossFiles.Contains(entry.AddInId));
+            row.PropertyChanged += OnRowPropertyChanged;
+            row.IsSelected = previousBulkSelection.Contains(entry.AddInId);
+            Entries.Add(row);
         }
 
         _entriesView.Refresh();
@@ -227,6 +294,7 @@ public sealed partial class EntriesViewModel : ObservableObject
         // файла — выбираем первую видимую (отфильтрованную поиском) по умолчанию.
         var restored = previousEntryId is { } id ? Entries.FirstOrDefault(e => e.Entry.AddInId == id) : null;
         SelectedEntry = restored ?? _entriesView.Cast<AddinEntryRowViewModel>().FirstOrDefault();
+        RefreshSelectionSnapshot();
     }
 
     partial void OnSelectedFileChanged(AddinFileRowViewModel? value)
@@ -245,6 +313,7 @@ public sealed partial class EntriesViewModel : ObservableObject
     {
         AddEntryCommand.NotifyCanExecuteChanged();
         DeleteEntryCommand.NotifyCanExecuteChanged();
+        DeleteSelectedCommand.NotifyCanExecuteChanged();
     }
 
     partial void OnSearchTextChanged(string? value) => _entriesView.Refresh();
@@ -288,6 +357,46 @@ public sealed partial class EntriesViewModel : ObservableObject
     /// <summary>Плейсхолдер поиска по записям.</summary>
     public string SearchPlaceholder => _localizer["EntriesSearchPlaceholder"];
 
+    /// <summary>"Выбрано: N" в bulk-панели.</summary>
+    public string SelectionSummary => _localizer["SelectionSummary", SelectedCount];
+
+    /// <summary>
+    /// Подпись переключателя "Выбрать все/Снять выбор": все видимые отмечены (или выбор
+    /// спрятан за поиском) — "Снять выбор", иначе "Выбрать все".
+    /// </summary>
+    public string SelectAllToggleLabel
+    {
+        get
+        {
+            var visible = _entriesView.Cast<AddinEntryRowViewModel>().ToList();
+            var showClear = visible.Count == 0 ? HasSelection : visible.All(e => e.IsSelected);
+            return showClear ? _localizer["ClearSelectionLabel"] : _localizer["SelectAllLabel"];
+        }
+    }
+
+    /// <summary>Кнопка bulk-панели "Удалить".</summary>
+    public string DeleteSelectedLabel => _localizer["DeleteSelectedLabel"];
+
+    private void OnRowPropertyChanged(object? sender, PropertyChangedEventArgs e)
+    {
+        if (e.PropertyName is nameof(AddinEntryRowViewModel.IsSelected))
+            RefreshSelectionSnapshot();
+    }
+
+    /// <summary>
+    /// Пересчитывает <see cref="SelectedCount"/>/<see cref="HasSelection"/> и доступность
+    /// bulk-удаления. Вызывается при смене отметок и после каждой пересборки <see cref="Entries"/>.
+    /// </summary>
+    private void RefreshSelectionSnapshot()
+    {
+        SelectedCount = Entries.Count(e => e.IsSelected);
+        HasSelection = SelectedCount > 0;
+
+        DeleteSelectedCommand.NotifyCanExecuteChanged();
+        OnPropertyChanged(nameof(SelectionSummary));
+        OnPropertyChanged(nameof(SelectAllToggleLabel));
+    }
+
     /// <summary>Предикат <see cref="ICollectionView.Filter"/>: запись проходит, если текст поиска пуст или встречается в её полях.</summary>
     private bool MatchesSearch(object obj)
     {
@@ -313,5 +422,5 @@ public sealed partial class EntriesViewModel : ObservableObject
 
     /// <inheritdoc />
     public override string ToString() =>
-        $"Entries(File={SelectedFile?.FileName ?? "-"}, Count={Entries.Count}, Selected={SelectedEntry?.DisplayName ?? "-"})";
+        $"Entries(File={SelectedFile?.FileName ?? "-"}, Count={Entries.Count}, Selected={SelectedEntry?.DisplayName ?? "-"}, Bulk={SelectedCount})";
 }

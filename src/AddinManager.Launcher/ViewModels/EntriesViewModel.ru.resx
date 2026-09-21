@@ -82,4 +82,19 @@
   <data name="EntriesSearchPlaceholder" xml:space="preserve">
     <value>Поиск по записям</value>
   </data>
+  <data name="SelectionSummary" xml:space="preserve">
+    <value>Выбрано: {0}</value>
+  </data>
+  <data name="SelectAllLabel" xml:space="preserve">
+    <value>Выбрать все</value>
+  </data>
+  <data name="DeleteSelectedLabel" xml:space="preserve">
+    <value>Удалить</value>
+  </data>
+  <data name="DeleteEntriesConfirm" xml:space="preserve">
+    <value>Удалить {0} записей навсегда?</value>
+  </data>
+  <data name="ClearSelectionLabel" xml:space="preserve">
+    <value>Снять выбор</value>
+  </data>
 </root>

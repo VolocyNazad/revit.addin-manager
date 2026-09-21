@@ -82,4 +82,19 @@
   <data name="EntriesSearchPlaceholder" xml:space="preserve">
     <value>Search entries</value>
   </data>
+  <data name="SelectionSummary" xml:space="preserve">
+    <value>Selected {0}</value>
+  </data>
+  <data name="SelectAllLabel" xml:space="preserve">
+    <value>Select all</value>
+  </data>
+  <data name="DeleteSelectedLabel" xml:space="preserve">
+    <value>Delete</value>
+  </data>
+  <data name="DeleteEntriesConfirm" xml:space="preserve">
+    <value>Delete {0} entries permanently?</value>
+  </data>
+  <data name="ClearSelectionLabel" xml:space="preserve">
+    <value>Clear</value>
+  </data>
 </root>

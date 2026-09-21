@@ -1,3 +1,4 @@
+using System.ComponentModel;
 using AddinManager.Core.Manifests;
 using Microsoft.Extensions.Localization;
 
@@ -5,12 +6,13 @@ namespace AddinManager.Launcher.ViewModels;
 
 /// <summary>
 /// Строка подпанели записей: один <see cref="AddinEntry"/> внутри файла, выбранного в зоне
-/// списка (план, раздел 6 — Type-бейдж, отображаемое имя). Только чтение — записи здесь не
+/// списка (план, раздел 6 — Type-бейдж, отображаемое имя). Записи здесь не
 /// редактируются и не имеют тоглов (план, раздел 2: "entries have no toggles"); структурное
 /// редактирование выбранной записи — отдельная зона (<see cref="FormViewModel"/>), которая
 /// читает эту строку через <c>EntriesViewModel.SelectedEntry</c>.
 /// Не <c>ObservableObject</c>: <see cref="AddinEntry"/> — неизменяемая запись, и после
-/// построения строки её отображаемые свойства никогда не меняются, уведомлять не о чем.
+/// построения строки её отображаемые свойства никогда не меняются; единственное
+/// изменяемое состояние — пакетный выбор <see cref="IsSelected"/> с ручным уведомлением.
 /// </summary>
 /// <param name="entry">Исходная запись манифеста.</param>
 /// <param name="index">
@@ -29,10 +31,33 @@ public sealed class AddinEntryRowViewModel(
     int index,
     IStringLocalizer<AddinEntryRowViewModel> localizer,
     bool duplicateInFile = false,
-    bool duplicateAcrossFiles = false)
+    bool duplicateAcrossFiles = false) : INotifyPropertyChanged
 {
+    private bool _isSelected;
+
     /// <summary>Исходная запись.</summary>
     public AddinEntry Entry { get; } = entry;
+
+    /// <summary>
+    /// Пакетный выбор строки (чекбокс слева, bulk-удаление в <see cref="EntriesViewModel"/>).
+    /// Единственное изменяемое состояние строки — остальное неизменно после построения,
+    /// поэтому здесь ручной <see cref="INotifyPropertyChanged"/>, а не
+    /// <c>ObservableObject</c>: генератору там нечего генерировать.
+    /// </summary>
+    public bool IsSelected
+    {
+        get => _isSelected;
+        set
+        {
+            if (_isSelected == value)
+                return;
+            _isSelected = value;
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(IsSelected)));
+        }
+    }
+
+    /// <inheritdoc />
+    public event PropertyChangedEventHandler? PropertyChanged;
 
     /// <summary>Type записи (план, раздел 6 — бейдж <c>Application/DBApplication/Command</c>).</summary>
     public AddinEntryType Type => Entry.Type;
