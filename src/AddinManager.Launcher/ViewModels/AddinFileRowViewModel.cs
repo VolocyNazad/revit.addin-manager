@@ -52,6 +52,14 @@ public sealed partial class AddinFileRowViewModel : ObservableObject
     [ObservableProperty]
     private bool _isEnabled;
 
+    /// <summary>
+    /// Пакетный выбор строки (чекбокс слева в <c>ListView</c>, стиль <c>RowContainerStyle</c>
+    /// зеркалит его в <c>ListBoxItem.IsSelected</c>). Не влияет на <see cref="IsEnabled"/>:
+    /// выбор — кого трогают bulk-команды списка, тоггл — включён ли файл.
+    /// </summary>
+    [ObservableProperty]
+    private bool _isSelected;
+
     /// <summary>Revit запущен — тоггл гаснет (выставляет <see cref="ListViewModel"/>, см. его SyncEditLock).</summary>
     [ObservableProperty]
     private bool _isLocked;

@@ -52,6 +52,14 @@ public sealed partial class ListViewModel : ObservableObject
     [ObservableProperty]
     private bool _isLocked;
 
+    /// <summary>Сколько строк отмечено чекбоксом пакетного выбора.</summary>
+    [ObservableProperty]
+    private int _selectedCount;
+
+    /// <summary>Есть ли хоть одна отмеченная строка — видимость bulk-панели.</summary>
+    [ObservableProperty]
+    private bool _hasSelection;
+
     /// <summary>Ошибка последнего создания файла — баннером над списком.</summary>
     [ObservableProperty]
     private string? _errorMessage;
@@ -157,10 +165,15 @@ public sealed partial class ListViewModel : ObservableObject
 
         // Refresh пересоздаёт все AddinFileRowViewModel — старый SelectedFile больше не входит в
         // Files, восстанавливаем выбор по идентичности (FileName, Scope, Version), а не по ссылке.
+        // То же для пакетного выбора: набор отмеченных ключей переживает пересканирование.
         var previousSelection = SelectedFile is { } selected
             ? (selected.FileName, selected.Scope, selected.Version)
             : ((string FileName, AddinScope Scope, string Version)?)null;
+        var previousBulkSelection = new HashSet<(string FileName, AddinScope Scope, string Version)>(
+            Files.Where(f => f.IsSelected).Select(f => (f.FileName, f.Scope, f.Version)));
 
+        foreach (var row in Files)
+            row.PropertyChanged -= OnRowPropertyChanged;
         Files.Clear();
         foreach (var version in RevitVersions)
         {
@@ -172,6 +185,8 @@ public sealed partial class ListViewModel : ObservableObject
             {
                 var row = _rowFactory.Create(file);
                 row.DeleteRequested += OnRowDeleteRequested;
+                row.PropertyChanged += OnRowPropertyChanged;
+                row.IsSelected = previousBulkSelection.Contains((row.FileName, row.Scope, row.Version));
                 Files.Add(row);
             }
         }
@@ -188,6 +203,7 @@ public sealed partial class ListViewModel : ObservableObject
             ? Files.FirstOrDefault(f => f.FileName == key.FileName && f.Scope == key.Scope && f.Version == key.Version)
             : null;
         SelectedFile = restored ?? _filesView.Cast<AddinFileRowViewModel>().FirstOrDefault();
+        RefreshSelectionSnapshot();
 
         if (previousSelection is { } previous)
         {
@@ -212,6 +228,112 @@ public sealed partial class ListViewModel : ObservableObject
     /// <summary>Устанавливает порядок сортировки (кнопки-чипсы в тулбаре списка).</summary>
     [RelayCommand]
     public void SetSortOrder(ListSortOrder order) => SortOrder = order;
+
+    /// <summary>Снимает отметку со всех строк.</summary>
+    [RelayCommand]
+    public void ToggleSelectAll()
+    {
+        // Переключатель "Выбрать все/Снять выбор": все видимые отмечены (или видимых нет,
+        // а выбор есть за фильтром) — сбрасываем всё; иначе отмечаем все видимые.
+        var visible = VisibleRows().ToList();
+        if (visible.Count != 0 && !visible.All(f => f.IsSelected))
+            SelectAllVisible();
+        else
+            ClearSelection();
+    }
+
+    private void ClearSelection()
+    {
+        foreach (var row in Files)
+            row.IsSelected = false;
+    }
+
+    private void SelectAllVisible()
+    {
+        foreach (var row in VisibleRows())
+            row.IsSelected = true;
+    }
+
+    /// <summary>Строки, видимые после фильтра/сортировки — ось пакетного выбора.</summary>
+    private IEnumerable<AddinFileRowViewModel> VisibleRows() =>
+        _filesView.Cast<AddinFileRowViewModel>();
+
+    private bool CanBulkEdit() => HasSelection && !IsLocked;
+
+    /// <summary>
+    /// Переключает все отмеченные файлы: есть хоть один выключенный — включает все,
+    /// иначе выключает все. Ошибки отдельных строк остаются под строками (см. строку).
+    /// </summary>
+    [RelayCommand(CanExecute = nameof(CanBulkEdit))]
+    public void ToggleSelected()
+    {
+        var targets = Files.Where(f => f.IsSelected).ToList();
+        var enable = targets.Any(f => !f.IsEnabled);
+        _logger.LogInformation("BulkToggle: {Count} файлов -> IsEnabled={Value}", targets.Count, enable);
+        foreach (var row in targets)
+            row.IsEnabled = enable;
+        RefreshSelectionSnapshot();
+    }
+
+    /// <summary>
+    /// Удаляет все отмеченные файлы с диска после одного подтверждения. Ошибки отдельных
+    /// файлов — в баннер над списком, удалённые уже не восстановить через <c>Refresh</c>.
+    /// </summary>
+    [RelayCommand(CanExecute = nameof(CanBulkEdit))]
+    public void DeleteSelected()
+    {
+        var targets = Files.Where(f => f.IsSelected).ToList();
+        if (targets.Count == 0)
+            return;
+
+        if (!_dialogService.Confirm(_localizer["DeleteMultipleConfirm", targets.Count]))
+            return;
+
+        _logger.LogInformation("BulkDelete: подтверждено удаление {Count} файлов", targets.Count);
+        string? firstError = null;
+        foreach (var row in targets)
+        {
+            try
+            {
+                _store.Delete(row.File);
+            }
+            catch (Exception ex) when (ex is IOException or RevitRunningException)
+            {
+                _logger.LogWarning(
+                    ex,
+                    "BulkDelete {FileName} ({Scope}, {Version}): не удалён",
+                    row.FileName, row.Scope, row.Version);
+                firstError ??= ex.Message;
+            }
+        }
+
+        ErrorMessage = firstError;
+        Refresh();
+    }
+
+    private void OnRowPropertyChanged(object? sender, PropertyChangedEventArgs e)
+    {
+        // IsSelected двигает счётчик и доступность команд; IsEnabled — подпись
+        // переключателя "Включить/Выключить" (зависит от состояния отмеченных).
+        if (e.PropertyName is nameof(AddinFileRowViewModel.IsSelected) or nameof(AddinFileRowViewModel.IsEnabled))
+            RefreshSelectionSnapshot();
+    }
+
+    /// <summary>
+    /// Пересчитывает <see cref="SelectedCount"/>/<see cref="HasSelection"/> и доступность
+    /// bulk-команд. Вызывается при смене отметок, тоглов, фильтров и после каждого <see cref="Refresh"/>.
+    /// </summary>
+    private void RefreshSelectionSnapshot()
+    {
+        SelectedCount = Files.Count(f => f.IsSelected);
+        HasSelection = SelectedCount > 0;
+
+        ToggleSelectedCommand.NotifyCanExecuteChanged();
+        DeleteSelectedCommand.NotifyCanExecuteChanged();
+        OnPropertyChanged(nameof(SelectionSummary));
+        OnPropertyChanged(nameof(ToggleSelectedLabel));
+        OnPropertyChanged(nameof(SelectAllToggleLabel));
+    }
 
     /// <summary>Разносит <see cref="IRevitProcessGuard.IsRunning"/> по строкам (тогглы гаснут).</summary>
     private void SyncEditLock()
@@ -327,7 +449,12 @@ public sealed partial class ListViewModel : ObservableObject
         Refresh();
     }
 
-    partial void OnIsLockedChanged(bool value) => AddFileCommand.NotifyCanExecuteChanged();
+    partial void OnIsLockedChanged(bool value)
+    {
+        AddFileCommand.NotifyCanExecuteChanged();
+        ToggleSelectedCommand.NotifyCanExecuteChanged();
+        DeleteSelectedCommand.NotifyCanExecuteChanged();
+    }
 
     /// <summary>
     /// Ручное обновление по кнопке: тот же <see cref="Refresh"/>, плюс тост. Остальные вызовы
@@ -367,12 +494,55 @@ public sealed partial class ListViewModel : ObservableObject
     /// <summary>Группировка по версии.</summary>
     public string GroupVersionLabel => _localizer["GroupByVersionOption"];
 
+    /// <summary>"Выбрано: N" в bulk-панели.</summary>
+    public string SelectionSummary => _localizer["SelectionSummary", SelectedCount];
+
+    /// <summary>
+    /// Подпись переключателя "Включить/Выключить": есть хоть один выключенный среди
+    /// отмеченных — "Включить", иначе "Выключить".
+    /// </summary>
+    public string ToggleSelectedLabel => Files.Any(f => f.IsSelected && !f.IsEnabled)
+        ? _localizer["EnableSelectedLabel"]
+        : _localizer["DisableSelectedLabel"];
+
+    /// <summary>
+    /// Подпись переключателя "Выбрать все/Снять выбор": все видимые отмечены (или выбор
+    /// спрятан за фильтром) — "Снять выбор", иначе "Выбрать все".
+    /// </summary>
+    public string SelectAllToggleLabel
+    {
+        get
+        {
+            var visible = VisibleRows().ToList();
+            var showClear = visible.Count == 0 ? HasSelection : visible.All(f => f.IsSelected);
+            return showClear ? _localizer["ClearSelectionLabel"] : _localizer["SelectAllLabel"];
+        }
+    }
+
+    /// <summary>Кнопка bulk-панели "Удалить".</summary>
+    public string DeleteSelectedLabel => _localizer["DeleteSelectedLabel"];
+
     // Filter/CustomSort — делегаты ICollectionView, читают текущие значения полей при каждом Refresh().
-    partial void OnSearchTextChanged(string? value) => _filesView.Refresh();
+    // Три оси фильтра намеренно делят один шаг (refresh + пересчёт шапки выбора): Sonar S4144 здесь ложный.
+#pragma warning disable S4144 // Одинаковые тела — общий шаг трёх независимых осей фильтра.
+    partial void OnSearchTextChanged(string? value)
+    {
+        _filesView.Refresh();
+        RefreshSelectionSnapshot();
+    }
 
-    partial void OnScopeFilterChanged(ScopeFilter value) => _filesView.Refresh();
+    partial void OnScopeFilterChanged(ScopeFilter value)
+    {
+        _filesView.Refresh();
+        RefreshSelectionSnapshot();
+    }
 
-    partial void OnVersionFilterChanged(string? value) => _filesView.Refresh();
+    partial void OnVersionFilterChanged(string? value)
+    {
+        _filesView.Refresh();
+        RefreshSelectionSnapshot();
+    }
+#pragma warning restore S4144
 
     partial void OnSortOrderChanged(ListSortOrder value) => _filesView.Refresh();
 
@@ -465,5 +635,5 @@ public sealed partial class ListViewModel : ObservableObject
     private void RefreshSnapshot() => OnPropertyChanged((string?)null);
 
     /// <inheritdoc />
-    public override string ToString() => $"List(Files={FileCount}, Selected={SelectedFile?.FileName ?? "-"})";
+    public override string ToString() => $"List(Files={FileCount}, Selected={SelectedFile?.FileName ?? "-"}, Bulk={SelectedCount})";
 }

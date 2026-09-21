@@ -7,12 +7,15 @@
     xmlns:design="clr-namespace:AddinManager.Launcher.Design"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:viewmodels="clr-namespace:AddinManager.Launcher.ViewModels"
-    mc:Ignorable="d"
-    d:DataContext="{d:DesignInstance Type=design:DesignListViewModel, IsDesignTimeCreatable=True}"
-    d:DesignWidth="400" d:DesignHeight="680">
+    d:DataContext="{d:DesignInstance Type=design:DesignListViewModel,
+                                     IsDesignTimeCreatable=True}"
+    d:DesignHeight="680"
+    d:DesignWidth="400"
+    mc:Ignorable="d">
     <UserControl.Resources>
         <converters:NullOrEmptyToVisibilityConverter x:Key="NullOrEmptyToVisibility" />
         <converters:EmptyToVisibilityConverter x:Key="EmptyToVisibility" />
+        <converters:BoolToVisibilityConverter x:Key="BoolToVisibility" />
         <converters:EnumEqualsToOpacityConverter x:Key="ActiveOpacity" />
 
         <Style x:Key="ToggleSwitchStyle" TargetType="CheckBox">
@@ -41,7 +44,7 @@
                                 <Setter TargetName="Thumb" Property="HorizontalAlignment" Value="Right" />
                                 <Setter TargetName="Thumb" Property="Margin" Value="0,0,2,0" />
                             </Trigger>
-                            <!-- Revit запущен: тоггл гаснет (IsLocked выставляет ListViewModel). -->
+                            <!--  Revit запущен: тоггл гаснет (IsLocked выставляет ListViewModel).  -->
                             <DataTrigger Binding="{Binding IsLocked}" Value="True">
                                 <Setter Property="IsEnabled" Value="False" />
                             </DataTrigger>
@@ -50,8 +53,6 @@
                 </Setter.Value>
             </Setter>
         </Style>
-
-        
 
         <Style x:Key="ChipButtonStyle" TargetType="Button">
             <Setter Property="Padding" Value="10,4" />
@@ -89,7 +90,7 @@
             <Setter Property="Margin" Value="0,0,6,6" />
         </Style>
 
-        <!-- Независимые вкл/выкл-чипсы (активность — родное IsChecked, без конвертера). -->
+        <!--  Независимые вкл/выкл-чипсы (активность — родное IsChecked, без конвертера).  -->
         <Style x:Key="ChipToggleStyle" TargetType="ToggleButton">
             <Setter Property="Padding" Value="10,4" />
             <Setter Property="Margin" Value="0,0,6,0" />
@@ -127,22 +128,23 @@
             Контрастные варианты пробовали — откачены, подробности в docs/architecture.md,
             раздел "Plugin list": не повторять.
         -->
-        
 
-        <!-- Карточка тултипа иконки предупреждения — тот же желтый стиль, что у баннеров. -->
-        
 
-        <!-- Подписи полей карточки — сплошным приглушённым цветом темы, не полупрозрачностью. -->
-        
-        
+        <!--  Карточка тултипа иконки предупреждения — тот же желтый стиль, что у баннеров.  -->
 
-        
+
+        <!--  Подписи полей карточки — сплошным приглушённым цветом темы, не полупрозрачностью.  -->
+
+
+
+
 
         <DataTemplate x:Key="RowTemplate" DataType="{x:Type viewmodels:AddinFileRowViewModel}">
             <Border
                 Margin="4,2"
                 Padding="12,10"
-                d:DataContext="{d:DesignInstance Type=design:DesignFileRow, IsDesignTimeCreatable=True}"
+                d:DataContext="{d:DesignInstance Type=design:DesignFileRow,
+                                                 IsDesignTimeCreatable=True}"
                 CornerRadius="10">
                 <Border.Style>
                     <Style TargetType="Border">
@@ -272,6 +274,11 @@
 
                     <StackPanel Grid.Column="0" Orientation="Horizontal">
                         <CheckBox
+                            Margin="0,0,10,0"
+                            VerticalAlignment="Center"
+                            IsChecked="{Binding IsSelected, Mode=TwoWay}"
+                            Style="{StaticResource SelectionCheckBoxRevealStyle}" />
+                        <CheckBox
                             Margin="0,0,14,0"
                             VerticalAlignment="Center"
                             IsChecked="{Binding IsEnabled, Mode=TwoWay}"
@@ -297,7 +304,8 @@
                                                 <TextBlock
                                                     FontSize="13"
                                                     FontWeight="SemiBold"
-                                                    Foreground="{DynamicResource WarningTitleBrush}" Text="{Binding WarningTooltipTitle}"
+                                                    Foreground="{DynamicResource WarningTitleBrush}"
+                                                    Text="{Binding WarningTooltipTitle}"
                                                     TextWrapping="Wrap" />
                                                 <Border
                                                     Height="1"
@@ -326,7 +334,7 @@
                                 TextTrimming="CharacterEllipsis"
                                 Visibility="{Binding VendorSubtitle, Converter={StaticResource NullOrEmptyToVisibility}}" />
 
-                            <!-- Ошибка тоггла конкретной строки (см. AddinFileRowViewModel) — тот же желтый стиль, что у баннеров. -->
+                            <!--  Ошибка тоггла конкретной строки (см. AddinFileRowViewModel) — тот же желтый стиль, что у баннеров.  -->
                             <Border
                                 Margin="0,4,0,0"
                                 Padding="8,5"
@@ -540,17 +548,52 @@
                 TextWrapping="Wrap" />
         </Border>
 
+        <Border
+            Margin="4,8,4,0"
+            Padding="10,8"
+            Background="{DynamicResource CaptionHoverBrush}"
+            CornerRadius="8"
+            DockPanel.Dock="Bottom"
+            Visibility="{Binding HasSelection, Converter={StaticResource BoolToVisibility}}">
+            <!--  WrapPanel: на узкой панели команды уходят второй строкой, а не обрезаются.  -->
+            <WrapPanel Orientation="Horizontal">
+                <TextBlock
+                    Margin="0,0,12,0"
+                    VerticalAlignment="Center"
+                    FontSize="11"
+                    FontWeight="SemiBold"
+                    Text="{Binding SelectionSummary}" />
+                <Button
+                    Command="{Binding ToggleSelectedCommand}"
+                    Content="{Binding ToggleSelectedLabel}"
+                    Style="{StaticResource ChipButtonStyle}" />
+                <Button
+                    Command="{Binding DeleteSelectedCommand}"
+                    Content="{Binding DeleteSelectedLabel}"
+                    Style="{StaticResource ChipButtonStyle}" />
+                <Button
+                    Command="{Binding ToggleSelectAllCommand}"
+                    Content="{Binding SelectAllToggleLabel}"
+                    Style="{StaticResource ChipButtonStyle}" />
+            </WrapPanel>
+        </Border>
+
         <ListBox
             Margin="4"
             Padding="0,0,12,0"
             Background="Transparent"
             BorderThickness="0"
-            ItemContainerStyle="{StaticResource RowContainerStyle}"
             ItemTemplate="{StaticResource RowTemplate}"
             ItemsSource="{Binding FilesView}"
             ScrollViewer.HorizontalScrollBarVisibility="Disabled"
             ScrollViewer.VerticalScrollBarVisibility="Auto"
-            SelectedItem="{Binding SelectedFile, Mode=TwoWay}">
+            SelectedItem="{Binding SelectedFile, Mode=TwoWay}"
+            SelectionMode="Extended">
+            <ListBox.ItemContainerStyle>
+                <Style BasedOn="{StaticResource RowContainerStyle}" TargetType="ListBoxItem">
+                    <Setter Property="IsSelected" Value="{Binding IsSelected, Mode=TwoWay}" />
+                </Style>
+            </ListBox.ItemContainerStyle>
             <ListBox.GroupStyle>
                 <GroupStyle>
                     <GroupStyle.HeaderTemplate>

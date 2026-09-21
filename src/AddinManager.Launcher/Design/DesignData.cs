@@ -47,10 +47,19 @@ public sealed class DesignListViewModel
     public bool GroupByVersion { get; set; }
     public DesignFileRow? SelectedFile { get; set; } = new();
     public List<DesignFileRow> FilesView { get; } = [new(), new() { FileName = "Enscape.addin" }];
+    public int SelectedCount { get; set; } = 1;
+    public bool HasSelection { get; set; } = true;
+    public string SelectionSummary { get; set; } = "Выбрано: 1";
+    public string ToggleSelectedLabel { get; set; } = "Выключить";
+    public string DeleteSelectedLabel { get; set; } = "Удалить";
+    public string SelectAllToggleLabel { get; set; } = "Снять выбор";
     public ICommand? RefreshManualCommand { get; set; }
     public ICommand? SetScopeFilterCommand { get; set; }
     public ICommand? SetVersionFilterCommand { get; set; }
     public ICommand? SetSortOrderCommand { get; set; }
+    public ICommand? ToggleSelectedCommand { get; set; }
+    public ICommand? DeleteSelectedCommand { get; set; }
+    public ICommand? ToggleSelectAllCommand { get; set; }
 }
 
 public sealed class DesignFileRow
@@ -59,6 +68,7 @@ public sealed class DesignFileRow
     public string MetaLine { get; set; } = "2025 · User · Application + Command · 2 entries";
     public string VendorSubtitle { get; set; } = "pyRevitLabs • RAD environment";
     public bool IsEnabled { get; set; } = true;
+    public bool IsSelected { get; set; }
     public bool IsLocked { get; set; }
     public string? ErrorMessage { get; set; }
     public string? WarningMessage { get; set; } = "Повторяющийся AddInId внутри файла";
@@ -84,6 +94,13 @@ public sealed class DesignEntriesViewModel
     public DesignEntryRow? SelectedEntry { get; set; }
     public string DiscardButtonLabel { get; set; } = "Отменить";
     public string SaveButtonLabel { get; set; } = "Сохранить";
+    public int SelectedCount { get; set; } = 1;
+    public bool HasSelection { get; set; } = true;
+    public string SelectionSummary { get; set; } = "Выбрано: 1";
+    public string SelectAllToggleLabel { get; set; } = "Снять выбор";
+    public string DeleteSelectedLabel { get; set; } = "Удалить";
+    public ICommand? ToggleSelectAllCommand { get; set; }
+    public ICommand? DeleteSelectedCommand { get; set; }
 
     public DesignEntriesViewModel() => SelectedEntry = Entries[0];
 }
@@ -98,6 +115,7 @@ public sealed class DesignEntryData
 public sealed class DesignEntryRow
 {
     public string DisplayName { get; set; } = "pyRevit";
+    public bool IsSelected { get; set; }
     public AddinEntryType Type { get; set; } = AddinEntryType.Application;
     public string VendorSubtitle { get; set; } = "pyRevitLabs";
     public string AddInIdText { get; set; } = "xxxxxxxx-0001";

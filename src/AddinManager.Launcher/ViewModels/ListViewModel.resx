@@ -94,4 +94,25 @@
   <data name="GroupByVersionOption" xml:space="preserve">
     <value>Version</value>
   </data>
+  <data name="SelectionSummary" xml:space="preserve">
+    <value>Selected {0}</value>
+  </data>
+  <data name="SelectAllLabel" xml:space="preserve">
+    <value>Select all</value>
+  </data>
+  <data name="EnableSelectedLabel" xml:space="preserve">
+    <value>Enable</value>
+  </data>
+  <data name="DisableSelectedLabel" xml:space="preserve">
+    <value>Disable</value>
+  </data>
+  <data name="DeleteSelectedLabel" xml:space="preserve">
+    <value>Delete</value>
+  </data>
+  <data name="ClearSelectionLabel" xml:space="preserve">
+    <value>Clear</value>
+  </data>
+  <data name="DeleteMultipleConfirm" xml:space="preserve">
+    <value>Delete {0} files permanently?</value>
+  </data>
 </root>
