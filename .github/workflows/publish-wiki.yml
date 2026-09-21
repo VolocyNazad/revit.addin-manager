@@ -1,0 +1,71 @@
+name: Publish wiki
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - docs/WIKI.md
+      - .github/workflows/publish-wiki.yml
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: publish-wiki
+  cancel-in-progress: false
+
+jobs:
+  publish:
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: main
+          persist-credentials: false
+
+      - name: Publish Home page
+        shell: bash
+        env:
+          WIKI_TOKEN: ${{ secrets.WIKI_TOKEN }}
+        run: |
+          set -euo pipefail
+          if [[ -z "$WIKI_TOKEN" ]]; then
+            echo '::error::Add the WIKI_TOKEN Actions secret with write access to the wiki.'
+            exit 1
+          fi
+          export GIT_ASKPASS="$RUNNER_TEMP/wiki-askpass.sh"
+          export GIT_TERMINAL_PROMPT=0
+          cat > "$GIT_ASKPASS" <<'SH'
+          #!/bin/sh
+          case "$1" in
+            *Username*) printf '%s\n' 'x-access-token' ;;
+            *Password*) printf '%s\n' "$WIKI_TOKEN" ;;
+          esac
+          SH
+          chmod 700 "$GIT_ASKPASS"
+          trap 'rm -f "$GIT_ASKPASS"' EXIT
+          wiki_directory="$RUNNER_TEMP/published-wiki"
+          if ! git clone "${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}.wiki.git" "$wiki_directory"; then
+            echo '::error::Enable Wiki, save its first page on GitHub, and check WIKI_TOKEN access.'
+            exit 1
+          fi
+          export WIKI_DIRECTORY="$wiki_directory"
+          python3 - <<'PY'
+          import os
+          from pathlib import Path
+
+          text = Path('docs/WIKI.md').read_text(encoding='utf-8')
+          base = f"{os.environ['GITHUB_SERVER_URL']}/{os.environ['GITHUB_REPOSITORY']}/blob/main/docs"
+          for filename in ('repository.md', 'FEATURES.md'):
+              text = text.replace(f']({filename})', f']({base}/{filename})')
+          Path(os.environ['WIKI_DIRECTORY'], 'Home.md').write_text(text, encoding='utf-8', newline='\n')
+          PY
+          git -C "$wiki_directory" add -- Home.md
+          if git -C "$wiki_directory" diff --cached --quiet; then
+            echo 'Wiki is already up to date.'
+            exit 0
+          fi
+          git -C "$wiki_directory" -c user.name='github-actions[bot]' -c user.email='41898282+github-actions[bot]@users.noreply.github.com' commit -m 'docs(wiki): synchronize user guide'
+          git -C "$wiki_directory" push origin HEAD

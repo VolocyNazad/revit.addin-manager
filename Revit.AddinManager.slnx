@@ -1,0 +1,50 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/AddinManager.Core/AddinManager.Core.csproj" />
+    <Project Path="src/AddinManager.Launcher/AddinManager.Launcher.csproj" />
+    <Project Path="src/AddinManager.Localization/AddinManager.Localization.csproj" />
+    <Project Path="src/AddinManager.Theming/AddinManager.Theming.csproj" />
+    <Project Path="src/AddinManager.Theming.Wpf/AddinManager.Theming.Wpf.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/AddinManager.Core.Tests/AddinManager.Core.Tests.csproj" />
+    <Project Path="tests/AddinManager.Launcher.Tests/AddinManager.Launcher.Tests.csproj" />
+    <Project Path="tests/AddinManager.Localization.Tests/AddinManager.Localization.Tests.csproj" />
+    <Project Path="tests/AddinManager.Theming.Tests/AddinManager.Theming.Tests.csproj" />
+  </Folder>
+  <Folder Name="/docs/">
+    <File Path="docs/architecture.md" />
+    <File Path="docs/FEATURES.md" />
+    <File Path="docs/PLAN.md" />
+    <File Path="docs/repository.md" />
+    <File Path="docs/ui-mockup.html" />
+    <File Path="docs/WIKI.md" />
+  </Folder>
+  <Folder Name="/docs/policies/">
+    <File Path="docs/policies/development.md" />
+  </Folder>
+  <Folder Name="/scripts/">
+    <File Path="scripts/Validate-Repository.ps1" />
+  </Folder>
+  <Folder Name="/.github/" />
+  <Folder Name="/.github/workflows/">
+    <File Path=".github/workflows/build-and-test.yml" />
+    <File Path=".github/workflows/repository-policy.yml" />
+    <File Path=".github/workflows/publish-release.yml" />
+    <File Path=".github/workflows/publish-wiki.yml" />
+  </Folder>
+  <Folder Name="/solutionItems/">
+    <File Path="README.md" />
+    <File Path="AGENTS.md" />
+    <File Path="CHANGELOG.md" />
+    <File Path="CONTRIBUTING.md" />
+    <File Path="LICENSE" />
+    <File Path="global.json" />
+    <File Path="nuget.config" />
+    <File Path="GitVersion.yml" />
+    <File Path=".gitignore" />
+    <File Path=".editorconfig" />
+    <File Path="Directory.Build.props" />
+    <File Path="Directory.Packages.props" />
+  </Folder>
+</Solution>

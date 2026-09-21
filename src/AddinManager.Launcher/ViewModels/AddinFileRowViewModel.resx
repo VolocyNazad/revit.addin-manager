@@ -1,0 +1,115 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:import namespace="http://www.w3.org/XML/1998/namespace" />
+    <xsd:element name="root" msdata:IsDataSet="true">
+      <xsd:complexType>
+        <xsd:choice maxOccurs="unbounded">
+          <xsd:element name="metadata">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" />
+              </xsd:sequence>
+              <xsd:attribute name="name" use="required" type="xsd:string" />
+              <xsd:attribute name="type" type="xsd:string" />
+              <xsd:attribute name="mimetype" type="xsd:string" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="assembly">
+            <xsd:complexType>
+              <xsd:attribute name="alias" type="xsd:string" />
+              <xsd:attribute name="name" type="xsd:string" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="data">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+                <xsd:element name="comment" type="xsd:string" minOccurs="0" msdata:Ordinal="2" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" msdata:Ordinal="1" />
+              <xsd:attribute name="type" type="xsd:string" msdata:Ordinal="3" />
+              <xsd:attribute name="mimetype" type="xsd:string" msdata:Ordinal="4" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="resheader">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" />
+            </xsd:complexType>
+          </xsd:element>
+        </xsd:choice>
+      </xsd:complexType>
+    </xsd:element>
+  </xsd:schema>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <data name="ToggleNoPermission" xml:space="preserve">
+    <value>No permission to modify "{0}". For Machine-scope files, run the application as administrator.</value>
+  </data>
+  <data name="FileMeta_EntriesOne" xml:space="preserve">
+    <value>{0} entry</value>
+  </data>
+  <data name="FileMeta_EntriesFew" xml:space="preserve">
+    <value>{0} entries</value>
+  </data>
+  <data name="FileMeta_EntriesMany" xml:space="preserve">
+    <value>{0} entries</value>
+  </data>
+  <data name="EntryFallbackName" xml:space="preserve">
+    <value>Entry {0}</value>
+  </data>
+  <data name="DeleteButtonTooltip" xml:space="preserve">
+    <value>Delete file</value>
+  </data>
+  <data name="FileTooltip_PathLabel" xml:space="preserve">
+    <value>Path</value>
+  </data>
+  <data name="FileTooltip_VersionLabel" xml:space="preserve">
+    <value>Version</value>
+  </data>
+  <data name="FileTooltip_ScopeLabel" xml:space="preserve">
+    <value>Scope</value>
+  </data>
+  <data name="FileTooltip_TypeLabel" xml:space="preserve">
+    <value>Type</value>
+  </data>
+  <data name="FileTooltip_VendorLabel" xml:space="preserve">
+    <value>Vendor</value>
+  </data>
+  <data name="FileTooltip_ContentsHeader" xml:space="preserve">
+    <value>Contents</value>
+  </data>
+  <data name="WarningTooltipTitle" xml:space="preserve">
+    <value>Warning</value>
+  </data>
+  <data name="WarningNoEntries" xml:space="preserve">
+    <value>No entries in the file</value>
+  </data>
+  <data name="WarningEmptyFields" xml:space="preserve">
+    <value>Empty required fields (Assembly, FullClassName)</value>
+  </data>
+  <data name="WarningUnknownType" xml:space="preserve">
+    <value>Unknown entry Type</value>
+  </data>
+  <data name="WarningDuplicateInFile" xml:space="preserve">
+    <value>Duplicate AddInId within the file</value>
+  </data>
+  <data name="WarningDuplicateAcrossFiles" xml:space="preserve">
+    <value>Duplicate AddInId in other files (Revit {0})</value>
+  </data>
+</root>

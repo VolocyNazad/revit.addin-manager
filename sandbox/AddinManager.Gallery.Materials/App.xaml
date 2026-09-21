@@ -1,0 +1,15 @@
+<Application x:Class="AddinManager.Gallery.Materials.App"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             StartupUri="MainWindow.xaml">
+  <Application.Resources>
+    <ResourceDictionary>
+      <ResourceDictionary.MergedDictionaries>
+        <!-- База: встроенная Fluent-тема WPF. -->
+        <ResourceDictionary Source="pack://application:,,,/PresentationFramework.Fluent;component/Themes/Fluent.xaml" />
+        <!-- Материалы и стили меню/тултипов FluentWpfCore. -->
+        <ResourceDictionary Source="pack://application:,,,/FluentWpfCore;component/Themes/Generic.xaml" />
+      </ResourceDictionary.MergedDictionaries>
+    </ResourceDictionary>
+  </Application.Resources>
+</Application>

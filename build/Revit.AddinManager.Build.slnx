@@ -1,0 +1,13 @@
+<Solution>
+  <Configurations>
+    <BuildType Name="Debug" />
+    <BuildType Name="Release" />
+    <Platform Name="Any CPU" />
+  </Configurations>
+  <Folder Name="/solutionItems/">
+    <File Path="Directory.Build.props" />
+    <File Path="Directory.Packages.props" />
+    <File Path="README.md" />
+  </Folder>
+  <Project Path="Revit.AddinManager.Build.csproj" />
+</Solution>

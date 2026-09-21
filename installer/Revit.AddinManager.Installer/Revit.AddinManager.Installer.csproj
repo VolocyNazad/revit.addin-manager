@@ -1,0 +1,17 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net10.0-windows</TargetFramework>
+    <RootNamespace>Revit.AddinManager.Installer</RootNamespace>
+    <AssemblyName>Revit.AddinManager.Installer</AssemblyName>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="WixSharp.Core" />
+    <PackageReference Include="WixSharp.Msi.Core" />
+    <PackageReference Include="WixToolset.UI.wixext" />
+  </ItemGroup>
+
+</Project>

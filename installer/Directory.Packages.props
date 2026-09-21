@@ -1,0 +1,10 @@
+<Project>
+  <PropertyGroup>
+    <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageVersion Include="WixSharp.Core" Version="2.14.1" />
+    <PackageVersion Include="WixSharp.Msi.Core" Version="2.14.1" />
+    <PackageVersion Include="WixToolset.UI.wixext" Version="6.0.2" />
+  </ItemGroup>
+</Project>

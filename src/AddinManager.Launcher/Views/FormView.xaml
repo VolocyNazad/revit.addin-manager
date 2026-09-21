@@ -1,0 +1,381 @@
+<UserControl
+    x:Class="AddinManager.Launcher.Views.FormView"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:converters="clr-namespace:AddinManager.Launcher.Converters"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:design="clr-namespace:AddinManager.Launcher.Design"
+    xmlns:manifests="clr-namespace:AddinManager.Core.Manifests;assembly=AddinManager.Core"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    mc:Ignorable="d"
+    d:DataContext="{d:DesignInstance Type=design:DesignFormViewModel, IsDesignTimeCreatable=True}"
+    d:DesignWidth="370" d:DesignHeight="680"
+    TextElement.Foreground="{DynamicResource AppForegroundBrush}">
+    <UserControl.Resources>
+        <converters:NullToVisibilityConverter x:Key="HasSelection" />
+        <converters:NullOrEmptyToVisibilityConverter x:Key="NullOrEmptyToVisibility" />
+        <converters:EnumEqualsToOpacityConverter x:Key="ActiveOpacity" />
+        <BooleanToVisibilityConverter x:Key="BoolToVisibility" />
+
+        <!-- Локальная копия (стили не выносятся из вида, см. architecture.md, Themes). -->
+        <Style x:Key="EditorButtonStyle" TargetType="Button">
+            <Setter Property="Padding" Value="12,5" />
+            <Setter Property="Margin" Value="6,0,0,0" />
+            <Setter Property="Cursor" Value="Hand" />
+            <Setter Property="FontSize" Value="11" />
+            <Setter Property="Foreground" Value="{DynamicResource AppForegroundBrush}" />
+            <Setter Property="Background" Value="Transparent" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="BorderBrush" Value="{DynamicResource CaptionHoverBrush}" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border
+                            Padding="{TemplateBinding Padding}"
+                            Background="{TemplateBinding Background}"
+                            BorderBrush="{TemplateBinding BorderBrush}"
+                            BorderThickness="{TemplateBinding BorderThickness}"
+                            CornerRadius="8">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" />
+                        </Border>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+            <Style.Triggers>
+                <Trigger Property="IsEnabled" Value="False">
+                    <Setter Property="Opacity" Value="0.35" />
+                    <Setter Property="Cursor" Value="Arrow" />
+                </Trigger>
+            </Style.Triggers>
+        </Style>
+
+        <!-- Локальная копия; тип менять нельзя — чипы без команды, только индикатор. -->
+        <Style x:Key="ChipButtonStyle" TargetType="Button">
+            <Setter Property="Padding" Value="10,4" />
+            <Setter Property="Margin" Value="0,0,6,0" />
+            <Setter Property="FontSize" Value="11" />
+            <Setter Property="Foreground" Value="{DynamicResource AppForegroundBrush}" />
+            <Setter Property="Background" Value="Transparent" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="BorderBrush" Value="{DynamicResource CaptionHoverBrush}" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border
+                            Padding="{TemplateBinding Padding}"
+                            Background="{TemplateBinding Background}"
+                            BorderBrush="{TemplateBinding BorderBrush}"
+                            BorderThickness="{TemplateBinding BorderThickness}"
+                            CornerRadius="10">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" />
+                        </Border>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <!-- Локальная копия (стили не выносятся из вида). -->
+        <Style x:Key="ChipToggleStyle" TargetType="ToggleButton">
+            <Setter Property="Padding" Value="10,4" />
+            <Setter Property="Margin" Value="0,0,6,6" />
+            <Setter Property="Cursor" Value="Hand" />
+            <Setter Property="FontSize" Value="11" />
+            <Setter Property="Foreground" Value="{DynamicResource AppForegroundBrush}" />
+            <Setter Property="Background" Value="Transparent" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="BorderBrush" Value="{DynamicResource CaptionHoverBrush}" />
+            <Setter Property="Opacity" Value="0.55" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="ToggleButton">
+                        <Border
+                            Padding="{TemplateBinding Padding}"
+                            Background="{TemplateBinding Background}"
+                            BorderBrush="{TemplateBinding BorderBrush}"
+                            BorderThickness="{TemplateBinding BorderThickness}"
+                            CornerRadius="10">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" />
+                        </Border>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+            <Style.Triggers>
+                <Trigger Property="IsChecked" Value="True">
+                    <Setter Property="Opacity" Value="1" />
+                    <Setter Property="Background" Value="{DynamicResource CaptionHoverBrush}" />
+                </Trigger>
+                <!-- Revit запущен: чипс гаснет (IsLocked выставляет FormViewModel на каждый пункт). -->
+                <DataTrigger Binding="{Binding IsLocked}" Value="True">
+                    <Setter Property="IsEnabled" Value="False" />
+                </DataTrigger>
+            </Style.Triggers>
+        </Style>
+
+        
+
+        <!-- Border + PART_ContentHost вместо родного хрома TextBox — как поиск в списке. -->
+        
+
+        
+    </UserControl.Resources>
+
+    <Grid>
+        <TextBlock
+            HorizontalAlignment="Center"
+            VerticalAlignment="Center"
+            FontSize="11"
+            Opacity="0.5"
+            Text="{Binding EmptySelectionPrompt}"
+            Visibility="{Binding SelectedEntry, Converter={StaticResource HasSelection}, ConverterParameter=Invert}" />
+
+        <DockPanel LastChildFill="True" Visibility="{Binding SelectedEntry, Converter={StaticResource HasSelection}}">
+            <!-- Высота и левый край заголовка — как у соседних подпанелей (см. architecture.md, Themes). -->
+            <StackPanel Margin="12,12,12,10" DockPanel.Dock="Top">
+                <Grid>
+                    <TextBlock
+                        VerticalAlignment="Center"
+                        FontSize="13"
+                        FontWeight="SemiBold"
+                        Text="{Binding SelectedFile.FileName}"
+                        TextTrimming="CharacterEllipsis" />
+                    <StackPanel HorizontalAlignment="Right" Orientation="Horizontal">
+                        <Button
+                            Command="{Binding DiscardCommand}"
+                            Content="{Binding DiscardButtonLabel}"
+                            Style="{StaticResource EditorButtonStyle}" />
+                        <Button
+                            Command="{Binding SaveCommand}"
+                            Content="{Binding SaveButtonLabel}"
+                            Style="{StaticResource EditorButtonStyle}" />
+                    </StackPanel>
+                </Grid>
+
+                <TextBlock
+                    Margin="0,2,0,0"
+                    FontSize="11"
+                    Opacity="0.5"
+                    Text="{Binding SelectedFile.MetaLine}" />
+
+                <Border
+                    Margin="0,8,0,0"
+                    Padding="10,6"
+                    Background="{DynamicResource WarningBackgroundBrush}"
+                    BorderBrush="{DynamicResource WarningBorderBrush}"
+                    BorderThickness="1"
+                    CornerRadius="8"
+                    Visibility="{Binding ErrorMessage, Converter={StaticResource NullOrEmptyToVisibility}}">
+                    <TextBlock
+                        FontSize="11"
+                        Text="{Binding ErrorMessage}"
+                        TextWrapping="Wrap" />
+                </Border>
+            </StackPanel>
+
+            <!-- 26 справа = 16 + 10 толщина скроллбара: Fluent рисует внахлёст (см. architecture.md, Themes). -->
+            <Border Background="Transparent">
+                <ScrollViewer Padding="16,16,26,16" VerticalScrollBarVisibility="Auto">
+                    <StackPanel>
+                        <StackPanel Style="{StaticResource FieldGroupStyle}">
+                            <TextBlock Style="{StaticResource FieldLabelStyle}" Text="{Binding EntryTypeLabel}" />
+                            <!--
+                                Тип менять нельзя: чипы — только индикатор текущего (без Command,
+                                мимо мыши и фокуса), подсветка активного — как раньше.
+                            -->
+                            <StackPanel Orientation="Horizontal">
+                                <Button
+                                    Content="Application"
+                                    Focusable="False"
+                                    IsHitTestVisible="False"
+                                    Opacity="{Binding EntryType, Converter={StaticResource ActiveOpacity}, ConverterParameter={x:Static manifests:AddinEntryType.Application}}"
+                                    Style="{StaticResource ChipButtonStyle}" />
+                                <Button
+                                    Content="DBApplication"
+                                    Focusable="False"
+                                    IsHitTestVisible="False"
+                                    Opacity="{Binding EntryType, Converter={StaticResource ActiveOpacity}, ConverterParameter={x:Static manifests:AddinEntryType.DBApplication}}"
+                                    Style="{StaticResource ChipButtonStyle}" />
+                                <Button
+                                    Content="Command"
+                                    Focusable="False"
+                                    IsHitTestVisible="False"
+                                    Opacity="{Binding EntryType, Converter={StaticResource ActiveOpacity}, ConverterParameter={x:Static manifests:AddinEntryType.Command}}"
+                                    Style="{StaticResource ChipButtonStyle}" />
+                            </StackPanel>
+                        </StackPanel>
+
+                        <StackPanel Style="{StaticResource FieldGroupStyle}" Visibility="{Binding ShowName, Converter={StaticResource BoolToVisibility}}">
+                            <TextBlock Style="{StaticResource FieldLabelStyle}" Text="{Binding NameLabel}" />
+                            <TextBox Style="{StaticResource FieldTextBoxStyle}" Text="{Binding Name, UpdateSourceTrigger=PropertyChanged}" />
+                        </StackPanel>
+
+                        <StackPanel Style="{StaticResource FieldGroupStyle}" Visibility="{Binding ShowText, Converter={StaticResource BoolToVisibility}}">
+                            <TextBlock Style="{StaticResource FieldLabelStyle}" Text="{Binding ButtonTextLabel}" />
+                            <TextBox Style="{StaticResource FieldTextBoxStyle}" Text="{Binding Text, UpdateSourceTrigger=PropertyChanged}" />
+                        </StackPanel>
+
+                        <StackPanel Style="{StaticResource FieldGroupStyle}" Visibility="{Binding ShowDescription, Converter={StaticResource BoolToVisibility}}">
+                            <TextBlock Style="{StaticResource FieldLabelStyle}" Text="{Binding DescriptionLabel}" />
+                            <TextBox
+                                AcceptsReturn="True"
+                                MaxLines="4"
+                                MinLines="2"
+                                Style="{StaticResource FieldTextBoxStyle}"
+                                Text="{Binding Description, UpdateSourceTrigger=PropertyChanged}"
+                                TextWrapping="Wrap" />
+                        </StackPanel>
+
+                        <StackPanel Style="{StaticResource FieldGroupStyle}" Visibility="{Binding ShowLongDescription, Converter={StaticResource BoolToVisibility}}">
+                            <TextBlock Style="{StaticResource FieldLabelStyle}" Text="{Binding LongDescriptionLabel}" />
+                            <TextBox
+                                AcceptsReturn="True"
+                                MaxLines="4"
+                                MinLines="2"
+                                Style="{StaticResource FieldTextBoxStyle}"
+                                Text="{Binding LongDescription, UpdateSourceTrigger=PropertyChanged}"
+                                TextWrapping="Wrap" />
+                        </StackPanel>
+
+                        <StackPanel Style="{StaticResource FieldGroupStyle}">
+                            <TextBlock Style="{StaticResource FieldLabelStyle}" Text="Assembly *" />
+                            <TextBox
+                                FontFamily="Cascadia Code, Consolas, monospace"
+                                Style="{StaticResource FieldTextBoxStyle}"
+                                Text="{Binding AssemblyPath, UpdateSourceTrigger=PropertyChanged}" />
+                            <TextBlock
+                                Margin="0,4,0,0"
+                                FontSize="11"
+                                Foreground="#E5484D"
+                                Text="{Binding AssemblyPathError}"
+                                TextWrapping="Wrap"
+                                Visibility="{Binding AssemblyPathError, Converter={StaticResource NullOrEmptyToVisibility}}" />
+                        </StackPanel>
+
+                        <StackPanel Style="{StaticResource FieldGroupStyle}">
+                            <TextBlock Style="{StaticResource FieldLabelStyle}" Text="AddInId *" />
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="Auto" />
+                                </Grid.ColumnDefinitions>
+                                <TextBox
+                                    Grid.Column="0"
+                                    FontFamily="Cascadia Code, Consolas, monospace"
+                                    Style="{StaticResource FieldTextBoxStyle}"
+                                    Text="{Binding AddInIdText, UpdateSourceTrigger=PropertyChanged}" />
+                                <Button
+                                    Grid.Column="1"
+                                    Margin="6,0,0,0"
+                                    Command="{Binding GenerateAddInIdCommand}"
+                                    Content="{Binding GenerateButtonLabel}"
+                                    Style="{StaticResource EditorButtonStyle}" />
+                            </Grid>
+                            <TextBlock
+                                Margin="0,4,0,0"
+                                FontSize="11"
+                                Foreground="#E5484D"
+                                Text="{Binding AddInIdError}"
+                                TextWrapping="Wrap"
+                                Visibility="{Binding AddInIdError, Converter={StaticResource NullOrEmptyToVisibility}}" />
+                        </StackPanel>
+
+                        <StackPanel Style="{StaticResource FieldGroupStyle}">
+                            <TextBlock Style="{StaticResource FieldLabelStyle}" Text="FullClassName *" />
+                            <TextBox
+                                FontFamily="Cascadia Code, Consolas, monospace"
+                                Style="{StaticResource FieldTextBoxStyle}"
+                                Text="{Binding FullClassName, UpdateSourceTrigger=PropertyChanged}" />
+                            <TextBlock
+                                Margin="0,4,0,0"
+                                FontSize="11"
+                                Foreground="#E5484D"
+                                Text="{Binding FullClassNameError}"
+                                TextWrapping="Wrap"
+                                Visibility="{Binding FullClassNameError, Converter={StaticResource NullOrEmptyToVisibility}}" />
+                        </StackPanel>
+
+                        <StackPanel Style="{StaticResource FieldGroupStyle}" Visibility="{Binding ShowAvailabilityClassName, Converter={StaticResource BoolToVisibility}}">
+                            <TextBlock Style="{StaticResource FieldLabelStyle}" Text="AvailabilityClassName" />
+                            <TextBox
+                                FontFamily="Cascadia Code, Consolas, monospace"
+                                Style="{StaticResource FieldTextBoxStyle}"
+                                Text="{Binding AvailabilityClassName, UpdateSourceTrigger=PropertyChanged}" />
+                        </StackPanel>
+
+                        <StackPanel Style="{StaticResource FieldGroupStyle}">
+                            <TextBlock Style="{StaticResource FieldLabelStyle}" Text="VendorId" />
+                            <TextBox Style="{StaticResource FieldTextBoxStyle}" Text="{Binding VendorId, UpdateSourceTrigger=PropertyChanged}" />
+                        </StackPanel>
+
+                        <StackPanel Style="{StaticResource FieldGroupStyle}">
+                            <TextBlock Style="{StaticResource FieldLabelStyle}" Text="VendorDescription" />
+                            <TextBox Style="{StaticResource FieldTextBoxStyle}" Text="{Binding VendorDescription, UpdateSourceTrigger=PropertyChanged}" />
+                        </StackPanel>
+
+                        <StackPanel Style="{StaticResource FieldGroupStyle}" Visibility="{Binding ShowVisibilityMode, Converter={StaticResource BoolToVisibility}}">
+                            <TextBlock Style="{StaticResource FieldLabelStyle}" Text="{Binding VisibilityModesLabel}" />
+                            <ItemsControl ItemsSource="{Binding VisibilityModeOptions}">
+                                <ItemsControl.ItemsPanel>
+                                    <ItemsPanelTemplate>
+                                        <WrapPanel />
+                                    </ItemsPanelTemplate>
+                                </ItemsControl.ItemsPanel>
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate>
+                                        <ToggleButton
+                                            Content="{Binding Value}"
+                                            IsChecked="{Binding IsSelected, Mode=TwoWay}"
+                                            Style="{StaticResource ChipToggleStyle}" />
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
+                        </StackPanel>
+
+                        <StackPanel Style="{StaticResource FieldGroupStyle}" Visibility="{Binding ShowDiscipline, Converter={StaticResource BoolToVisibility}}">
+                            <TextBlock Style="{StaticResource FieldLabelStyle}" Text="{Binding DisciplinesLabel}" />
+                            <ItemsControl ItemsSource="{Binding DisciplineOptions}">
+                                <ItemsControl.ItemsPanel>
+                                    <ItemsPanelTemplate>
+                                        <WrapPanel />
+                                    </ItemsPanelTemplate>
+                                </ItemsControl.ItemsPanel>
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate>
+                                        <ToggleButton
+                                            Content="{Binding Value}"
+                                            IsChecked="{Binding IsSelected, Mode=TwoWay}"
+                                            Style="{StaticResource ChipToggleStyle}" />
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
+                        </StackPanel>
+
+                        <StackPanel Style="{StaticResource FieldGroupStyle}" Visibility="{Binding ShowLargeImage, Converter={StaticResource BoolToVisibility}}">
+                            <TextBlock Style="{StaticResource FieldLabelStyle}" Text="LargeImage" />
+                            <TextBox
+                                FontFamily="Cascadia Code, Consolas, monospace"
+                                Style="{StaticResource FieldTextBoxStyle}"
+                                Text="{Binding LargeImage, UpdateSourceTrigger=PropertyChanged}" />
+                        </StackPanel>
+
+                        <StackPanel Style="{StaticResource FieldGroupStyle}" Visibility="{Binding ShowSmallImage, Converter={StaticResource BoolToVisibility}}">
+                            <TextBlock Style="{StaticResource FieldLabelStyle}" Text="SmallImage" />
+                            <TextBox
+                                FontFamily="Cascadia Code, Consolas, monospace"
+                                Style="{StaticResource FieldTextBoxStyle}"
+                                Text="{Binding SmallImage, UpdateSourceTrigger=PropertyChanged}" />
+                        </StackPanel>
+
+                        <StackPanel Visibility="{Binding ShowToolTipImage, Converter={StaticResource BoolToVisibility}}">
+                            <TextBlock Style="{StaticResource FieldLabelStyle}" Text="ToolTipImage" />
+                            <TextBox
+                                FontFamily="Cascadia Code, Consolas, monospace"
+                                Style="{StaticResource FieldTextBoxStyle}"
+                                Text="{Binding ToolTipImage, UpdateSourceTrigger=PropertyChanged}" />
+                        </StackPanel>
+                    </StackPanel>
+                </ScrollViewer>
+            </Border>
+        </DockPanel>
+    </Grid>
+</UserControl>
+

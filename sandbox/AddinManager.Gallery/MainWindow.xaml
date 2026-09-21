@@ -1,0 +1,142 @@
+<Window x:Class="AddinManager.Gallery.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="AddinManager — Fluent gallery" Width="1080" Height="720">
+  <Grid>
+    <Grid.RowDefinitions>
+      <RowDefinition Height="Auto" />
+      <RowDefinition Height="Auto" />
+      <RowDefinition Height="*" />
+    </Grid.RowDefinitions>
+
+    <!-- Тулбар -->
+    <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="12">
+      <ComboBox Width="130" SelectedIndex="2">
+        <ComboBoxItem>Revit 2027</ComboBoxItem>
+        <ComboBoxItem>Revit 2026</ComboBoxItem>
+        <ComboBoxItem>Revit 2025</ComboBoxItem>
+        <ComboBoxItem>Revit 2021</ComboBoxItem>
+      </ComboBox>
+      <TextBox Width="220" Margin="8,0,0,0">Поиск плагина…</TextBox>
+      <Button Margin="8,0,0,0">Обновить</Button>
+      <Button Margin="8,0,0,0">+ Группа</Button>
+      <Button Margin="8,0,0,0" Click="OnShowToast">Тост Revit (демо)</Button>
+      <Button Margin="8,0,0,0" Click="OnThemeSystem">System</Button>
+      <Button Margin="8,0,0,0" Click="OnThemeLight">Light</Button>
+      <Button Margin="8,0,0,0" Click="OnThemeDark">Dark</Button>
+      <Button Margin="8,0,0,0" IsEnabled="False">Запустить Revit</Button>
+    </StackPanel>
+
+    <!-- Чипы групп -->
+    <StackPanel Grid.Row="1" Orientation="Horizontal" Margin="12,0,12,8">
+      <TextBlock VerticalAlignment="Center" Margin="0,0,8,0">Группы:</TextBlock>
+      <Button>User</Button>
+      <Button Margin="8,0,0,0">Machine</Button>
+      <Button Margin="8,0,0,0">Группа 1</Button>
+      <Button Margin="8,0,0,0">Группа 2</Button>
+      <Button Margin="8,0,0,0">Без группы</Button>
+    </StackPanel>
+
+    <Grid Grid.Row="2" Margin="12,0,12,12">
+      <Grid.ColumnDefinitions>
+        <ColumnDefinition Width="3*" />
+        <ColumnDefinition Width="2*" />
+      </Grid.ColumnDefinitions>
+
+      <!-- Список файлов -->
+      <ListBox Grid.Column="0" Margin="0,0,8,0">
+        <ListBoxItem>
+          <StackPanel Orientation="Horizontal">
+            <CheckBox IsChecked="True" VerticalAlignment="Top" />
+            <StackPanel Margin="8,0,0,0">
+              <TextBlock FontWeight="SemiBold">Revit.Linter.addin</TextBlock>
+              <TextBlock Opacity="0.7" TextTrimming="CharacterEllipsis">Volocy • Линтер моделей Revit: проверки проекта и семейств, отчеты…</TextBlock>
+              <StackPanel Orientation="Horizontal" Margin="0,4,0,0">
+                <Border CornerRadius="10" Padding="8,2,8,2" BorderThickness="1" BorderBrush="Gray">
+                  <TextBlock FontSize="11">Machine</TextBlock>
+                </Border>
+                <Border CornerRadius="10" Padding="8,2,8,2" Margin="6,0,0,0" BorderThickness="1" BorderBrush="Gray">
+                  <TextBlock FontSize="11">Вне группы</TextBlock>
+                </Border>
+                <Border CornerRadius="10" Padding="8,2,8,2" Margin="6,0,0,0" BorderThickness="1" BorderBrush="Gray">
+                  <TextBlock FontSize="11">Группа 1</TextBlock>
+                </Border>
+              </StackPanel>
+            </StackPanel>
+          </StackPanel>
+        </ListBoxItem>
+        <ListBoxItem>
+          <StackPanel Orientation="Horizontal">
+            <CheckBox IsChecked="True" VerticalAlignment="Top" />
+            <StackPanel Margin="8,0,0,0">
+              <TextBlock FontWeight="SemiBold">pyRevit.addin</TextBlock>
+              <TextBlock Opacity="0.7" TextTrimming="CharacterEllipsis">pyRevitLabs • RAD environment for Autodesk Revit: скрипты, тулбар…</TextBlock>
+              <StackPanel Orientation="Horizontal" Margin="0,4,0,0">
+                <Border CornerRadius="10" Padding="8,2,8,2" BorderThickness="1" BorderBrush="Gray">
+                  <TextBlock FontSize="11">User</TextBlock>
+                </Border>
+                <Border CornerRadius="10" Padding="8,2,8,2" Margin="6,0,0,0" BorderThickness="1" BorderBrush="Gray">
+                  <TextBlock FontSize="11">2 записи</TextBlock>
+                </Border>
+                <Border CornerRadius="10" Padding="8,2,8,2" Margin="6,0,0,0" BorderThickness="1" BorderBrush="Gray">
+                  <TextBlock FontSize="11">Application + Command</TextBlock>
+                </Border>
+              </StackPanel>
+            </StackPanel>
+          </StackPanel>
+        </ListBoxItem>
+        <ListBoxItem>
+          <StackPanel Orientation="Horizontal">
+            <CheckBox VerticalAlignment="Top" />
+            <StackPanel Margin="8,0,0,0">
+              <TextBlock FontWeight="SemiBold">Enscape.addin</TextBlock>
+              <TextBlock Opacity="0.7" TextTrimming="CharacterEllipsis">Enscape • Real-time rendering and visualization plugin for Revit…</TextBlock>
+              <StackPanel Orientation="Horizontal" Margin="0,4,0,0">
+                <Border CornerRadius="10" Padding="8,2,8,2" BorderThickness="1" BorderBrush="Gray">
+                  <TextBlock FontSize="11">Machine</TextBlock>
+                </Border>
+                <Border CornerRadius="10" Padding="8,2,8,2" Margin="6,0,0,0" BorderThickness="1" BorderBrush="Gray">
+                  <TextBlock FontSize="11">Группа 2</TextBlock>
+                </Border>
+              </StackPanel>
+            </StackPanel>
+          </StackPanel>
+        </ListBoxItem>
+      </ListBox>
+
+      <!-- Редактор -->
+      <GroupBox Grid.Column="1" Header="Редактор: pyRevit.addin">
+        <ScrollViewer VerticalScrollBarVisibility="Auto">
+          <StackPanel Margin="8">
+            <CheckBox IsChecked="True">Отдельный контекст (2026+)</CheckBox>
+            <TextBlock Margin="0,8,0,2">ContextName</TextBlock>
+            <TextBox>pyRevit</TextBox>
+            <TextBlock Margin="0,8,0,2">Name</TextBlock>
+            <TextBox>pyRevit</TextBox>
+            <TextBlock Margin="0,8,0,2">Assembly *</TextBlock>
+            <TextBox>pyRevit\pyRevit.dll</TextBox>
+            <TextBlock Margin="0,8,0,2">AddInId (GUID) *</TextBlock>
+            <TextBox>xxxxxxxx-xxxx-xxxx-xxxx-000000000001</TextBox>
+            <TextBlock Margin="0,8,0,2">VendorDescription</TextBlock>
+            <TextBox>RAD environment for Autodesk Revit</TextBox>
+            <StackPanel Orientation="Horizontal" Margin="0,12,0,0">
+              <Button>Сохранить</Button>
+              <Button Margin="8,0,0,0">Отменить</Button>
+            </StackPanel>
+          </StackPanel>
+        </ScrollViewer>
+      </GroupBox>
+    </Grid>
+
+    <!-- Плавающий тост -->
+    <Border x:Name="Toast" Grid.Row="0" Grid.RowSpan="3"
+            HorizontalAlignment="Center" VerticalAlignment="Top" Margin="0,12,0,0"
+            CornerRadius="10" Padding="12,8,12,8" BorderThickness="1" BorderBrush="DarkGoldenrod"
+            Background="LightGoldenrodYellow" Visibility="Collapsed">
+      <StackPanel Orientation="Horizontal">
+        <TextBlock><Bold>Revit запущен.</Bold> Переключение заблокировано.</TextBlock>
+        <Button Margin="12,0,0,0" Padding="6,0,6,0" Click="OnHideToast">✕</Button>
+      </StackPanel>
+    </Border>
+  </Grid>
+</Window>

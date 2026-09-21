@@ -1,0 +1,11 @@
+<Solution>
+  <Configurations>
+    <Platform Name="Any CPU" />
+  </Configurations>
+  <Folder Name="/solutionItems/">
+    <File Path="Directory.Build.props" />
+    <File Path="Directory.Packages.props" />
+    <File Path="nuget.config" />
+  </Folder>
+  <Project Path="Revit.AddinManager.Installer/Revit.AddinManager.Installer.csproj" />
+</Solution>

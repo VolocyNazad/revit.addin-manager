@@ -1,0 +1,7 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="AddinManager.Gallery/AddinManager.Gallery.csproj" />
+    <Project Path="AddinManager.Gallery.WpfUi/AddinManager.Gallery.WpfUi.csproj" />
+    <Project Path="AddinManager.Gallery.Materials/AddinManager.Gallery.Materials.csproj" />
+  </Folder>
+</Solution>

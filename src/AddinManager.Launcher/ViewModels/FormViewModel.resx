@@ -1,0 +1,106 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:import namespace="http://www.w3.org/XML/1998/namespace" />
+    <xsd:element name="root" msdata:IsDataSet="true">
+      <xsd:complexType>
+        <xsd:choice maxOccurs="unbounded">
+          <xsd:element name="metadata">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" />
+              </xsd:sequence>
+              <xsd:attribute name="name" use="required" type="xsd:string" />
+              <xsd:attribute name="type" type="xsd:string" />
+              <xsd:attribute name="mimetype" type="xsd:string" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="assembly">
+            <xsd:complexType>
+              <xsd:attribute name="alias" type="xsd:string" />
+              <xsd:attribute name="name" type="xsd:string" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="data">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+                <xsd:element name="comment" type="xsd:string" minOccurs="0" msdata:Ordinal="2" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" msdata:Ordinal="1" />
+              <xsd:attribute name="type" type="xsd:string" msdata:Ordinal="3" />
+              <xsd:attribute name="mimetype" type="xsd:string" msdata:Ordinal="4" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="resheader">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" />
+            </xsd:complexType>
+          </xsd:element>
+        </xsd:choice>
+      </xsd:complexType>
+    </xsd:element>
+  </xsd:schema>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <data name="Form_EmptySelectionPrompt" xml:space="preserve">
+    <value>Select an entry in the list on the left</value>
+  </data>
+  <data name="DiscardButton" xml:space="preserve">
+    <value>Discard</value>
+  </data>
+  <data name="SaveButton" xml:space="preserve">
+    <value>Save</value>
+  </data>
+  <data name="Form_EntryTypeLabel" xml:space="preserve">
+    <value>Type</value>
+  </data>
+  <data name="Form_NameLabel" xml:space="preserve">
+    <value>Name *</value>
+  </data>
+  <data name="Form_ButtonTextLabel" xml:space="preserve">
+    <value>Text *</value>
+  </data>
+  <data name="Form_DescriptionLabel" xml:space="preserve">
+    <value>Description</value>
+  </data>
+  <data name="Form_LongDescriptionLabel" xml:space="preserve">
+    <value>LongDescription</value>
+  </data>
+  <data name="GenerateAddInIdButton" xml:space="preserve">
+    <value>Generate</value>
+  </data>
+  <data name="Form_VisibilityModesLabel" xml:space="preserve">
+    <value>VisibilityMode</value>
+  </data>
+  <data name="Form_DisciplinesLabel" xml:space="preserve">
+    <value>Discipline</value>
+  </data>
+  <data name="FormError_InvalidAddInId" xml:space="preserve">
+    <value>Invalid AddInId: '{0}'.</value>
+  </data>
+  <data name="FormError_AssemblyAndClassRequired" xml:space="preserve">
+    <value>Assembly and FullClassName are required.</value>
+  </data>
+  <data name="AssemblyPathRequired" xml:space="preserve">
+    <value>Assembly is required.</value>
+  </data>
+  <data name="FullClassNameRequired" xml:space="preserve">
+    <value>FullClassName is required.</value>
+  </data>
+</root>

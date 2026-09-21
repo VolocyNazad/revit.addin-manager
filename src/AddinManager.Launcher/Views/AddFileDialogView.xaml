@@ -1,0 +1,227 @@
+<Window x:Class="AddinManager.Launcher.Views.AddFileDialogView"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:behaviors="clr-namespace:AddinManager.Launcher.Behaviors"
+        xmlns:converters="clr-namespace:AddinManager.Launcher.Converters"
+        xmlns:i="http://schemas.microsoft.com/xaml/behaviors"
+        xmlns:storage="clr-namespace:AddinManager.Core.Storage;assembly=AddinManager.Core"
+        Title=""
+        MinWidth="340"
+        MaxWidth="520"
+        AllowsTransparency="True"
+        Background="Transparent"
+        Foreground="{DynamicResource AppForegroundBrush}"
+        ResizeMode="NoResize"
+        TextElement.Foreground="{DynamicResource AppForegroundBrush}"
+        ShowInTaskbar="False"
+        SizeToContent="WidthAndHeight"
+        WindowStartupLocation="CenterScreen"
+        WindowStyle="None">
+    <i:Interaction.Behaviors>
+        <behaviors:DialogResultBehavior DialogResult="{Binding Result}" />
+    </i:Interaction.Behaviors>
+    <Window.Resources>
+        <converters:EnumEqualsToOpacityConverter x:Key="ActiveOpacity" />
+        <converters:NullOrEmptyToVisibilityConverter x:Key="NullOrEmptyToVisibility" />
+
+        <!-- Локальная копия (стили не выносятся из вида); как Save/Discard в форме. -->
+        <Style x:Key="EditorButtonStyle" TargetType="Button">
+            <Setter Property="Padding" Value="12,5" />
+            <Setter Property="Margin" Value="6,0,0,0" />
+            <Setter Property="Cursor" Value="Hand" />
+            <Setter Property="FontSize" Value="11" />
+            <Setter Property="Foreground" Value="{DynamicResource AppForegroundBrush}" />
+            <Setter Property="Background" Value="Transparent" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="BorderBrush" Value="{DynamicResource CaptionHoverBrush}" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border
+                            Padding="{TemplateBinding Padding}"
+                            Background="{TemplateBinding Background}"
+                            BorderBrush="{TemplateBinding BorderBrush}"
+                            BorderThickness="{TemplateBinding BorderThickness}"
+                            CornerRadius="8">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" />
+                        </Border>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+            <Style.Triggers>
+                <Trigger Property="IsEnabled" Value="False">
+                    <Setter Property="Opacity" Value="0.35" />
+                    <Setter Property="Cursor" Value="Arrow" />
+                </Trigger>
+            </Style.Triggers>
+        </Style>
+
+        <!-- Локальные копии (стили не выносятся из вида). -->
+        
+        
+        <Style x:Key="ChipButtonStyle" TargetType="Button">
+            <Setter Property="Padding" Value="10,4" />
+            <Setter Property="Margin" Value="0,0,6,6" />
+            <Setter Property="Cursor" Value="Hand" />
+            <Setter Property="FontSize" Value="11" />
+            <Setter Property="Foreground" Value="{DynamicResource AppForegroundBrush}" />
+            <Setter Property="Background" Value="Transparent" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="BorderBrush" Value="{DynamicResource CaptionHoverBrush}" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border
+                            Padding="{TemplateBinding Padding}"
+                            Background="{TemplateBinding Background}"
+                            BorderBrush="{TemplateBinding BorderBrush}"
+                            BorderThickness="{TemplateBinding BorderThickness}"
+                            CornerRadius="10">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" />
+                        </Border>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+        <Style x:Key="ChipToggleStyle" TargetType="ToggleButton">
+            <Setter Property="Padding" Value="10,4" />
+            <Setter Property="Margin" Value="0,0,6,0" />
+            <Setter Property="Cursor" Value="Hand" />
+            <Setter Property="FontSize" Value="11" />
+            <Setter Property="Foreground" Value="{DynamicResource AppForegroundBrush}" />
+            <Setter Property="Background" Value="Transparent" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="BorderBrush" Value="{DynamicResource CaptionHoverBrush}" />
+            <Setter Property="Opacity" Value="0.55" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="ToggleButton">
+                        <Border
+                            Padding="{TemplateBinding Padding}"
+                            Background="{TemplateBinding Background}"
+                            BorderBrush="{TemplateBinding BorderBrush}"
+                            BorderThickness="{TemplateBinding BorderThickness}"
+                            CornerRadius="10">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" />
+                        </Border>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+            <Style.Triggers>
+                <Trigger Property="IsChecked" Value="True">
+                    <Setter Property="Opacity" Value="1" />
+                    <Setter Property="Background" Value="{DynamicResource CaptionHoverBrush}" />
+                </Trigger>
+            </Style.Triggers>
+        </Style>
+    </Window.Resources>
+    <Border Padding="20,16"
+            Background="{DynamicResource AppBackgroundBrush}"
+            BorderBrush="{DynamicResource CaptionHoverBrush}"
+            BorderThickness="1"
+            CornerRadius="10">
+        <i:Interaction.Behaviors>
+            <behaviors:WindowDragBehavior />
+        </i:Interaction.Behaviors>
+        <StackPanel>
+            <TextBlock Style="{StaticResource FieldLabelStyle}" Text="{Binding FileNameLabel}" />
+            <TextBox Style="{StaticResource FieldTextBoxStyle}" Text="{Binding FileName, UpdateSourceTrigger=PropertyChanged}" />
+
+            <TextBlock Margin="0,8,0,0" Style="{StaticResource FieldLabelStyle}" Text="{Binding ScopeLabel}" />
+            <StackPanel Margin="0,0,0,8" Orientation="Horizontal">
+                <Button
+                    Command="{Binding SetScopeCommand}"
+                    CommandParameter="{x:Static storage:AddinScope.User}"
+                    Content="User"
+                    Opacity="{Binding Scope, Converter={StaticResource ActiveOpacity}, ConverterParameter={x:Static storage:AddinScope.User}}"
+                    Style="{StaticResource ChipButtonStyle}" />
+                <Button
+                    Command="{Binding SetScopeCommand}"
+                    CommandParameter="{x:Static storage:AddinScope.Machine}"
+                    Content="Machine"
+                    Opacity="{Binding Scope, Converter={StaticResource ActiveOpacity}, ConverterParameter={x:Static storage:AddinScope.Machine}}"
+                    Style="{StaticResource ChipButtonStyle}" />
+            </StackPanel>
+
+            <TextBlock Style="{StaticResource FieldLabelStyle}" Text="{Binding VersionLabel}" />
+            <WrapPanel Margin="0,0,0,8">
+                <Button
+                    Command="{Binding SetVersionCommand}"
+                    CommandParameter="2021"
+                    Content="2021"
+                    Opacity="{Binding Version, Converter={StaticResource ActiveOpacity}, ConverterParameter=2021}"
+                    Style="{StaticResource ChipButtonStyle}" />
+                <Button
+                    Command="{Binding SetVersionCommand}"
+                    CommandParameter="2022"
+                    Content="2022"
+                    Opacity="{Binding Version, Converter={StaticResource ActiveOpacity}, ConverterParameter=2022}"
+                    Style="{StaticResource ChipButtonStyle}" />
+                <Button
+                    Command="{Binding SetVersionCommand}"
+                    CommandParameter="2023"
+                    Content="2023"
+                    Opacity="{Binding Version, Converter={StaticResource ActiveOpacity}, ConverterParameter=2023}"
+                    Style="{StaticResource ChipButtonStyle}" />
+                <Button
+                    Command="{Binding SetVersionCommand}"
+                    CommandParameter="2024"
+                    Content="2024"
+                    Opacity="{Binding Version, Converter={StaticResource ActiveOpacity}, ConverterParameter=2024}"
+                    Style="{StaticResource ChipButtonStyle}" />
+                <Button
+                    Command="{Binding SetVersionCommand}"
+                    CommandParameter="2025"
+                    Content="2025"
+                    Opacity="{Binding Version, Converter={StaticResource ActiveOpacity}, ConverterParameter=2025}"
+                    Style="{StaticResource ChipButtonStyle}" />
+                <Button
+                    Command="{Binding SetVersionCommand}"
+                    CommandParameter="2026"
+                    Content="2026"
+                    Opacity="{Binding Version, Converter={StaticResource ActiveOpacity}, ConverterParameter=2026}"
+                    Style="{StaticResource ChipButtonStyle}" />
+                <Button
+                    Command="{Binding SetVersionCommand}"
+                    CommandParameter="2027"
+                    Content="2027"
+                    Opacity="{Binding Version, Converter={StaticResource ActiveOpacity}, ConverterParameter=2027}"
+                    Style="{StaticResource ChipButtonStyle}" />
+            </WrapPanel>
+
+            <ToggleButton
+                Content="{Binding DisabledLabel}"
+                IsChecked="{Binding IsDisabled, Mode=TwoWay}"
+                Style="{StaticResource ChipToggleStyle}" />
+
+            <Border
+                Margin="0,8,0,0"
+                Padding="10,6"
+                Background="{DynamicResource WarningBackgroundBrush}"
+                BorderBrush="{DynamicResource WarningBorderBrush}"
+                BorderThickness="1"
+                CornerRadius="8"
+                Visibility="{Binding ErrorMessage, Converter={StaticResource NullOrEmptyToVisibility}}">
+                <TextBlock
+                    FontSize="11"
+                    Text="{Binding ErrorMessage}"
+                    TextWrapping="Wrap" />
+            </Border>
+
+            <StackPanel Margin="0,10,0,0"
+                        HorizontalAlignment="Right"
+                        Orientation="Horizontal">
+                <Button Command="{Binding CancelCommand}"
+                        Content="{Binding CancelButtonLabel}"
+                        IsCancel="True"
+                        Style="{StaticResource EditorButtonStyle}" />
+                <Button Margin="4,0,0,0"
+                        Command="{Binding AddCommand}"
+                        Content="{Binding AddButtonLabel}"
+                        IsDefault="True"
+                        Style="{StaticResource EditorButtonStyle}" />
+            </StackPanel>
+        </StackPanel>
+    </Border>
+</Window>
+

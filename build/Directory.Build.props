@@ -1,0 +1,8 @@
+<Project>
+  <PropertyGroup>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>true</ImplicitUsings>
+    <LangVersion>latest</LangVersion>
+    <Configurations>Debug;Release</Configurations>
+  </PropertyGroup>
+</Project>

@@ -1,0 +1,326 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Revit Addin Manager — макет UI</title>
+<style>
+  :root{
+    --bg:#f3f3f3; --card:#ffffff; --card2:#fafafa; --text:#1b1b1b; --sub:#616161;
+    --border:#e1e1e1; --accent:#005fb8; --accent-fg:#fff; --radius:8px;
+    --badge:#eef4fb; --badge-t:#0f4c81; --mut:#f0f0f0;
+  }
+  [data-theme="dark"]{
+    --bg:#202020; --card:#2b2b2b; --card2:#2d2d2d; --text:#f3f3f3; --sub:#a7a7a7;
+    --border:#3a3a3a; --accent:#4cc2ff; --accent-fg:#06283d; --badge:#0e2a3f;
+    --badge-t:#7cc7ff; --mut:#333333;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--text);font:14px/1.45 "Segoe UI",system-ui,sans-serif}
+  .win{max-width:1180px;margin:24px auto;background:var(--card);border:1px solid var(--border);border-radius:12px;overflow:hidden}
+  .title{display:flex;align-items:center;gap:10px;padding:10px 16px;border-bottom:1px solid var(--border);background:var(--card2)}
+  .title b{font-size:14px}
+  .toolbar{display:flex;gap:8px;align-items:center;padding:12px 16px;border-bottom:1px solid var(--border);flex-wrap:wrap}
+  select,input[type=search]{background:var(--card);color:var(--text);border:1px solid var(--border);border-radius:6px;padding:6px 10px}
+  input[type=search]{min-width:220px}
+  button{border:1px solid var(--border);background:var(--card);color:var(--text);border-radius:6px;padding:6px 12px;cursor:pointer}
+  button.primary{background:var(--accent);border-color:var(--accent);color:var(--accent-fg);font-weight:600}
+  button.icon{padding:6px 9px}
+  button.on{outline:2px solid var(--accent)}
+  .banner{margin:0;padding:8px 16px;background:#fff4ce;color:#4d3400;border-bottom:1px solid var(--border);display:none}
+  [data-theme="dark"] .banner{background:#4d3400;color:#ffe7a3}
+  .win{position:relative}
+  .toast{position:absolute;top:12px;left:50%;transform:translateX(-50%);z-index:20;
+    display:none;align-items:center;gap:10px;max-width:min(640px,90%);
+    padding:10px 12px;border-radius:10px;font-size:13px;
+    background:rgba(255,244,206,.82);color:#4d3400;border:1px solid rgba(122,87,0,.45);
+    -webkit-backdrop-filter:blur(14px) saturate(1.2);backdrop-filter:blur(14px) saturate(1.2);
+    box-shadow:0 8px 28px rgba(0,0,0,.18)}
+  [data-theme="dark"] .toast{background:rgba(67,45,0,.72);color:#ffe7a3;border-color:rgba(255,231,163,.4)}
+  .toast .dot{flex:none;width:8px;height:8px;border-radius:50%;background:#d79b00}
+  .toast button{border:none;background:transparent;font-size:14px;padding:2px 6px}
+  .splitter{flex:none;width:9px;cursor:col-resize;position:relative}
+  .splitter:after{content:"";position:absolute;inset:0 3px;background:transparent;border-radius:4px}
+  .splitter:hover:after,.splitter.drag:after{background:var(--accent);opacity:.55}
+  body[data-layout="list"] .splitter{display:none}
+  body[data-layout="editor"] .splitter{display:none}
+  .filters{display:flex;gap:8px;align-items:center;padding:10px 16px;border-bottom:1px solid var(--border);flex-wrap:wrap}
+  .chip{border-radius:20px}
+  .chip.on{background:var(--accent);border-color:var(--accent);color:var(--accent-fg)}
+  .body{display:flex;min-height:560px}
+  .list{flex:0 1 auto;width:60%;padding:12px 16px;min-width:200px}
+  .editor{flex:1 1 auto;padding:12px 16px;background:var(--card2);min-width:220px}
+  .row{display:flex;gap:10px;align-items:flex-start;background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:10px 12px;margin:6px 0}
+  .row.off{opacity:.62}
+  .row .nm{font-weight:600}
+  .row .mt{color:var(--sub);font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:640px}
+  .badges{display:flex;gap:6px;flex-wrap:wrap;margin-top:6px}
+  .b{font-size:11px;background:var(--badge);color:var(--badge-t);border-radius:20px;padding:2px 9px;white-space:nowrap}
+  .b.g{background:var(--mut);color:var(--sub)}
+  .b.sel{background:var(--accent);color:var(--accent-fg)}
+  .switch{position:relative;width:40px;height:22px;flex:none;margin-top:2px}
+  .switch input{opacity:0;width:100%;height:100%;margin:0;cursor:pointer}
+  .tr{position:absolute;inset:0;background:#c7c7c7;border-radius:20px;pointer-events:none;transition:.15s}
+  [data-theme="dark"] .tr{background:#555}
+  .tr:after{content:"";position:absolute;top:3px;left:3px;width:16px;height:16px;background:#fff;border-radius:50%;transition:.15s}
+  .switch input:checked + .tr{background:var(--accent)}
+  .switch input:checked + .tr:after{left:21px}
+  .fld{margin:8px 0}
+  .fld label{display:block;font-size:12px;color:var(--sub);margin-bottom:4px}
+  .fld input,.fld textarea{width:100%;background:var(--card);color:var(--text);border:1px solid var(--border);border-radius:6px;padding:6px 10px;font:inherit}
+  .fld textarea{font-family:Consolas,monospace;font-size:12px;min-height:150px}
+  .eh{display:flex;align-items:center;gap:8px;margin-bottom:6px}
+  .eh .x{margin-left:auto}
+  .hint{color:var(--sub);font-size:12px;margin-top:10px}
+  .kids{margin:6px 0 2px 50px;border-left:2px solid var(--border);padding-left:10px;display:none}
+  .row.open .kids{display:block}
+  .kid{font-size:12px;padding:3px 0;color:var(--sub)}
+  .kid b{color:var(--text);font-weight:600}
+  .caret{flex:none;border:none;background:transparent;font-size:12px;color:var(--sub);padding:2px 4px;margin-top:1px}
+  body[data-layout="list"] .editor{display:none}
+  body[data-layout="editor"] .list{display:none}
+  body[data-layout="editor"] .editor{flex:1;border-left:none}
+  .foot{padding:8px 16px;border-top:1px solid var(--border);color:var(--sub);font-size:12px;display:flex;gap:12px}
+  @media (max-width:900px){.body{flex-direction:column}.editor{border-left:none;border-top:1px solid var(--border)}}
+</style>
+</head>
+<body data-layout="split">
+<div class="win" id="win" data-theme="light">
+  <div class="title"><b>Revit Addin Manager</b><span style="color:var(--sub)">— макет</span></div>
+  <div class="toolbar">
+    <select title="Версия Revit"><option>Revit 2027</option><option>Revit 2026</option><option selected>Revit 2025</option><option>Revit 2024</option><option>Revit 2023</option><option>Revit 2022</option><option>Revit 2021</option></select>
+    <input type="search" id="q" placeholder="Поиск плагина…">
+    <button title="Рескан диска и конфига (F5)">Обновить</button>
+    <button>+ Группа</button>
+    <button class="icon" data-l="list" title="Только список">☰</button>
+    <button class="icon on" data-l="split" title="Список + редактор">◫</button>
+    <button class="icon" data-l="editor" title="Только редактор">▭</button>
+    <button id="theme" title="Светлая / темная">🌙</button>
+    <button id="revit" title="ДЕМО: в приложении статус определяется фоновым опросом Revit.exe">Демо: Revit открыт (выкл)</button>
+    <button class="primary" style="margin-left:auto">Запустить Revit</button>
+  </div>
+  <div class="banner" id="banner">Revit запущен — тоглы и редактор заблокированы. Изменения применятся после закрытия Revit.</div>
+  <div class="toast" id="toast" role="alert"><span class="dot"></span><span><b>Revit запущен.</b> Переключение и редактор заблокированы — изменения применятся после закрытия Revit.</span><button id="toast-x" title="Скрыть">✕</button></div>
+  <div class="filters" id="filters">
+    <span style="color:var(--sub)">Группы:</span>
+    <button class="chip on" data-g="all">Все</button>
+    <button class="chip" data-g="scope-user" title="Системная группа: фильтр; двойной клик — выбрать все User">User ☐</button>
+    <button class="chip" data-g="scope-machine" title="Системная группа: фильтр; двойной клик — выбрать все Machine">Machine ☐</button>
+    <button class="chip" data-g="g1" title="Фильтр; двойной клик — выбрать группу">Группа 1 ☐</button>
+    <button class="chip" data-g="g2" title="Фильтр; двойной клик — выбрать группу">Группа 2 ☐</button>
+    <button class="chip" data-g="none">Без группы</button>
+    <button id="btn-comp" title="Состав активной группы — в правой панели" style="display:none">Состав</button>
+  </div>
+  <div class="body">
+    <div class="list" id="list">
+      <div class="row" data-groups="g1 scope-machine" data-name="revit.linter volocy">
+        <label class="switch"><input type="checkbox" checked><span class="tr"></span></label>
+        <div><div class="nm">Revit.Linter</div><div class="mt" title="Volocy • Линтер моделей Revit: проверки проекта и семейств">Volocy • Линтер моделей Revit: проверки проекта и семейств, отчеты…</div>
+        <div class="badges"><span class="b" title="Скоуп">Machine</span><span class="b">Вне группы</span><span class="b g">Группа 1</span></div></div></div>
+      <div class="row" data-groups="g1 g2 scope-user" data-name="pyrevit">
+        <button class="caret" title="Записи манифеста">▶</button>
+        <label class="switch"><input type="checkbox" checked><span class="tr"></span></label>
+        <div style="min-width:0"><div class="nm">pyRevit.addin</div><div class="mt" title="pyRevitLabs • RAD environment for Autodesk Revit">pyRevitLabs • RAD environment for Autodesk Revit: скрипты, тулбар…</div>
+        <div class="badges"><span class="b">User</span><span class="b">2 записи</span><span class="b">Application + Command</span><span class="b" title="UseRevitContext=False, ContextName=pyRevit">контекст: pyRevit</span><span class="b g">Группа 1</span><span class="b g">Группа 2</span></div>
+        <div class="kids">
+          <div class="kid"><span class="b">Application</span> <b>pyRevit</b> • основная панель • <span title="AddInId">xxxxxxxx-0001</span></div>
+          <div class="kid"><span class="b">Command</span> <b>Открыть журнал</b> • команда • <span title="AddInId">xxxxxxxx-0002</span></div>
+          <div class="kid" style="font-style:italic">Записей две — включатся/выключатся вместе с файлом</div>
+        </div></div></div>
+      <div class="row off" data-groups="g2 scope-machine" data-name="enscape">
+        <label class="switch"><input type="checkbox"><span class="tr"></span></label>
+        <div><div class="nm">Enscape</div><div class="mt" title="Enscape • Real-time rendering and visualization plugin for Revit">Enscape • Real-time rendering and visualization plugin for Revit…</div>
+        <div class="badges"><span class="b">Machine</span><span class="b g">Группа 2</span></div></div></div>
+      <div class="row" data-groups="scope-user" data-name="rvt-tools">
+        <label class="switch"><input type="checkbox" checked><span class="tr"></span></label>
+        <div><div class="nm">RVT-Tools</div><div class="mt" title="Volocy • Набор мелких инструментов для Revit">Volocy • Набор мелких инструментов для Revit: переименование, экспорт…</div>
+        <div class="badges"><span class="b">User</span><span class="b">Вне группы</span><span class="b">новый</span></div></div></div>
+      <div class="hint">Плоский список: каждая строка одна, принадлежность — бейджами. Клик по чипу — фильтр, двойной клик — выбор группы. Подзаголовок: Vendor • VendorDescription (обрезка). Состояние ничего не прячет, только поиск/фильтр.</div>
+    </div>
+    <div class="splitter" id="splitter" title="Тяните для изменения ширины"></div>
+    <div class="editor">
+      <div id="ed-manifest">
+      <div class="eh"><b>Редактор: pyRevit.addin</b><span class="b">User</span><span class="b">Включен</span><button class="x" title="Закрыть">✕</button></div>
+      <div class="fld" id="ed-iso"><label>Изоляция — уровень файла (2026+)</label><div style="display:flex;gap:10px;align-items:center;margin-bottom:8px"><label class="switch" style="margin-top:0"><input type="checkbox" checked><span class="tr"></span></label><span style="font-size:13px" title="UseRevitContext=False: свой AssemblyLoadContext">Отдельный контекст</span></div><label>ContextName</label><input value="pyRevit" title="Пусто = контекст папки; одинаковое имя сводит файлы разных папок в один контекст"></div>
+      <div class="filters" style="padding:0 0 8px;border:none" id="ed-tabs">
+        <button class="chip on" data-tab="e1">pyRevit (Application)</button>
+        <button class="chip" data-tab="e2">Открыть журнал (Command)</button>
+        <button class="chip" data-tab="xml">XML</button>
+      </div>
+      <div id="tab-e1">
+      <div class="fld"><label>Type</label><select class="tsel" data-pane="tab-e1" style="width:100%"><option value="a" selected>Application</option><option value="d">DBApplication</option><option value="c">Command</option></select></div>
+      <div class="fld" data-t="a d"><label>Name</label><input value="pyRevit"></div>
+      <div class="fld" data-t="c"><label>Text (текст кнопки)</label><input value="" placeholder="Текст кнопки"></div>
+      <div class="fld" data-t="a d c"><label>Description</label><input value="RAD environment for Autodesk Revit"></div>
+      <div class="fld" data-t="c"><label>LongDescription</label><input value="" placeholder="—"></div>
+      <div class="fld" data-t="a d c"><label>Assembly *</label><input value="C:\Users\you\AppData\Roaming\Autodesk\Revit\Addins\2025\pyRevit\pyRevit.dll"></div>
+      <div class="fld" data-t="a d c"><label>AddInId (GUID) *</label><input value="xxxxxxxx-xxxx-xxxx-xxxx-000000000001"></div>
+      <div class="fld" data-t="a d c"><label>FullClassName *</label><input value="pyRevit.Entry"></div>
+      <div class="fld" data-t="c"><label>AvailabilityClassName</label><input value="" placeholder="—"></div>
+      <div class="fld" data-t="a d c"><label>VendorId</label><input value="pyRevitLabs"></div>
+      <div class="fld" data-t="a d c"><label>VendorDescription</label><input value="RAD environment for Autodesk Revit: скрипты, тулбар"></div>
+      <div style="display:flex;gap:16px" data-t="c">
+      <div class="fld" style="flex:1;min-width:0"><label>VisibilityMode (multi)</label><div style="display:flex;flex-direction:column;gap:8px;font-size:13px"><div style="display:flex;gap:10px;align-items:center"><label class="switch" style="margin-top:0"><input type="checkbox" checked><span class="tr"></span></label>AlwaysVisible</div><div style="display:flex;gap:10px;align-items:center"><label class="switch" style="margin-top:0"><input type="checkbox"><span class="tr"></span></label>NotVisibleInFamily</div><div style="display:flex;gap:10px;align-items:center"><label class="switch" style="margin-top:0"><input type="checkbox"><span class="tr"></span></label>NotVisibleInProject</div></div></div>
+      <div class="fld" style="flex:1;min-width:0"><label>Discipline (multi)</label><div style="display:flex;flex-direction:column;gap:8px;font-size:13px"><div style="display:flex;gap:10px;align-items:center"><label class="switch" style="margin-top:0"><input type="checkbox"><span class="tr"></span></label>Architecture</div><div style="display:flex;gap:10px;align-items:center"><label class="switch" style="margin-top:0"><input type="checkbox"><span class="tr"></span></label>Structure</div><div style="display:flex;gap:10px;align-items:center"><label class="switch" style="margin-top:0"><input type="checkbox"><span class="tr"></span></label>MEP</div></div></div>
+      </div>
+      <div class="fld" data-t="c"><label>Images: LargeImage / SmallImage / ToolTipImage</label><input value="" placeholder="пути к картинкам"></div>
+      </div>
+      <div id="tab-e2" style="display:none">
+      <div class="fld"><label>Type</label><select class="tsel" data-pane="tab-e2" style="width:100%"><option value="a">Application</option><option value="d">DBApplication</option><option value="c" selected>Command</option></select></div>
+      <div class="fld" data-t="a d" style="display:none"><label>Name</label><input value="" placeholder="—"></div>
+      <div class="fld" data-t="c"><label>Text (текст кнопки)</label><input value="Открыть журнал"></div>
+      <div class="fld" data-t="a d c"><label>Description</label><input value="Открывает журнал выполнения скриптов"></div>
+      <div class="fld" data-t="c"><label>LongDescription</label><input value="Показывает окно журнала pyRevit с выводом последнего скрипта"></div>
+      <div class="fld" data-t="a d c"><label>Assembly *</label><input value="C:\Users\you\AppData\Roaming\Autodesk\Revit\Addins\2025\pyRevit\pyRevit.dll"></div>
+      <div class="fld" data-t="a d c"><label>AddInId (GUID) *</label><input value="xxxxxxxx-xxxx-xxxx-xxxx-000000000002"></div>
+      <div class="fld" data-t="a d c"><label>FullClassName *</label><input value="pyRevit.CmdOpenLog"></div>
+      <div class="fld" data-t="c"><label>AvailabilityClassName</label><input value="pyRevit.CmdAvailability"></div>
+      <div class="fld" data-t="a d c"><label>VendorId</label><input value="pyRevitLabs"></div>
+      <div class="fld" data-t="a d c"><label>VendorDescription</label><input value="RAD environment for Autodesk Revit"></div>
+      <div style="display:flex;gap:16px" data-t="c">
+      <div class="fld" style="flex:1;min-width:0"><label>VisibilityMode (multi)</label><div style="display:flex;flex-direction:column;gap:8px;font-size:13px"><div style="display:flex;gap:10px;align-items:center"><label class="switch" style="margin-top:0"><input type="checkbox" checked><span class="tr"></span></label>AlwaysVisible</div><div style="display:flex;gap:10px;align-items:center"><label class="switch" style="margin-top:0"><input type="checkbox" checked><span class="tr"></span></label>NotVisibleInFamily</div><div style="display:flex;gap:10px;align-items:center"><label class="switch" style="margin-top:0"><input type="checkbox"><span class="tr"></span></label>NotVisibleInProject</div></div></div>
+      <div class="fld" style="flex:1;min-width:0"><label>Discipline (multi)</label><div style="display:flex;flex-direction:column;gap:8px;font-size:13px"><div style="display:flex;gap:10px;align-items:center"><label class="switch" style="margin-top:0"><input type="checkbox" checked><span class="tr"></span></label>Architecture</div><div style="display:flex;gap:10px;align-items:center"><label class="switch" style="margin-top:0"><input type="checkbox"><span class="tr"></span></label>Structure</div><div style="display:flex;gap:10px;align-items:center"><label class="switch" style="margin-top:0"><input type="checkbox"><span class="tr"></span></label>MEP</div></div></div>
+      </div>
+      <div class="fld" data-t="c"><label>Images: LargeImage / SmallImage / ToolTipImage</label><input value="pyRevit\img\log32.png"></div>
+      </div>
+      <div id="tab-xml" style="display:none">
+      <div class="fld"><label>XML — файл целиком</label><textarea>&lt;RevitAddIns&gt;
+  &lt;AddIn Type="Application"&gt;
+    &lt;Name&gt;pyRevit&lt;/Name&gt;
+    &lt;Assembly&gt;...pyRevit.dll&lt;/Assembly&gt;
+    &lt;AddInId&gt;xxxxxxxx-0001&lt;/AddInId&gt;
+  &lt;/AddIn&gt;
+  &lt;AddIn Type="Command"&gt;
+    &lt;Text&gt;Открыть журнал&lt;/Text&gt;
+    &lt;Description&gt;Открывает журнал выполнения скриптов&lt;/Description&gt;
+    &lt;Assembly&gt;...pyRevit.dll&lt;/Assembly&gt;
+    &lt;AddInId&gt;xxxxxxxx-0002&lt;/AddInId&gt;
+    &lt;FullClassName&gt;pyRevit.CmdOpenLog&lt;/FullClassName&gt;
+    &lt;VendorId&gt;pyRevitLabs&lt;/VendorId&gt;
+    &lt;VisibilityMode&gt;AlwaysVisible&lt;/VisibilityMode&gt;
+  &lt;/AddIn&gt;
+&lt;/RevitAddIns&gt;</textarea></div>
+      </div>
+      <div><button class="primary">Сохранить</button> <button>Отменить</button></div>
+      <div class="hint">Сейв только при закрытом Revit, рядом пишется .bak, невалидный GUID/путь блокирует сохранение.</div>
+      </div>
+      <div id="ed-group" style="display:none">
+        <div class="eh"><b id="ed-group-name">Состав: BIM</b><button class="x" id="ed-group-x" title="Закрыть">✕</button></div>
+        <input type="search" id="gq" placeholder="Поиск по каталогу версии…" style="width:100%">
+        <div class="row"><label class="switch"><input type="checkbox" checked><span class="tr"></span></label>
+          <div><div class="nm">Revit.Linter</div><div class="mt">Machine</div></div></div>
+        <div class="row"><label class="switch"><input type="checkbox" checked><span class="tr"></span></label>
+          <div><div class="nm">PyRevit</div><div class="mt">User</div></div></div>
+        <div class="row off"><label class="switch"><input type="checkbox"><span class="tr"></span></label>
+          <div><div class="nm">Enscape</div><div class="mt">Machine</div></div></div>
+        <div><button class="primary">Сохранить состав</button> <button>Отмена</button></div>
+        <div class="hint">Чеклист всего каталога версии со скоупами. Сохранение пишет members группы в конфиг и пересчитывает итог.</div>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><span>F5 — обновить</span><span>Esc — закрыть редактор</span><span>Сплиттер тянется мышью</span></div>
+</div>
+<script>
+const win=document.getElementById('win'),banner=document.getElementById('banner'),toast=document.getElementById('toast');
+document.querySelectorAll('[data-l]').forEach(b=>b.onclick=()=>{
+  document.body.dataset.layout=b.dataset.l;
+  document.querySelectorAll('[data-l]').forEach(x=>x.classList.toggle('on',x===b));
+});
+document.documentElement.setAttribute('data-theme','light');
+document.getElementById('theme').onclick=e=>{
+  const d=win.dataset.theme!=='dark';win.dataset.theme=d?'dark':'light';
+  document.documentElement.setAttribute('data-theme',win.dataset.theme);e.target.textContent=d?'☀️':'🌙';
+};
+const rb=document.getElementById('revit');let r=false;
+rb.onclick=()=>{r=!r;rb.textContent='Демо: Revit открыт ('+(r?'вкл':'выкл')+')';toast.style.display=r?'flex':'none';
+  document.querySelectorAll('.switch input, .editor input, .editor textarea, .editor button').forEach(el=>el.disabled=r);};
+document.getElementById('toast-x').onclick=()=>{toast.style.display='none';};
+// Двигаемый сплиттер
+(()=>{
+  const sp=document.getElementById('splitter'),list=document.getElementById('list'),bodyEl=list.parentElement;
+  let drag=false;
+  sp.addEventListener('mousedown',e=>{drag=true;sp.classList.add('drag');e.preventDefault();});
+  window.addEventListener('mousemove',e=>{
+    if(!drag)return;
+    const rc=bodyEl.getBoundingClientRect();
+    let pct=(e.clientX-rc.left)/rc.width*100;
+    pct=Math.min(80,Math.max(25,pct));
+    list.style.width=pct+'%';
+  });
+  window.addEventListener('mouseup',()=>{drag=false;sp.classList.remove('drag');});
+})();
+document.querySelector('.editor .x').onclick=()=>document.querySelector('[data-l="list"]').click();
+document.querySelectorAll('#ed-tabs .chip').forEach(t=>t.onclick=()=>{
+  document.querySelectorAll('#ed-tabs .chip').forEach(x=>x.classList.toggle('on',x===t));
+  document.getElementById('tab-e1').style.display=t.dataset.tab==='e1'?'':'none';
+  document.getElementById('tab-e2').style.display=t.dataset.tab==='e2'?'':'none';
+  document.getElementById('tab-xml').style.display=t.dataset.tab==='xml'?'':'none';
+});
+// Поля строго по Type: чужого типа нет в разметке вовсе
+function applyType(sel){
+  const pane=document.getElementById(sel.dataset.pane),v=sel.value;
+  pane.querySelectorAll('[data-t]').forEach(f=>{
+    f.style.display=f.dataset.t.split(' ').includes(v)?'':'none';
+  });
+}
+document.querySelectorAll('.tsel').forEach(s=>{s.onchange=()=>applyType(s);applyType(s);});
+// Группы файла в редакторе <-> бейджи строки (двусторонняя синхронизация в макете)
+document.querySelectorAll('#ed-filegroups input[data-m]').forEach(cb=>cb.onchange=()=>{
+  const row=document.querySelector('#list .row[data-name="pyrevit"] .badges');
+  const label=cb.dataset.m==='g1'?'Группа 1':'Группа 2';
+  const ex=[...row.querySelectorAll('.b.g')].find(b=>b.textContent===label);
+  if(cb.checked&&!ex){const s=document.createElement('span');s.className='b g';s.textContent=label;row.appendChild(s);}
+  if(!cb.checked&&ex)ex.remove();
+});
+// Фильтр по группам + поиск
+const chips=[...document.querySelectorAll('#filters .chip')];let f='all';
+const btnComp=document.getElementById('btn-comp');
+const edM=document.getElementById('ed-manifest'),edG=document.getElementById('ed-group');
+function showEd(mode){
+  document.body.dataset.layout='split';
+  document.querySelectorAll('[data-l]').forEach(x=>x.classList.toggle('on',x.dataset.l==='split'));
+  edM.style.display=mode==='g'?'none':'';edG.style.display=mode==='g'?'':'none';
+}
+const names={g1:'Группа 1',g2:'Группа 2','scope-user':'User','scope-machine':'Machine'};
+btnComp.onclick=()=>{document.getElementById('ed-group-name').textContent='Состав: '+(names[f]||f);showEd('g');};
+document.querySelectorAll('#list .row').forEach(r=>r.onclick=()=>showEd('m'));
+document.querySelectorAll('#list .caret').forEach(c=>c.onclick=e=>{e.stopPropagation();const r=c.closest('.row');r.classList.toggle('open');c.textContent=r.classList.contains('open')?'▼':'▶';});
+document.getElementById('ed-group-x').onclick=()=>document.querySelector('[data-l="list"]').click();
+const q=document.getElementById('q');
+function apply(){
+  const s=q.value.trim().toLowerCase();
+  document.querySelectorAll('#list .row').forEach(row=>{
+    const g=(row.dataset.groups||'').split(' ').filter(Boolean);
+    const userG=g.filter(x=>!x.startsWith('scope-'));
+    const okG=f==='all'||(f==='none'?userG.length===0:g.includes(f));
+    const okS=!s||row.dataset.name.includes(s)||row.querySelector('.nm').textContent.toLowerCase().includes(s);
+    row.style.display=okG&&okS?'':'none';
+  });
+}
+chips.forEach(c=>c.onclick=()=>{
+  if(c.dataset.g==='g1'||c.dataset.g==='g2'||c.dataset.g.startsWith('scope-')){
+    // клик по чипу: фильтр; выбор группы (☐/☑) — двойной клик в макете
+    f=(f===c.dataset.g)?'all':c.dataset.g;
+    chips.forEach(x=>x.classList.toggle('on',x===c&&f!=='all'||x.dataset.g==='all'&&f==='all'));
+    if((c.dataset.g.startsWith('scope-'))&&f!=='all'&&!c.textContent.includes('☑')){
+      // подсказка про массовую операцию системной группы
+    }
+  } else {f=c.dataset.g;chips.forEach(x=>x.classList.toggle('on',x===c));}
+  const gsel=(f==='g1'||f==='g2');
+  btnComp.style.display=gsel?'':'none';
+  if(gsel)btnComp.textContent='Состав: '+names[f];
+  apply();
+});
+chips.forEach(c=>c.ondblclick=()=>{
+  const on=c.textContent.includes('☐');
+  if(on&&(c.dataset.g.startsWith('scope-'))){if(!confirm('Выбрать системную группу '+names[c.dataset.g]+'? Включатся все плагины этого скоупа версии.'))return;}
+  c.textContent=c.textContent.includes('☐')?c.textContent.replace('☐','☑'):c.textContent.replace('☑','☐');
+});
+q.oninput=apply;
+document.addEventListener('keydown',e=>{
+  if(e.key==='F5'){e.preventDefault();alert('Рескан: добавлено 1, удалено 0, синхронизировано 0');}
+  if(e.key==='Escape')document.querySelector('[data-l="list"]').click();
+});
+</script>
+</body>
+</html>

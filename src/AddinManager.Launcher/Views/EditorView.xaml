@@ -1,0 +1,154 @@
+<UserControl
+    x:Class="AddinManager.Launcher.Views.EditorView"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:composition="clr-namespace:AddinManager.Launcher.Composition"
+    xmlns:converters="clr-namespace:AddinManager.Launcher.Converters"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:design="clr-namespace:AddinManager.Launcher.Design"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:viewmodels="clr-namespace:AddinManager.Launcher.ViewModels"
+    d:DataContext="{d:DesignInstance Type=design:DesignEditorViewModel,
+                                     IsDesignTimeCreatable=True}"
+    d:DesignHeight="680"
+    d:DesignWidth="750"
+    TextElement.Foreground="{DynamicResource AppForegroundBrush}"
+    mc:Ignorable="d">
+    <UserControl.Resources>
+        <converters:EnumEqualsToOpacityConverter x:Key="ActiveModeOpacityConverter" />
+        <converters:EditorModeToVisibilityConverter x:Key="EditorModeVisibilityConverter" />
+    </UserControl.Resources>
+    <Grid>
+        <Border
+            x:Name="EditorAccent"
+            Background="{DynamicResource EditorAccentBrush}"
+            CornerRadius="30 0 0 0" />
+        <Grid>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="auto" />
+                <RowDefinition Height="*" />
+            </Grid.RowDefinitions>
+            <StackPanel
+                Grid.Row="0"
+                Margin="20"
+                HorizontalAlignment="Left"
+                VerticalAlignment="Center"
+                Orientation="Horizontal">
+                <Button
+                    Command="{Binding SetEditorModeCommand}"
+                    CommandParameter="{x:Static viewmodels:EditorMode.Entries}"
+                    Opacity="{Binding Mode, Converter={StaticResource ActiveModeOpacityConverter}, ConverterParameter={x:Static viewmodels:EditorMode.Entries}}"
+                    Style="{StaticResource LayoutIconButton}"
+                    ToolTip="{Binding EntriesTooltip}">
+                    <ContentControl
+                        Width="{StaticResource IconSize}"
+                        Height="{StaticResource IconSize}"
+                        Focusable="False"
+                        Template="{StaticResource Icon.List}" />
+                </Button>
+                <Button
+                    Margin="2,0,0,0"
+                    Command="{Binding SetEditorModeCommand}"
+                    CommandParameter="{x:Static viewmodels:EditorMode.Form}"
+                    Opacity="{Binding Mode, Converter={StaticResource ActiveModeOpacityConverter}, ConverterParameter={x:Static viewmodels:EditorMode.Form}}"
+                    Style="{StaticResource LayoutIconButton}"
+                    ToolTip="{Binding FormTooltip}">
+                    <ContentControl
+                        Width="{StaticResource IconSize}"
+                        Height="{StaticResource IconSize}"
+                        Focusable="False"
+                        Template="{StaticResource Icon.Form}" />
+                </Button>
+                <Button
+                    Margin="2,0,0,0"
+                    Command="{Binding SetEditorModeCommand}"
+                    CommandParameter="{x:Static viewmodels:EditorMode.Markup}"
+                    Opacity="{Binding Mode, Converter={StaticResource ActiveModeOpacityConverter}, ConverterParameter={x:Static viewmodels:EditorMode.Markup}}"
+                    Style="{StaticResource LayoutIconButton}"
+                    ToolTip="{Binding MarkupTooltip}">
+                    <ContentControl
+                        Width="{StaticResource IconSize}"
+                        Height="{StaticResource IconSize}"
+                        Focusable="False"
+                        Template="{StaticResource Icon.Markup}" />
+                </Button>
+                <Button
+                    Margin="8,0,0,0"
+                    Command="{Binding SetEditorModeCommand}"
+                    CommandParameter="{x:Static viewmodels:EditorMode.EntriesForm}"
+                    Opacity="{Binding Mode, Converter={StaticResource ActiveModeOpacityConverter}, ConverterParameter={x:Static viewmodels:EditorMode.EntriesForm}}"
+                    Style="{StaticResource LayoutIconButton}"
+                    ToolTip="{Binding EntriesFormTooltip}">
+                    <ContentControl
+                        Width="{StaticResource IconSize}"
+                        Height="{StaticResource IconSize}"
+                        Focusable="False"
+                        Template="{StaticResource Icon.EntriesForm}" />
+                </Button>
+                <Button
+                    Margin="2,0,0,0"
+                    Command="{Binding SetEditorModeCommand}"
+                    CommandParameter="{x:Static viewmodels:EditorMode.EntriesMarkup}"
+                    Opacity="{Binding Mode, Converter={StaticResource ActiveModeOpacityConverter}, ConverterParameter={x:Static viewmodels:EditorMode.EntriesMarkup}}"
+                    Style="{StaticResource LayoutIconButton}"
+                    ToolTip="{Binding EntriesMarkupTooltip}">
+                    <ContentControl
+                        Width="{StaticResource IconSize}"
+                        Height="{StaticResource IconSize}"
+                        Focusable="False"
+                        Template="{StaticResource Icon.EntriesMarkup}" />
+                </Button>
+                <Button
+                    Margin="8,0,0,0"
+                    Command="{Binding SetEditorModeCommand}"
+                    CommandParameter="{x:Static viewmodels:EditorMode.Settings}"
+                    Opacity="{Binding Mode, Converter={StaticResource ActiveModeOpacityConverter}, ConverterParameter={x:Static viewmodels:EditorMode.Settings}}"
+                    Style="{StaticResource LayoutIconButton}"
+                    ToolTip="{Binding SettingsTooltip}">
+                    <ContentControl
+                        Width="{StaticResource IconSize}"
+                        Height="{StaticResource IconSize}"
+                        Focusable="False"
+                        Template="{StaticResource Icon.Settings}" />
+                </Button>
+            </StackPanel>
+            <Grid Grid.Row="1" Margin="8,0,8,8">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition x:Name="EditorEntriesColumn" Width="*" />
+                    <ColumnDefinition x:Name="EditorComboSplitterColumn" Width="0" />
+                    <ColumnDefinition x:Name="EditorDetailColumn" Width="0" />
+                </Grid.ColumnDefinitions>
+                <Grid x:Name="EntriesPanel" Grid.Column="0">
+                    <ContentControl Content="{composition:ViewModelLocator {x:Type viewmodels:EntriesViewModel}}" />
+                </Grid>
+                <GridSplitter
+                    x:Name="EditorComboSplitter"
+                    Grid.Column="1"
+                    Width="9"
+                    Margin="0,4,0,4"
+                    HorizontalAlignment="Center"
+                    VerticalAlignment="Stretch"
+                    DragCompleted="OnEditorSplitterDragCompleted">
+                    <GridSplitter.Template>
+                        <ControlTemplate TargetType="GridSplitter">
+                            <Border Background="Transparent">
+                                <Border
+                                    Width="1"
+                                    Margin="0,4,0,4"
+                                    HorizontalAlignment="Center"
+                                    Background="Gray"
+                                    Opacity="0.5" />
+                            </Border>
+                        </ControlTemplate>
+                    </GridSplitter.Template>
+                </GridSplitter>
+                <Grid x:Name="DetailPanel" Grid.Column="2">
+                    <ContentControl Content="{composition:ViewModelLocator {x:Type viewmodels:FormViewModel}}" Visibility="{Binding Mode, Converter={StaticResource EditorModeVisibilityConverter}, ConverterParameter='Form,EntriesForm'}" />
+                    <ContentControl Content="{composition:ViewModelLocator {x:Type viewmodels:MarkupViewModel}}" Visibility="{Binding Mode, Converter={StaticResource EditorModeVisibilityConverter}, ConverterParameter='Markup,EntriesMarkup'}" />
+                    <ContentControl Content="{composition:ViewModelLocator {x:Type viewmodels:ManifestSettingsViewModel}}" Visibility="{Binding Mode, Converter={StaticResource EditorModeVisibilityConverter}, ConverterParameter='Settings'}" />
+                </Grid>
+            </Grid>
+        </Grid>
+    </Grid>
+</UserControl>
+

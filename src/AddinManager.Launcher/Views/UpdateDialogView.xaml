@@ -1,0 +1,86 @@
+<Window x:Class="AddinManager.Launcher.Views.UpdateDialogView"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:behaviors="clr-namespace:AddinManager.Launcher.Behaviors"
+        xmlns:i="http://schemas.microsoft.com/xaml/behaviors"
+        Title=""
+        MinWidth="360"
+        MaxWidth="520"
+        AllowsTransparency="True"
+        Background="Transparent"
+        Foreground="{DynamicResource AppForegroundBrush}"
+        ResizeMode="NoResize"
+        ShowInTaskbar="False"
+        SizeToContent="WidthAndHeight"
+        TextElement.Foreground="{DynamicResource AppForegroundBrush}"
+        WindowStartupLocation="CenterScreen"
+        WindowStyle="None">
+    <i:Interaction.Behaviors>
+        <behaviors:DialogResultBehavior DialogResult="{Binding Result}" />
+    </i:Interaction.Behaviors>
+    <Window.Resources>
+        <!-- Локальная копия (стили не выносятся из вида); как Save/Discard в форме. -->
+        <Style x:Key="EditorButtonStyle" TargetType="Button">
+            <Setter Property="Padding" Value="12,5" />
+            <Setter Property="Margin" Value="6,0,0,0" />
+            <Setter Property="Cursor" Value="Hand" />
+            <Setter Property="FontSize" Value="11" />
+            <Setter Property="Foreground" Value="{DynamicResource AppForegroundBrush}" />
+            <Setter Property="Background" Value="Transparent" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="BorderBrush" Value="{DynamicResource CaptionHoverBrush}" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border
+                            Padding="{TemplateBinding Padding}"
+                            Background="{TemplateBinding Background}"
+                            BorderBrush="{TemplateBinding BorderBrush}"
+                            BorderThickness="{TemplateBinding BorderThickness}"
+                            CornerRadius="8">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" />
+                        </Border>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+            <Style.Triggers>
+                <Trigger Property="IsEnabled" Value="False">
+                    <Setter Property="Opacity" Value="0.35" />
+                    <Setter Property="Cursor" Value="Arrow" />
+                </Trigger>
+            </Style.Triggers>
+        </Style>
+    </Window.Resources>
+    <Border Padding="20,16"
+            Background="{DynamicResource AppBackgroundBrush}"
+            BorderBrush="{DynamicResource CaptionHoverBrush}"
+            BorderThickness="1"
+            CornerRadius="10">
+        <i:Interaction.Behaviors>
+            <behaviors:WindowDragBehavior />
+        </i:Interaction.Behaviors>
+        <StackPanel>
+            <TextBlock FontSize="13"
+                       FontWeight="SemiBold"
+                       Text="{Binding TitleLabel}" />
+            <TextBlock Margin="0,6,0,0"
+                       FontSize="12"
+                       Text="{Binding Message}"
+                       TextWrapping="Wrap" />
+            <StackPanel Margin="0,12,0,0"
+                        HorizontalAlignment="Right"
+                        Orientation="Horizontal">
+                <Button Command="{Binding LaterCommand}"
+                        Content="{Binding LaterLabel}"
+                        IsCancel="True"
+                        Style="{StaticResource EditorButtonStyle}" />
+                <Button Margin="4,0,0,0"
+                        Command="{Binding DownloadCommand}"
+                        Content="{Binding DownloadLabel}"
+                        IsDefault="True"
+                        Style="{StaticResource EditorButtonStyle}" />
+            </StackPanel>
+        </StackPanel>
+    </Border>
+</Window>
+

@@ -1,0 +1,53 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0-windows</TargetFramework>
+    <UseWPF>true</UseWPF>
+    <OutputType>WinExe</OutputType>
+    <RootNamespace>AddinManager.Launcher</RootNamespace>
+    <AssemblyName>AddinManager.Launcher</AssemblyName>
+    <ApplicationIcon>Resources\ApplicationIcon.ico</ApplicationIcon>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <None Remove="Resources\Icon.ico" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Resource Include="Resources\ApplicationIcon.ico" />
+    <Resource Include="Resources\Icon.ico" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="AvalonEdit" />
+    <PackageReference Include="CommunityToolkit.Mvvm" />
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection" />
+    <PackageReference Include="Microsoft.Extensions.Hosting" />
+    <PackageReference Include="Microsoft.Extensions.Localization" />
+    <PackageReference Include="Microsoft.Xaml.Behaviors.Wpf" />
+    <PackageReference Include="Serilog" />
+    <PackageReference Include="Serilog.Extensions.Hosting" />
+    <PackageReference Include="Serilog.Sinks.File" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\AddinManager.Core\AddinManager.Core.csproj" />
+    <ProjectReference Include="..\AddinManager.Localization\AddinManager.Localization.csproj" />
+    <ProjectReference Include="..\AddinManager.Theming\AddinManager.Theming.csproj" />
+    <ProjectReference Include="..\AddinManager.Theming.Wpf\AddinManager.Theming.Wpf.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!--
+      resx лежат рядом с классом и отображаются вложенными под него в Solution
+      Explorer: нейтральный (английский) — под Class.cs как есть, культурный
+      (Class.ru.resx) — со срезанным суффиксом культуры.
+    -->
+    <EmbeddedResource Update="**\*.resx">
+      <DependentUpon>$([System.Text.RegularExpressions.Regex]::Replace('%(Filename)', '\.[a-z]{2}(-[A-Z]{2})?$', '')).cs</DependentUpon>
+    </EmbeddedResource>
+  </ItemGroup>
+
+</Project>
+

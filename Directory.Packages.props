@@ -1,0 +1,34 @@
+<Project>
+	<PropertyGroup>
+		<ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
+	</PropertyGroup>
+	<ItemGroup>
+		<PackageVersion Include="AvalonEdit" Version="6.3.1.120" />
+		<PackageVersion Include="CommunityToolkit.Mvvm" Version="8.4.2" />
+		<PackageVersion Include="FluentWpfCore" Version="1.0.5" />
+		<PackageVersion Include="Microsoft.Extensions.DependencyInjection" Version="10.0.12" />
+		<PackageVersion Include="Microsoft.Extensions.Hosting" Version="10.0.12" />
+		<PackageVersion Include="Microsoft.Extensions.Localization" Version="10.0.12" />
+		<PackageVersion Include="Microsoft.Extensions.Localization.Abstractions" Version="10.0.12" />
+		<PackageVersion Include="Microsoft.Extensions.Logging.Abstractions" Version="10.0.10" />
+		<PackageVersion Include="Microsoft.Xaml.Behaviors.Wpf" Version="1.1.161" />
+		<PackageVersion Include="Serilog" Version="4.4.0" />
+		<PackageVersion Include="Serilog.Extensions.Hosting" Version="10.0.0" />
+		<PackageVersion Include="Serilog.Sinks.File" Version="7.0.0" />
+		<PackageVersion Include="WPF-UI" Version="4.3.0" />
+		<PackageVersion Include="xunit.v3" Version="4.0.1" />
+		<PackageVersion Include="xunit.runner.visualstudio" Version="4.0.0" />
+	</ItemGroup>
+	<ItemGroup>
+		<GlobalPackageReference Include="SonarAnalyzer.CSharp" Version="10.34.0.3385">
+			<PrivateAssets>all</PrivateAssets>
+			<IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
+		</GlobalPackageReference>
+	</ItemGroup>
+	<ItemGroup>
+		<GlobalPackageReference Include="VolocyNazad.ResxAnalyzer" Version="1.1.0">
+			<PrivateAssets>all</PrivateAssets>
+			<IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+		</GlobalPackageReference>
+	</ItemGroup>
+</Project>
