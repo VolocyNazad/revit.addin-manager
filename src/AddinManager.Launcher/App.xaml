@@ -168,6 +168,77 @@
                 </Style.Triggers>
             </Style>
             <!--
+                Чекбокс пакетного выбора (строки списка и записей): родной Fluent-шаблон
+                не следит за нашей темой, поэтому свой минималистичный бокс на токенах —
+                рамка/заливка AppForegroundBrush, галка Icon.Check поверх (ей сюда
+                передаём AppBackgroundBrush — на заливке нужна контрастная).
+            -->
+            <Style x:Key="SelectionCheckBoxStyle" TargetType="CheckBox">
+                <Setter Property="Cursor" Value="Hand" />
+                <Setter Property="FocusVisualStyle" Value="{x:Null}" />
+                <Setter Property="Template">
+                    <Setter.Value>
+                        <ControlTemplate TargetType="CheckBox">
+                            <Grid
+                                Width="16"
+                                Height="16"
+                                Background="Transparent">
+                                <Border
+                                    x:Name="Box"
+                                    Background="Transparent"
+                                    BorderBrush="{DynamicResource AppForegroundBrush}"
+                                    BorderThickness="1.5"
+                                    CornerRadius="4"
+                                    Opacity="0.6" />
+                                <ContentControl
+                                    x:Name="Glyph"
+                                    Width="16"
+                                    Height="16"
+                                    HorizontalAlignment="Center"
+                                    VerticalAlignment="Center"
+                                    Focusable="False"
+                                    Foreground="{DynamicResource AppBackgroundBrush}"
+                                    Template="{StaticResource Icon.Check}"
+                                    Visibility="Collapsed" />
+                            </Grid>
+                            <ControlTemplate.Triggers>
+                                <Trigger Property="IsChecked" Value="True">
+                                    <Setter TargetName="Box" Property="Background" Value="{DynamicResource AppForegroundBrush}" />
+                                    <Setter TargetName="Box" Property="Opacity" Value="1" />
+                                    <Setter TargetName="Glyph" Property="Visibility" Value="Visible" />
+                                </Trigger>
+                                <Trigger Property="IsMouseOver" Value="True">
+                                    <Setter TargetName="Box" Property="Opacity" Value="1" />
+                                </Trigger>
+                                <Trigger Property="IsEnabled" Value="False">
+                                    <Setter TargetName="Box" Property="Opacity" Value="0.3" />
+                                </Trigger>
+                            </ControlTemplate.Triggers>
+                        </ControlTemplate>
+                    </Setter.Value>
+                </Setter>
+            </Style>
+            <!--
+                Раскрытие чекбокса: Collapsed — место не резервируется, строки
+                сдвигаются при наведении; виден по наведению на строку или пока
+                есть выбор. Одинаково для списка файлов и записей: обе модели отдают
+                HasSelection, строка выделяется через ListBoxItem.IsMouseOver.
+            -->
+            <Style
+                x:Key="SelectionCheckBoxRevealStyle"
+                BasedOn="{StaticResource SelectionCheckBoxStyle}"
+                TargetType="CheckBox">
+                <Setter Property="Visibility" Value="Collapsed" />
+                <Style.Triggers>
+                    <DataTrigger Binding="{Binding RelativeSource={RelativeSource AncestorType=ListBoxItem}, Path=IsMouseOver}" Value="True">
+                        <Setter Property="Visibility" Value="Visible" />
+                    </DataTrigger>
+                    <DataTrigger Binding="{Binding RelativeSource={RelativeSource AncestorType=ListBox}, Path=DataContext.HasSelection}" Value="True">
+                        <Setter Property="Visibility" Value="Visible" />
+                    </DataTrigger>
+                </Style.Triggers>
+            </Style>
+            <!--
                 Родной Fluent-скроллбар не следит за нашей темой — перешаблонен на свои токены.
                 Width/Height и IsDirectionReversed обязаны различать Orientation: иначе
                 ломается горизонтальный скролл редактора (уже было однажды, см. architecture.md).

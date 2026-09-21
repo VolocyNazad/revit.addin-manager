@@ -480,5 +480,24 @@
             </Grid>
         </Viewbox>
     </ControlTemplate>
+    <!--
+        Галка пакетного выбора: залитый путь Material Design Icons ("check", сетка 24) плюс
+        тонкая обводка в тот же цвет — золотая середина между худым "check" и бруском
+        "check-bold" в мелком размере, рисовать свой смысла нет.
+        Цвет берёт из Foreground места вставки, а не из AppForegroundBrush: в чекбоксе
+        поверх заливки нужен AppBackgroundBrush, в остальных местах наследуется тема.
+    -->
+    <ControlTemplate x:Key="Icon.Check" TargetType="ContentControl">
+        <Viewbox Stretch="Uniform">
+            <Grid Width="24" Height="24">
+                <Path
+                    Data="M21,7L9,19L3.5,13.5L4.91,12.09L9,16.17L19.59,5.59L21,7Z"
+                    Fill="{TemplateBinding Foreground}"
+                    Stroke="{TemplateBinding Foreground}"
+                    StrokeLineJoin="Round"
+                    StrokeThickness="1" />
+            </Grid>
+        </Viewbox>
+    </ControlTemplate>
 </ResourceDictionary>
 
