@@ -6,6 +6,15 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+### Added
+
+- Markup playground (`sandbox/AddinManager.Playground`, in `AddinManager.Sandbox.slnx`): paste a XAML fragment and preview it live via `XamlReader` (element roots render, resource-dictionary roots merge into the preview), with Fluent System/Light/Dark switching.
+
+- Plugin-list bulk selection: per-row selection checkbox (separate from the enable toggle, mirrored into `ListBoxItem.IsSelected`, `Extended` mode keeps `Ctrl/Shift/Ctrl+A`) and a bottom bulk bar (`Selected N` inline with enable/disable toggle + `Delete` + select-all toggle wrapping into two lines when narrow, locked while Revit runs). Selection survives rescans by file identity; bulk delete asks once and reports the first failure in the list banner.
+- Manifest-entries bulk selection: same checkbox column (shared `Icon.Check` glyph in `Resources/Icons.xaml` — the Material Design Icons check path with a matching outline — shared `SelectionCheckBoxStyle` in `App.xaml`) with a bottom bulk bar (`Selected N` inline with select-all toggle + `Delete` wrapping into two lines when narrow — entries have no toggles, so no enable/disable); bulk delete removes all marked entries in a single file save after one confirmation, selection survives reloads by `AddInId`.
+
+## [1.0.0] - 2026-09-21
+
 ### Changed
 
 - Reduced architecture documentation to current decisions and stable rules; removed implementation history and duplicated rationale.

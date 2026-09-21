@@ -23,8 +23,10 @@ Detailed behavior is defined in [the plan](PLAN.md); UI explores live in [the mo
 - `docs/` — contributor documentation, policies and the plan
 - `scripts/` — maintenance scripts
 - `.github/` — CI workflows
-- `sandbox/` — отдельный solution (`AddinManager.Gallery.slnx`) с WPF-галерками
-  экранов: чистый встроенный Fluent и вариант на WPF-UI; не часть основной сборки
+- `sandbox/` — отдельный solution (`AddinManager.Sandbox.slnx`) с WPF-галерками
+  экранов: чистый встроенный Fluent и вариант на WPF-UI — плюс песочница разметки
+  (`AddinManager.Playground`: вставка XAML-фрагмента и живой предпросмотр через
+  `XamlReader`); не часть основной сборки
 - `Abstractions/` внутри каждого проекта в `src/` — интерфейсы, зеркалящие расположение
   реализаций (см. [development policy](policies/development.md))
 
