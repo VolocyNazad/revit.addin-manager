@@ -6,6 +6,7 @@ This document records stable architectural rules. Implementation details belong 
 
 - Views live in `Views/`; view models live in `ViewModels/`.
 - Zone view models are independent. Shared state is exposed through services, not root-model forwarding.
+- Zone selection and the file catalog cross zone boundaries through narrow contracts, not concrete neighbors: `IFileSelection`/`IEntrySelection` (single slots with change notifications) and `IAddinFileCatalog` (live rows plus rescan), all implemented by the owning zones themselves and resolved from the container. Selection flows one way, list → entries; zones never reference each other back.
 - Code-behind contains view mechanics only. Prefer bindings, converters and Blend behaviors for state and reusable mechanics.
 - Filtering, sorting and grouping use one `ListCollectionView` over the source collection.
 - View-model diagnostics are available through `ToString()`.

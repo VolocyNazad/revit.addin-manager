@@ -23,8 +23,9 @@ namespace AddinManager.Launcher.ViewModels;
 /// </summary>
 public sealed partial class MarkupViewModel : ObservableObject
 {
-    private readonly ListViewModel _listViewModel;
-    private readonly EntriesViewModel _entriesViewModel;
+    private readonly IFileSelection _fileSelection;
+    private readonly IEntrySelection _entrySelection;
+    private readonly IAddinFileCatalog _fileCatalog;
     private readonly IAddinMarkupService _markupService;
     private readonly ILogger<MarkupViewModel> _logger;
     private readonly ILocalizationService _localizationService;
@@ -69,11 +70,9 @@ public sealed partial class MarkupViewModel : ObservableObject
     /// <summary>
     /// Создает подпанель и сразу загружает то, что уже выбрано в списке.
     /// </summary>
-    /// <param name="listViewModel">
-    /// Зона списка — источник выбранного файла. Оба ViewModel — DI singleton в одном контейнере;
-    /// это исключение из правила "зоны независимы" (docs/architecture.md, раздел MVVM): выбор
-    /// строки и её разметка неразрывно связаны, это прямая зависимость между зонами-соседями,
-    /// а не пересылка уведомлений через общую корневую ViewModel.
+    /// <param name="fileSelection">
+    /// Выбор файла — источник разметки. Прямая зависимость только на узкий контракт,
+    /// а не на зону целиком (docs/architecture.md, раздел MVVM).
     /// </param>
     /// <param name="markupService">Чтение/валидация/сохранение сырого XML.</param>
     /// <param name="logger">Логгер подпанели.</param>
@@ -81,46 +80,49 @@ public sealed partial class MarkupViewModel : ObservableObject
     /// <param name="localizer">Строки подпанели и её ошибок.</param>
     /// <param name="dispatcher">Маршалинг событий сторожа в поток UI.</param>
     /// <param name="guard">Сторож запущенного Revit — редактор гаснет, пока он жив.</param>
-    /// <param name="entriesViewModel">
-    /// Зона записей — источник выбранной записи для подсветки её блока. Та же прямая
-    /// зависимость между зонами-соседями, что уже есть у <see cref="FormViewModel"/>.
+    /// <param name="entrySelection">
+    /// Выбор записи — источник подсвечиваемого блока. Тот же узкий контракт,
+    /// что уже есть у <see cref="FormViewModel"/>.
     /// </param>
+    /// <param name="fileCatalog">Каталог файлов — обновление после сохранений и кросс-файловые дубли.</param>
     public MarkupViewModel(
-        ListViewModel listViewModel,
+        IFileSelection fileSelection,
         IAddinMarkupService markupService,
         ILogger<MarkupViewModel> logger,
         ILocalizationService localizationService,
         IStringLocalizer<MarkupViewModel> localizer,
         IUiDispatcher dispatcher,
         IRevitProcessGuard guard,
-        EntriesViewModel entriesViewModel)
+        IEntrySelection entrySelection,
+        IAddinFileCatalog fileCatalog)
     {
-        _listViewModel = listViewModel;
+        _fileSelection = fileSelection;
         _markupService = markupService;
         _logger = logger;
         _localizationService = localizationService;
         _localizer = localizer;
         _dispatcher = dispatcher;
         _guard = guard;
-        _entriesViewModel = entriesViewModel;
-        listViewModel.PropertyChanged += OnListViewModelPropertyChanged;
-        listViewModel.Files.CollectionChanged += (_, _) => UpdateDiagnosticSpans();
+        _entrySelection = entrySelection;
+        _fileCatalog = fileCatalog;
+        _fileSelection.PropertyChanged += OnFileSelectionChanged;
+        _fileCatalog.Files.CollectionChanged += (_, _) => UpdateDiagnosticSpans();
         _localizationService.LanguageChanged += (_, _) => RefreshSnapshot();
         _guard.Changed += (_, _) => _dispatcher.Invoke(SyncEditLock);
-        _entriesViewModel.PropertyChanged += OnEntriesViewModelPropertyChanged;
-        LoadFrom(listViewModel.SelectedFile);
+        _entrySelection.PropertyChanged += OnEntrySelectionChanged;
+        LoadFrom(_fileSelection.SelectedFile);
         SyncEditLock();
     }
 
-    private void OnListViewModelPropertyChanged(object? sender, PropertyChangedEventArgs e)
+    private void OnFileSelectionChanged(object? sender, PropertyChangedEventArgs e)
     {
-        if (e.PropertyName is nameof(ListViewModel.SelectedFile) or null)
-            LoadFrom(((ListViewModel)sender!).SelectedFile);
+        if (e.PropertyName is nameof(IFileSelection.SelectedFile) or null)
+            LoadFrom(((IFileSelection)sender!).SelectedFile);
     }
 
-    private void OnEntriesViewModelPropertyChanged(object? sender, PropertyChangedEventArgs e)
+    private void OnEntrySelectionChanged(object? sender, PropertyChangedEventArgs e)
     {
-        if (e.PropertyName is nameof(EntriesViewModel.SelectedEntry) or null)
+        if (e.PropertyName is nameof(IEntrySelection.SelectedEntry) or null)
             UpdateSelectedEntrySpan();
     }
 
@@ -180,7 +182,7 @@ public sealed partial class MarkupViewModel : ObservableObject
 
     /// <summary>
     /// Сохраняет отредактированный XML (атомарно, с <c>.bak</c> — см. <see cref="IAddinMarkupService.Save"/>),
-    /// затем перечитывает диск через <see cref="ListViewModel.Refresh"/> — тот же "disk is the
+    /// затем перечитывает диск через <see cref="IAddinFileCatalog.Refresh"/> — тот же "disk is the
     /// truth" путь, что и у <see cref="FormViewModel.Save"/>: без этого список, панель записей
     /// и форма продолжали бы показывать манифест, прочитанный до правки в разметке, пока кто-то
     /// не нажмёт "Обновить" вручную.
@@ -198,7 +200,7 @@ public sealed partial class MarkupViewModel : ObservableObject
             IsDirty = false;
             _logger.LogInformation(
                 "Save: файл {FileName} сохранён из разметки, {Length} симв.", file.FileName, xml.Length);
-            _listViewModel.Refresh();
+            _fileCatalog.Refresh();
         }
         catch (Exception ex) when (ex is AddinManifestFormatException or IOException or RevitRunningException)
         {
@@ -254,7 +256,7 @@ public sealed partial class MarkupViewModel : ObservableObject
     /// </summary>
     private void UpdateSelectedEntrySpan()
     {
-        SelectedEntrySpan = RawXml is { } xml && _entriesViewModel.SelectedEntry?.Entry.AddInId is { } id
+        SelectedEntrySpan = RawXml is { } xml && _entrySelection.SelectedEntry?.Entry.AddInId is { } id
             ? FindEntrySpan(xml, id)
             : null;
     }
@@ -278,7 +280,7 @@ public sealed partial class MarkupViewModel : ObservableObject
         if (_boundFile is not { } bound)
             return external;
 
-        foreach (var row in _listViewModel.Files)
+        foreach (var row in _fileCatalog.Files)
         {
             if (row.Version != bound.Version)
                 continue;

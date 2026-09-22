@@ -10,6 +10,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 - Markup playground (`sandbox/AddinManager.Playground`, in `AddinManager.Sandbox.slnx`): paste a XAML fragment and preview it live via `XamlReader` (element roots render, resource-dictionary roots merge into the preview).
 
+### Changed
+
+- Zone ViewModels share selection and the file catalog through narrow contracts instead of concrete neighbors: `IFileSelection`/`IEntrySelection` (single slots with change notifications) and `IAddinFileCatalog` (live rows plus rescan), implemented by the owning zones themselves — selection flows one way, list → entries. See `docs/architecture.md`, "MVVM".
+
 ## [1.2.0] - 2026-09-22
 
 ### Added

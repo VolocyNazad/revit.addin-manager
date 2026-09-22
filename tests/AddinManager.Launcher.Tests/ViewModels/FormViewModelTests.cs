@@ -31,7 +31,7 @@ public sealed class FormViewModelTests : IDisposable
         var (list, entries) = NewListAndEntries("2025", "Original");
         var logger = new RecordingLogger<FormViewModel>();
         var form = new FormViewModel(
-            entries, list, _parser, NewMarkupService(), _schema, logger,
+            entries, list, list, _parser, NewMarkupService(), _schema, logger,
             new FakeLocalizationService(), TestLocalization.For<FormViewModel>(),
             new SelectableOptionViewModelFactory(),
             new RecordingUiDispatcher(),
@@ -56,7 +56,7 @@ public sealed class FormViewModelTests : IDisposable
         var (list, entries) = NewListAndEntries("2025", "Original");
         var logger = new RecordingLogger<FormViewModel>();
         var form = new FormViewModel(
-            entries, list, _parser, NewMarkupService(), _schema, logger,
+            entries, list, list, _parser, NewMarkupService(), _schema, logger,
             new FakeLocalizationService(), TestLocalization.For<FormViewModel>(),
             new SelectableOptionViewModelFactory(),
             new RecordingUiDispatcher(),
@@ -80,7 +80,7 @@ public sealed class FormViewModelTests : IDisposable
         var (list, entries) = NewListAndEntries("2025", "Original");
         var logger = new RecordingLogger<FormViewModel>();
         var form = new FormViewModel(
-            entries, list, _parser, NewMarkupService(), _schema, logger,
+            entries, list, list, _parser, NewMarkupService(), _schema, logger,
             new FakeLocalizationService(), TestLocalization.For<FormViewModel>(),
             new SelectableOptionViewModelFactory(),
             new RecordingUiDispatcher(),
@@ -147,7 +147,7 @@ public sealed class FormViewModelTests : IDisposable
 
     private FormViewModel NewForm(
         EntriesViewModel entries, ListViewModel list, ILogger<FormViewModel>? logger = null) =>
-        new(entries, list, _parser, NewMarkupService(), _schema,
+        new(entries, list, list, _parser, NewMarkupService(), _schema,
             logger ?? NullLogger<FormViewModel>.Instance,
             new FakeLocalizationService(), TestLocalization.For<FormViewModel>(),
             new SelectableOptionViewModelFactory(),
@@ -182,7 +182,7 @@ public sealed class FormViewModelTests : IDisposable
             new FakeDialogService(),
             new FakeFolderOpener());
         var entries = new EntriesViewModel(
-            list,
+            list, list,
             new FakeLocalizationService(),
             TestLocalization.For<EntriesViewModel>(),
             new AddinEntryRowViewModelFactory(TestLocalization.For<AddinEntryRowViewModel>()),
@@ -194,7 +194,7 @@ public sealed class FormViewModelTests : IDisposable
         var factory = new FakeOptionFactory();
 
         var form = new FormViewModel(
-            entries, list, _parser, NewMarkupService(), _schema,
+            entries, list, list, _parser, NewMarkupService(), _schema,
             NullLogger<FormViewModel>.Instance,
             new FakeLocalizationService(), TestLocalization.For<FormViewModel>(),
             factory,
@@ -220,7 +220,7 @@ public sealed class FormViewModelTests : IDisposable
         var dispatcher = new RecordingUiDispatcher();
         var (list, entries) = NewListAndEntries("2025", "Original");
         var form = new FormViewModel(
-            entries, list, _parser, NewMarkupService(), _schema,
+            entries, list, list, _parser, NewMarkupService(), _schema,
             NullLogger<FormViewModel>.Instance,
             new FakeLocalizationService(), TestLocalization.For<FormViewModel>(),
             new SelectableOptionViewModelFactory(),
@@ -271,7 +271,7 @@ public sealed class FormViewModelTests : IDisposable
             new FakeDialogService(),
             new FakeFolderOpener());
         var entries = new EntriesViewModel(
-            list,
+            list, list,
             new FakeLocalizationService(),
             TestLocalization.For<EntriesViewModel>(),
             new AddinEntryRowViewModelFactory(TestLocalization.For<AddinEntryRowViewModel>()),

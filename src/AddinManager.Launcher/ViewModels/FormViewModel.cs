@@ -35,8 +35,9 @@ namespace AddinManager.Launcher.ViewModels;
 /// </summary>
 public sealed partial class FormViewModel : ObservableObject
 {
-    private readonly EntriesViewModel _entriesViewModel;
-    private readonly ListViewModel _listViewModel;
+    private readonly IEntrySelection _entrySelection;
+    private readonly IFileSelection _fileSelection;
+    private readonly IAddinFileCatalog _fileCatalog;
     private readonly IAddinManifestParser _parser;
     private readonly IAddinMarkupService _markupService;
     private readonly IManifestSchema _schema;
@@ -53,16 +54,15 @@ public sealed partial class FormViewModel : ObservableObject
     private bool _loading;
 
     /// <summary>
-    /// Создает подпанель и сразу строит форму по тому, что уже выбрано в <see cref="EntriesViewModel"/>.
+    /// Создает подпанель и сразу строит форму по тому, что уже выбрано в <see cref="IEntrySelection"/>.
     /// </summary>
-    /// <param name="entriesViewModel">
-    /// Зона записей — источник выбранной записи и файла. Прямая зависимость между
-    /// зонами-соседями, тот же документированный приём, что уже применяют
-    /// <see cref="MarkupViewModel"/> и <see cref="EntriesViewModel"/> к <see cref="ListViewModel"/>
-    /// (docs/architecture.md, раздел MVVM).
+    /// <param name="entrySelection">
+    /// Выбор записи — источник выбранной записи. Прямая зависимость только на узкий
+    /// контракт, а не на зону целиком (docs/architecture.md, раздел MVVM).
     /// </param>
-    /// <param name="listViewModel">
-    /// Зона списка — после успешного сохранения запускает <see cref="ListViewModel.Refresh"/>,
+    /// <param name="fileSelection">Выбор файла — источник файла формы.</param>
+    /// <param name="fileCatalog">
+    /// Каталог файлов — после успешного сохранения запускает <see cref="IAddinFileCatalog.Refresh"/>,
     /// чтобы список, записи и разметка перечитали файл с диска и не разошлись с тем, что форма
     /// только что записала (та же простота "diсk is the truth", что и остальной проект — см.
     /// docs/architecture.md, раздел "Form zone").
@@ -77,8 +77,9 @@ public sealed partial class FormViewModel : ObservableObject
     /// <param name="dispatcher">Маршалинг событий сторожа в поток UI.</param>
     /// <param name="guard">Сторож запущенного Revit — форма гаснет, пока он жив.</param>
     public FormViewModel(
-        EntriesViewModel entriesViewModel,
-        ListViewModel listViewModel,
+        IEntrySelection entrySelection,
+        IFileSelection fileSelection,
+        IAddinFileCatalog fileCatalog,
         IAddinManifestParser parser,
         IAddinMarkupService markupService,
         IManifestSchema schema,
@@ -89,8 +90,9 @@ public sealed partial class FormViewModel : ObservableObject
         IUiDispatcher dispatcher,
         IRevitProcessGuard guard)
     {
-        _entriesViewModel = entriesViewModel;
-        _listViewModel = listViewModel;
+        _entrySelection = entrySelection;
+        _fileSelection = fileSelection;
+        _fileCatalog = fileCatalog;
         _parser = parser;
         _markupService = markupService;
         _schema = schema;
@@ -101,10 +103,11 @@ public sealed partial class FormViewModel : ObservableObject
         _dispatcher = dispatcher;
         _guard = guard;
 
-        _entriesViewModel.PropertyChanged += OnEntriesViewModelPropertyChanged;
+        _entrySelection.PropertyChanged += OnSelectionChanged;
+        _fileSelection.PropertyChanged += OnSelectionChanged;
         _localizationService.LanguageChanged += (_, _) => RefreshSnapshot();
         _guard.Changed += (_, _) => _dispatcher.Invoke(SyncEditLock);
-        LoadFrom(_entriesViewModel.SelectedFile, _entriesViewModel.SelectedEntry);
+        LoadFrom(_fileSelection.SelectedFile, _entrySelection.SelectedEntry);
         SyncEditLock();
     }
 
@@ -217,10 +220,10 @@ public sealed partial class FormViewModel : ObservableObject
     public string? FullClassNameError =>
         string.IsNullOrWhiteSpace(FullClassName) ? _localizer["FullClassNameRequired"].Value : null;
 
-    private void OnEntriesViewModelPropertyChanged(object? sender, PropertyChangedEventArgs e)
+    private void OnSelectionChanged(object? sender, PropertyChangedEventArgs e)
     {
-        if (e.PropertyName is nameof(EntriesViewModel.SelectedFile) or nameof(EntriesViewModel.SelectedEntry) or null)
-            LoadFrom(_entriesViewModel.SelectedFile, _entriesViewModel.SelectedEntry);
+        if (e.PropertyName is nameof(IFileSelection.SelectedFile) or nameof(IEntrySelection.SelectedEntry) or null)
+            LoadFrom(_fileSelection.SelectedFile, _entrySelection.SelectedEntry);
     }
 
     private void LoadFrom(AddinFileRowViewModel? file, AddinEntryRowViewModel? entryRow)
@@ -389,7 +392,7 @@ public sealed partial class FormViewModel : ObservableObject
             _markupService.Save(file, xml);
             _logger.LogInformation(
                 "Save: запись {AddInId} файла {FileName} сохранена", addInId, file.FileName);
-            _listViewModel.Refresh();
+            _fileCatalog.Refresh();
         }
         catch (Exception ex) when (ex is AddinManifestFormatException or IOException or RevitRunningException)
         {

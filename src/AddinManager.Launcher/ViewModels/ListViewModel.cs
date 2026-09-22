@@ -20,7 +20,7 @@ using Microsoft.Extensions.Logging;
 namespace AddinManager.Launcher.ViewModels;
 
 /// <summary>Зона списка: файлы всех версий Revit — поиск, фильтр и группировка по scope/версии (план, раздел 6).</summary>
-public sealed partial class ListViewModel : ObservableObject
+public sealed partial class ListViewModel : ObservableObject, IFileSelection, IAddinFileCatalog
 {
     /// <summary>Все версии, которые сканируем (план, раздел 2 — "all seven").</summary>
     public static readonly IReadOnlyList<string> RevitVersions = ["2021", "2022", "2023", "2024", "2025", "2026", "2027"];

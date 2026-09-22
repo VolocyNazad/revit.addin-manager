@@ -128,7 +128,7 @@ public sealed class MarkupViewModelDiagnosticsTests : IDisposable
             new FakeDialogService(),
             new FakeFolderOpener());
         var entries = new EntriesViewModel(
-            list,
+            list, list,
             new FakeLocalizationService(),
             TestLocalization.For<EntriesViewModel>(),
             new AddinEntryRowViewModelFactory(TestLocalization.For<AddinEntryRowViewModel>()),
@@ -145,7 +145,8 @@ public sealed class MarkupViewModelDiagnosticsTests : IDisposable
             TestLocalization.For<MarkupViewModel>(),
             new RecordingUiDispatcher(),
             new FakeRevitProcessGuard(),
-            entries);
+            entries,
+            list);
 
         return (list, entries, markup);
     }

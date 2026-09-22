@@ -111,7 +111,7 @@ public sealed class EntriesViewModelDeleteTests : IDisposable
             new FakeFolderOpener());
         var dialog = new FakeDialogService();
         var entries = new EntriesViewModel(
-            list,
+            list, list,
             new FakeLocalizationService(),
             TestLocalization.For<EntriesViewModel>(),
             new AddinEntryRowViewModelFactory(TestLocalization.For<AddinEntryRowViewModel>()),

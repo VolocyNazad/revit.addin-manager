@@ -23,16 +23,17 @@ namespace AddinManager.Launcher.ViewModels;
 
 /// <summary>
 /// Подпанель записей манифеста: список записей внутри файла, выбранного в зоне списка (план,
-/// раздел 6). Как и <see cref="MarkupViewModel"/>, зависит от <see cref="ListViewModel"/>
-/// напрямую и подписывается на смену <see cref="ListViewModel.SelectedFile"/> —
-/// задокументированное исключение из "зоны независимы" (docs/architecture.md, раздел MVVM).
+/// раздел 6). От зон-соседей зависит только через узкие контракты (<see cref="IFileSelection"/>,
+/// <see cref="IAddinFileCatalog"/>), которые имплементирует сама зона списка, — прямых ссылок
+/// на соседние модели нет (docs/architecture.md, раздел MVVM).
 /// Только показ и клик-выбор записи; структурное редактирование выбранной записи — отдельная
-/// зона (<see cref="FormViewModel"/>), которая читает <see cref="SelectedEntry"/> отсюда так же
-/// напрямую, как эта модель читает <see cref="ListViewModel.SelectedFile"/>.
+/// зона (<see cref="FormViewModel"/>), которая читает <see cref="SelectedEntry"/> отсюда через
+/// <see cref="IEntrySelection"/> так же, как эта модель читает выбор файла.
 /// </summary>
-public sealed partial class EntriesViewModel : ObservableObject
+public sealed partial class EntriesViewModel : ObservableObject, IEntrySelection
 {
-    private readonly ListViewModel _listViewModel;
+    private readonly IFileSelection _fileSelection;
+    private readonly IAddinFileCatalog _fileCatalog;
     private readonly ILocalizationService _localizationService;
     private readonly IStringLocalizer<EntriesViewModel> _localizer;
     private readonly IAddinEntryRowViewModelFactory _rowFactory;
@@ -44,7 +45,8 @@ public sealed partial class EntriesViewModel : ObservableObject
     private readonly ICollectionView _entriesView;
 
     /// <summary>Создает подпанель и сразу строит список по тому, что уже выбрано в списке.</summary>
-    /// <param name="listViewModel">Зона списка — источник выбранного файла.</param>
+    /// <param name="fileSelection">Выбор файла — источник <see cref="SelectedFile"/>.</param>
+    /// <param name="fileCatalog">Каталог файлов — обновление после добавлений/удалений и кросс-файловые дубли.</param>
     /// <param name="localizationService">Сервис языка — смена языка перечитывает подписи.</param>
     /// <param name="localizer">Строки подпанели.</param>
     /// <param name="rowFactory">Создание строк записей (записи известны только при чтении файла).</param>
@@ -54,7 +56,8 @@ public sealed partial class EntriesViewModel : ObservableObject
     /// <param name="dispatcher">Маршалинг событий сторожа в поток UI.</param>
     /// <param name="guard">Сторож запущенного Revit — удаление запрещено, пока он жив.</param>
     public EntriesViewModel(
-        ListViewModel listViewModel,
+        IFileSelection fileSelection,
+        IAddinFileCatalog fileCatalog,
         ILocalizationService localizationService,
         IStringLocalizer<EntriesViewModel> localizer,
         IAddinEntryRowViewModelFactory rowFactory,
@@ -64,7 +67,8 @@ public sealed partial class EntriesViewModel : ObservableObject
         IUiDispatcher dispatcher,
         IRevitProcessGuard guard)
     {
-        _listViewModel = listViewModel;
+        _fileSelection = fileSelection;
+        _fileCatalog = fileCatalog;
         _localizationService = localizationService;
         _localizer = localizer;
         _rowFactory = rowFactory;
@@ -75,10 +79,10 @@ public sealed partial class EntriesViewModel : ObservableObject
         _guard = guard;
         _entriesView = CollectionViewSource.GetDefaultView(Entries);
         _entriesView.Filter = MatchesSearch;
-        _listViewModel.PropertyChanged += OnListViewModelPropertyChanged;
+        _fileSelection.PropertyChanged += OnFileSelectionChanged;
         _localizationService.LanguageChanged += (_, _) => RefreshSnapshot();
         _guard.Changed += (_, _) => _dispatcher.Invoke(SyncEditLock);
-        LoadFrom(_listViewModel.SelectedFile);
+        LoadFrom(_fileSelection.SelectedFile);
         SyncEditLock();
     }
 
@@ -148,7 +152,7 @@ public sealed partial class EntriesViewModel : ObservableObject
         {
             _markupService.Save(file.File, xml);
             ErrorMessage = null;
-            _listViewModel.Refresh();
+            _fileCatalog.Refresh();
             SelectedEntry = Entries.FirstOrDefault(e => e.Entry.AddInId == added.AddInId);
         }
         catch (Exception ex) when (ex is AddinManifestFormatException or IOException or RevitRunningException)
@@ -205,7 +209,7 @@ public sealed partial class EntriesViewModel : ObservableObject
         {
             _markupService.Save(file, xml);
             ErrorMessage = null;
-            _listViewModel.Refresh();
+            _fileCatalog.Refresh();
         }
         catch (Exception ex) when (ex is AddinManifestFormatException or IOException or RevitRunningException)
         {
@@ -234,7 +238,7 @@ public sealed partial class EntriesViewModel : ObservableObject
         {
             _markupService.Save(file, xml);
             ErrorMessage = null;
-            _listViewModel.Refresh();
+            _fileCatalog.Refresh();
         }
         catch (Exception ex) when (ex is AddinManifestFormatException or IOException or RevitRunningException)
         {
@@ -242,10 +246,10 @@ public sealed partial class EntriesViewModel : ObservableObject
         }
     }
 
-    private void OnListViewModelPropertyChanged(object? sender, PropertyChangedEventArgs e)
+    private void OnFileSelectionChanged(object? sender, PropertyChangedEventArgs e)
     {
-        if (e.PropertyName is nameof(ListViewModel.SelectedFile) or null)
-            LoadFrom(((ListViewModel)sender!).SelectedFile);
+        if (e.PropertyName is nameof(IFileSelection.SelectedFile) or null)
+            LoadFrom(((IFileSelection)sender!).SelectedFile);
     }
 
     private void LoadFrom(AddinFileRowViewModel? file)
@@ -253,10 +257,10 @@ public sealed partial class EntriesViewModel : ObservableObject
         // Восстанавливаем выбор по AddInId, а не сбрасываем его в null безусловно: LoadFrom
         // пересоздаёт все AddinEntryRowViewModel не только при смене файла, но и когда файл
         // просто перечитан после сохранения в форме (FormViewModel.Save дергает
-        // ListViewModel.Refresh, а он транслируется сюда той же PropertyChanged-подпиской).
+        // IAddinFileCatalog.Refresh, а он транслируется сюда той же PropertyChanged-подпиской).
         // Без восстановления по идентичности сохранение в форме само закрывало бы только что
-        // открытую форму, сбрасывая SelectedEntry — тот же приём, что ListViewModel.Refresh
-        // уже применяет к SelectedFile по (FileName, Scope, Version).
+        // открытую форму, сбрасывая SelectedEntry — тот же приём, что зона списка уже
+        // применяет к SelectedFile по (FileName, Scope, Version).
         var previousEntryId = SelectedEntry?.Entry.AddInId;
         var previousBulkSelection = new HashSet<Guid>(Entries.Where(e => e.IsSelected).Select(e => e.Entry.AddInId));
 
@@ -326,7 +330,7 @@ public sealed partial class EntriesViewModel : ObservableObject
     private HashSet<Guid> FindCrossFileIds(AddinFileRowViewModel file)
     {
         var others = new HashSet<Guid>();
-        foreach (var row in _listViewModel.Files)
+        foreach (var row in _fileCatalog.Files)
         {
             if (row.Version != file.Version)
                 continue;

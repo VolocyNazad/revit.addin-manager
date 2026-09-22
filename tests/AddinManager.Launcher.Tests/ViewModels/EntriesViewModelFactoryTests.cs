@@ -37,7 +37,7 @@ public sealed class EntriesViewModelFactoryTests
         var factory = new FakeEntryRowFactory();
 
         var entries = new EntriesViewModel(
-            list,
+            list, list,
             new FakeLocalizationService(),
             TestLocalization.For<EntriesViewModel>(),
             factory,

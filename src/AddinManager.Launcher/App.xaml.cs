@@ -99,6 +99,12 @@ public partial class App
                 services.AddModule<MarkupView>();
                 services.AddModule<ManifestSettingsView>();
                 services.AddModule<EditorView>();
+                // Выбор и каталог зон — контракты, имплементированные самими зонами
+                // (см. docs/architecture.md, раздел MVVM): те же singleton-экземпляры,
+                // что созданы выше через AddModule, только под узким срезом.
+                services.AddSingleton<IFileSelection>(provider => provider.GetRequiredService<ListViewModel>());
+                services.AddSingleton<IEntrySelection>(provider => provider.GetRequiredService<EntriesViewModel>());
+                services.AddSingleton<IAddinFileCatalog>(provider => provider.GetRequiredService<ListViewModel>());
                 // Диалог подтверждения — НЕ синглтон: закрытое окно нельзя показать повторно,
                 // каждый Confirm собирает свежие вид+модель. Фабрика — в корне композиции.
                 services.AddTransient<ConfirmDialogViewModel>();

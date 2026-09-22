@@ -33,7 +33,8 @@ public sealed class ManifestSettingsViewModelTests : IDisposable
             list, _parser, NewMarkupService(), _schema, logger,
             new FakeLocalizationService(), TestLocalization.For<ManifestSettingsViewModel>(),
             new RecordingUiDispatcher(),
-            new FakeRevitProcessGuard());
+            new FakeRevitProcessGuard(),
+            list);
 
         Assert.True(settings.IsSupported);
         settings.SetUseRevitContextCommand.Execute("True");
@@ -57,7 +58,8 @@ public sealed class ManifestSettingsViewModelTests : IDisposable
             list, _parser, NewMarkupService(), _schema, logger,
             new FakeLocalizationService(), TestLocalization.For<ManifestSettingsViewModel>(),
             new RecordingUiDispatcher(),
-            new FakeRevitProcessGuard());
+            new FakeRevitProcessGuard(),
+            list);
 
         Assert.False(settings.IsSupported);
         Assert.False(settings.SaveCommand.CanExecute(null));

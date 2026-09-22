@@ -55,7 +55,8 @@ public sealed class MarkupViewModelRefreshTests : IDisposable
             new FakeLocalizationService(), TestLocalization.For<MarkupViewModel>(),
             new RecordingUiDispatcher(),
             new FakeRevitProcessGuard(),
-            NewEntries(list))
+            NewEntries(list),
+            list)
         {
             RawXml = ValidAddinXml("Edited")
         };
@@ -98,7 +99,8 @@ public sealed class MarkupViewModelRefreshTests : IDisposable
             new FakeLocalizationService(), TestLocalization.For<MarkupViewModel>(),
             new RecordingUiDispatcher(),
             new FakeRevitProcessGuard(),
-            NewEntries(list))
+            NewEntries(list),
+            list)
         {
             RawXml = "not xml {{{"
         };
@@ -146,7 +148,8 @@ public sealed class MarkupViewModelRefreshTests : IDisposable
             new FakeLocalizationService(), TestLocalization.For<MarkupViewModel>(),
             new RecordingUiDispatcher(),
             new FakeRevitProcessGuard(),
-            NewEntries(list))
+            NewEntries(list),
+            list)
         {
             RawXml = ValidAddinXml("Edited")
         };
@@ -158,7 +161,7 @@ public sealed class MarkupViewModelRefreshTests : IDisposable
     }
 
     private EntriesViewModel NewEntries(ListViewModel list) => new(
-        list,
+        list, list,
         new FakeLocalizationService(),
         TestLocalization.For<EntriesViewModel>(),
         new AddinEntryRowViewModelFactory(TestLocalization.For<AddinEntryRowViewModel>()),
@@ -235,7 +238,8 @@ public sealed class MarkupViewModelRefreshTests : IDisposable
             TestLocalization.For<MarkupViewModel>(),
             new RecordingUiDispatcher(),
             new FakeRevitProcessGuard(),
-            entries);
+            entries,
+            list);
 
         return (list, entries, markup);
     }

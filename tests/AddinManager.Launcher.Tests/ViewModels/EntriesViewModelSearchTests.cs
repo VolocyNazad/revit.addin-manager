@@ -101,7 +101,7 @@ public sealed class EntriesViewModelSearchTests : IDisposable
             new FakeFolderOpener());
 
         return new EntriesViewModel(
-            list,
+            list, list,
             new FakeLocalizationService(),
             TestLocalization.For<EntriesViewModel>(),
             new AddinEntryRowViewModelFactory(TestLocalization.For<AddinEntryRowViewModel>()),

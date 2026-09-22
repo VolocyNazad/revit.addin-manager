@@ -23,13 +23,14 @@ namespace AddinManager.Launcher.ViewModels;
 /// Файловая (не по-записи) подпанель редактора: блок <see cref="ManifestSettings"/> —
 /// <c>UseRevitContext</c>/<c>ContextName</c> (план, раздел 6 — секция "Isolation", "above the
 /// entry tabs"). В отличие от <see cref="FormViewModel"/> (одна запись) правит файл целиком,
-/// поэтому зависит напрямую на <see cref="ListViewModel"/> (выбранный файл), а не на
-/// <see cref="EntriesViewModel"/> — тот же документированный приём "зоны независимы, кроме...",
-/// что уже применяют <see cref="MarkupViewModel"/>/<see cref="EntriesViewModel"/>/<see cref="FormViewModel"/>.
+/// поэтому читает выбор файла через <see cref="IFileSelection"/>, а не через
+/// <see cref="IEntrySelection"/> — те же узкие контракты зон, что у остальных подпанели
+/// (docs/architecture.md, раздел MVVM).
 /// </summary>
 public sealed partial class ManifestSettingsViewModel : ObservableObject
 {
-    private readonly ListViewModel _listViewModel;
+    private readonly IFileSelection _fileSelection;
+    private readonly IAddinFileCatalog _fileCatalog;
     private readonly IAddinManifestParser _parser;
     private readonly IAddinMarkupService _markupService;
     private readonly IManifestSchema _schema;
@@ -42,8 +43,8 @@ public sealed partial class ManifestSettingsViewModel : ObservableObject
     private ManifestSettings? _originalSettings;
     private bool _loading;
 
-    /// <summary>Создает подпанель и сразу читает блок настроек файла, уже выбранного в <see cref="ListViewModel"/>.</summary>
-    /// <param name="listViewModel">Зона списка — источник выбранного файла и цель <see cref="ListViewModel.Refresh"/> после сохранения.</param>
+    /// <summary>Создает подпанель и сразу читает блок настроек уже выбранного файла.</summary>
+    /// <param name="fileSelection">Выбор файла — источник подпанели.</param>
     /// <param name="parser">Сериализация отредактированного блока обратно в XML файла.</param>
     /// <param name="markupService">Атомарная запись + повторная валидация всего файла.</param>
     /// <param name="schema">Даёт знать, поддерживает ли версия файла <see cref="ManifestSettings"/> (2026+).</param>
@@ -52,8 +53,9 @@ public sealed partial class ManifestSettingsViewModel : ObservableObject
     /// <param name="localizer">Строки подпанели.</param>
     /// <param name="dispatcher">Маршалинг событий сторожа в поток UI.</param>
     /// <param name="guard">Сторож запущенного Revit — подпанель гаснет, пока он жив.</param>
+    /// <param name="fileCatalog">Каталог файлов — обновление списка после сохранения.</param>
     public ManifestSettingsViewModel(
-        ListViewModel listViewModel,
+        IFileSelection fileSelection,
         IAddinManifestParser parser,
         IAddinMarkupService markupService,
         IManifestSchema schema,
@@ -61,9 +63,10 @@ public sealed partial class ManifestSettingsViewModel : ObservableObject
         ILocalizationService localizationService,
         IStringLocalizer<ManifestSettingsViewModel> localizer,
         IUiDispatcher dispatcher,
-        IRevitProcessGuard guard)
+        IRevitProcessGuard guard,
+        IAddinFileCatalog fileCatalog)
     {
-        _listViewModel = listViewModel;
+        _fileSelection = fileSelection;
         _parser = parser;
         _markupService = markupService;
         _schema = schema;
@@ -72,11 +75,12 @@ public sealed partial class ManifestSettingsViewModel : ObservableObject
         _localizer = localizer;
         _dispatcher = dispatcher;
         _guard = guard;
+        _fileCatalog = fileCatalog;
 
-        _listViewModel.PropertyChanged += OnListViewModelPropertyChanged;
+        _fileSelection.PropertyChanged += OnFileSelectionChanged;
         _localizationService.LanguageChanged += (_, _) => RefreshSnapshot();
         _guard.Changed += (_, _) => _dispatcher.Invoke(SyncEditLock);
-        LoadFrom(_listViewModel.SelectedFile);
+        LoadFrom(_fileSelection.SelectedFile);
         SyncEditLock();
     }
 
@@ -107,10 +111,10 @@ public sealed partial class ManifestSettingsViewModel : ObservableObject
     /// </summary>
     public bool IsSupported => SelectedFile is { Version: { } version } && _schema.SupportsManifestSettings(version);
 
-    private void OnListViewModelPropertyChanged(object? sender, PropertyChangedEventArgs e)
+    private void OnFileSelectionChanged(object? sender, PropertyChangedEventArgs e)
     {
-        if (e.PropertyName is nameof(ListViewModel.SelectedFile) or null)
-            LoadFrom(_listViewModel.SelectedFile);
+        if (e.PropertyName is nameof(IFileSelection.SelectedFile) or null)
+            LoadFrom(_fileSelection.SelectedFile);
     }
 
     private void LoadFrom(AddinFileRowViewModel? file)
@@ -193,7 +197,7 @@ public sealed partial class ManifestSettingsViewModel : ObservableObject
         {
             _markupService.Save(file, xml);
             _logger.LogInformation("Save: ManifestSettings файла {FileName} сохранены", file.FileName);
-            _listViewModel.Refresh();
+            _fileCatalog.Refresh();
         }
         catch (Exception ex) when (ex is AddinManifestFormatException or IOException or RevitRunningException)
         {
