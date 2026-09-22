@@ -6,7 +6,6 @@ on/off, and edit their manifests (structured form or raw XML) — all before Rev
 
 - Features and current scope: [docs/FEATURES.md](docs/FEATURES.md).
 - User guide: [docs/WIKI.md](docs/WIKI.md).
-- Product plan: [docs/PLAN.md](docs/PLAN.md) (Russian).
 - Clickable UI mockup: [docs/ui-mockup.html](docs/ui-mockup.html).
 
 ## Quick start

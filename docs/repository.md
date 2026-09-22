@@ -8,7 +8,7 @@ Read and follow the [development policy](policies/development.md) alongside this
 Revit.AddinManager is a pre-launch manager for Autodesk Revit `.addin` manifests (Revit 2021–2027):
 browse every installed plugin across versions and scopes, toggle `.addin` files
 on/off, and edit their manifests — all before Revit starts.
-Detailed behavior is defined in [the plan](PLAN.md); UI explores live in [the mockup](ui-mockup.html).
+Detailed behavior is defined in [FEATURES.md](FEATURES.md); UI explores live in [the mockup](ui-mockup.html).
 
 ## Solution and structure
 
@@ -53,8 +53,8 @@ Detailed behavior is defined in [the plan](PLAN.md); UI explores live in [the mo
 - `AGENTS.md` links to the required repository guidance.
 - `docs/policies/development.md` contains the development policy.
 - `docs/repository.md` describes the project, repository structure, and technology stack.
-- `docs/PLAN.md` is the product plan; `docs/ui-mockup.html` is the clickable UI mockup.
 - `docs/FEATURES.md` describes the implemented user-facing features and current scope.
+- `docs/ui-mockup.html` is the clickable UI mockup.
 - `docs/WIKI.md` is the Russian end-user guide.
 - `docs/architecture.md` records the fundamental decisions (MVVM, DI, themes, parser).
 

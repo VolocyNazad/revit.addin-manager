@@ -1,7 +1,7 @@
 # Features
 
 User-facing capabilities of Revit.AddinManager as implemented. This document describes
-what the app does today; the roadmap lives in [PLAN.md](PLAN.md), technical decisions
+what the app does today; technical decisions live
 in [architecture.md](architecture.md).
 
 Revit.AddinManager is a pre-launch manager for Autodesk Revit `.addin` manifests
@@ -125,4 +125,4 @@ files and edit their manifests — everything happens before Revit starts.
 
 ## Not yet
 
-Plugin groups and group-based activation are still under development (see [PLAN.md](PLAN.md) for the design); the `Launch Revit` button is deliberately out of scope for now.
+Plugin groups and group-based activation are still under development; the `Launch Revit` button is deliberately out of scope for now.
