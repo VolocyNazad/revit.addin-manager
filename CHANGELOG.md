@@ -8,7 +8,17 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Added
 
-- Markup playground (`sandbox/AddinManager.Playground`, in `AddinManager.Sandbox.slnx`): paste a XAML fragment and preview it live via `XamlReader` (element roots render, resource-dictionary roots merge into the preview), with Fluent System/Light/Dark switching.
+- Markup playground (`sandbox/AddinManager.Playground`, in `AddinManager.Sandbox.slnx`): paste a XAML fragment and preview it live via `XamlReader` (element roots render, resource-dictionary roots merge into the preview).
+
+## [1.2.0] - 2026-09-22
+
+### Added
+
+- Row button "Show in folder": a folder icon next to the row × button (new `Icon.Folder` template in the Feather outline style) reveals its `.addin` file in Explorer (`explorer /select`), for enabled and `disabled/` files alike; read-only, works while Revit runs. New `IFolderOpener`/`ExplorerFolderOpener` behind the usual DI abstraction.
+
+## [1.1.0] - 2026-09-21
+
+### Added
 
 - Plugin-list bulk selection: per-row selection checkbox (separate from the enable toggle, mirrored into `ListBoxItem.IsSelected`, `Extended` mode keeps `Ctrl/Shift/Ctrl+A`) and a bottom bulk bar (`Selected N` inline with enable/disable toggle + `Delete` + select-all toggle wrapping into two lines when narrow, locked while Revit runs). Selection survives rescans by file identity; bulk delete asks once and reports the first failure in the list banner.
 - Manifest-entries bulk selection: same checkbox column (shared `Icon.Check` glyph in `Resources/Icons.xaml` — the Material Design Icons check path with a matching outline — shared `SelectionCheckBoxStyle` in `App.xaml`) with a bottom bulk bar (`Selected N` inline with select-all toggle + `Delete` wrapping into two lines when narrow — entries have no toggles, so no enable/disable); bulk delete removes all marked entries in a single file save after one confirmation, selection survives reloads by `AddInId`.
