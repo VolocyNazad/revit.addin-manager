@@ -1,11 +1,10 @@
-<Application x:Class="AddinManager.Gallery.App"
+<Application x:Class="AddinManager.Playground.App"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              StartupUri="MainWindow.xaml">
   <Application.Resources>
     <ResourceDictionary>
       <ResourceDictionary.MergedDictionaries>
-        <!-- Встроенная Fluent-тема WPF: Light/Dark за системой, системный акцент. -->
         <ResourceDictionary Source="pack://application:,,,/PresentationFramework.Fluent;component/Themes/Fluent.xaml" />
       </ResourceDictionary.MergedDictionaries>
     </ResourceDictionary>
