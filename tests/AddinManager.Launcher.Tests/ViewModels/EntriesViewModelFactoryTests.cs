@@ -32,7 +32,8 @@ public sealed class EntriesViewModelFactoryTests
             new AddinFileRowViewModelFactory(store, NullLoggerFactory.Instance, TestLocalization.For<AddinFileRowViewModel>()),
             new FakeToastService(),
             new FakeRevitProcessGuard(),
-            new FakeDialogService());
+            new FakeDialogService(),
+            new FakeFolderOpener());
         var factory = new FakeEntryRowFactory();
 
         var entries = new EntriesViewModel(

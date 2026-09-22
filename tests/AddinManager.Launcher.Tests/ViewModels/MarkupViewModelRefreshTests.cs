@@ -43,7 +43,8 @@ public sealed class MarkupViewModelRefreshTests : IDisposable
             new AddinFileRowViewModelFactory(store, NullLoggerFactory.Instance, TestLocalization.For<AddinFileRowViewModel>()),
             new FakeToastService(),
             new FakeRevitProcessGuard(),
-            new FakeDialogService());
+            new FakeDialogService(),
+            new FakeFolderOpener());
 
         // Список уже прочитал файл при старте — с именем записи "Original".
         Assert.Equal("Original", list.Files.Single().File.Manifest.Entries.Single().Name);
@@ -88,7 +89,8 @@ public sealed class MarkupViewModelRefreshTests : IDisposable
             new AddinFileRowViewModelFactory(store, NullLoggerFactory.Instance, TestLocalization.For<AddinFileRowViewModel>()),
             new FakeToastService(),
             new FakeRevitProcessGuard(),
-            new FakeDialogService());
+            new FakeDialogService(),
+            new FakeFolderOpener());
 
         var markupService = new FileAddinMarkupService(_parser, NullLogger<FileAddinMarkupService>.Instance, new FakeRevitProcessGuard(), TestLocalization.For<FileAddinMarkupService>());
         var markup = new MarkupViewModel(
@@ -134,7 +136,8 @@ public sealed class MarkupViewModelRefreshTests : IDisposable
             new AddinFileRowViewModelFactory(store, NullLoggerFactory.Instance, TestLocalization.For<AddinFileRowViewModel>()),
             new FakeToastService(),
             new FakeRevitProcessGuard(),
-            new FakeDialogService());
+            new FakeDialogService(),
+            new FakeFolderOpener());
 
         var markupService = new FileAddinMarkupService(_parser, NullLogger<FileAddinMarkupService>.Instance, new FakeRevitProcessGuard(), TestLocalization.For<FileAddinMarkupService>());
         var logger = new RecordingLogger<MarkupViewModel>();
@@ -221,7 +224,8 @@ public sealed class MarkupViewModelRefreshTests : IDisposable
             new AddinFileRowViewModelFactory(store, NullLoggerFactory.Instance, TestLocalization.For<AddinFileRowViewModel>()),
             new FakeToastService(),
             new FakeRevitProcessGuard(),
-            new FakeDialogService());
+            new FakeDialogService(),
+            new FakeFolderOpener());
         var entries = NewEntries(list);
         var markup = new MarkupViewModel(
             list,

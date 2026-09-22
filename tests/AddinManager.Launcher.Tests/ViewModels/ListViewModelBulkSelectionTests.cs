@@ -163,7 +163,8 @@ public sealed class ListViewModelBulkSelectionTests
             new AddinFileRowViewModelFactory(store, NullLoggerFactory.Instance, TestLocalization.For<AddinFileRowViewModel>()),
             new FakeToastService(),
             guard ?? new FakeRevitProcessGuard(),
-            dialog ?? new FakeDialogService());
+            dialog ?? new FakeDialogService(),
+            new FakeFolderOpener());
 
     private static AddinFile NewFile(string fileName, AddinScope scope, string version, bool enabled) =>
         new(fileName, scope, version, enabled,

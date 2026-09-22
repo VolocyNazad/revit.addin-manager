@@ -34,6 +34,7 @@ public sealed partial class ListViewModel : ObservableObject
     private readonly IToastService _toastService;
     private readonly IRevitProcessGuard _guard;
     private readonly IDialogService _dialogService;
+    private readonly IFolderOpener _folderOpener;
     private readonly ListCollectionView _filesView;
     private readonly ILogger<ListViewModel> _logger;
 
@@ -108,6 +109,7 @@ public sealed partial class ListViewModel : ObservableObject
     /// <param name="toastService">Подтверждение ручного обновления тостом.</param>
     /// <param name="guard">Сторож запущенного Revit — тогглы строк гаснут, пока он жив.</param>
     /// <param name="dialogService">Подтверждение удаления.</param>
+    /// <param name="folderOpener">Показ файла в проводнике (контекстное меню строки).</param>
     public ListViewModel(
         IAddinStore store,
         IAddinChangeWatcher changeWatcher,
@@ -118,7 +120,8 @@ public sealed partial class ListViewModel : ObservableObject
         IAddinFileRowViewModelFactory rowFactory,
         IToastService toastService,
         IRevitProcessGuard guard,
-        IDialogService dialogService)
+        IDialogService dialogService,
+        IFolderOpener folderOpener)
     {
         _store = store;
         _changeWatcher = changeWatcher;
@@ -130,6 +133,7 @@ public sealed partial class ListViewModel : ObservableObject
         _toastService = toastService;
         _guard = guard;
         _dialogService = dialogService;
+        _folderOpener = folderOpener;
 
         _filesView = (ListCollectionView)CollectionViewSource.GetDefaultView(Files);
         _filesView.Filter = MatchesFilter;
@@ -467,6 +471,27 @@ public sealed partial class ListViewModel : ObservableObject
         _toastService.Show(_localizer["ListRefreshed"]);
     }
 
+    private bool CanShowInFolder() => SelectedFile is not null;
+
+    /// <summary>
+    /// Показывает выбранный манифест в проводнике (папка открывается, файл подсвечен).
+    /// Только чтение — сторож Revit не при чём, работает и при живом Revit.
+    /// </summary>
+    [RelayCommand(CanExecute = nameof(CanShowInFolder))]
+    public void ShowInFolder()
+    {
+        if (SelectedFile is not { } file)
+            return;
+
+        _logger.LogInformation(
+            "ShowInFolder: {FileName} ({Scope}, {Version})",
+            file.FileName, file.Scope, file.Version);
+        _folderOpener.Reveal(file.FullPath);
+    }
+
+    /// <summary>Пункт контекстного меню строки "Показать в папке".</summary>
+    public string ShowInFolderLabel => _localizer["ShowInFolderLabel"];
+
     /// <summary>Плейсхолдер поиска. "User"/"Machine"/"Scope"/годы/типы записей — технические токены данных, не переводятся.</summary>
     public string SearchPlaceholder => _localizer["ListSearchPlaceholder"];
 
@@ -630,7 +655,11 @@ public sealed partial class ListViewModel : ObservableObject
 
     partial void OnFileCountChanged(int value) => RefreshSnapshot();
 
-    partial void OnSelectedFileChanged(AddinFileRowViewModel? value) => RefreshSnapshot();
+    partial void OnSelectedFileChanged(AddinFileRowViewModel? value)
+    {
+        ShowInFolderCommand.NotifyCanExecuteChanged();
+        RefreshSnapshot();
+    }
 
     private void RefreshSnapshot() => OnPropertyChanged((string?)null);
 

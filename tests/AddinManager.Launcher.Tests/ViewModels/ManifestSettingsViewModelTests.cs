@@ -85,7 +85,8 @@ public sealed class ManifestSettingsViewModelTests : IDisposable
             new AddinFileRowViewModelFactory(store, NullLoggerFactory.Instance, TestLocalization.For<AddinFileRowViewModel>()),
             new FakeToastService(),
             new FakeRevitProcessGuard(),
-            new FakeDialogService());
+            new FakeDialogService(),
+            new FakeFolderOpener());
 
         return (list, path);
     }

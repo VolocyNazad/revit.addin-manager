@@ -50,6 +50,7 @@ public sealed class DesignListViewModel
     public int SelectedCount { get; set; } = 1;
     public bool HasSelection { get; set; } = true;
     public string SelectionSummary { get; set; } = "Выбрано: 1";
+    public string ShowInFolderLabel { get; set; } = "Показать в папке";
     public string ToggleSelectedLabel { get; set; } = "Выключить";
     public string DeleteSelectedLabel { get; set; } = "Удалить";
     public string SelectAllToggleLabel { get; set; } = "Снять выбор";
@@ -58,6 +59,7 @@ public sealed class DesignListViewModel
     public ICommand? SetVersionFilterCommand { get; set; }
     public ICommand? SetSortOrderCommand { get; set; }
     public ICommand? ToggleSelectedCommand { get; set; }
+    public ICommand? ShowInFolderCommand { get; set; }
     public ICommand? DeleteSelectedCommand { get; set; }
     public ICommand? ToggleSelectAllCommand { get; set; }
 }

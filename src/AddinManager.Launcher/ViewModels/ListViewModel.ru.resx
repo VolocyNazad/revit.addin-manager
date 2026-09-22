@@ -115,4 +115,7 @@
   <data name="DeleteMultipleConfirm" xml:space="preserve">
     <value>Удалить {0} файлов навсегда?</value>
   </data>
+  <data name="ShowInFolderLabel" xml:space="preserve">
+    <value>Показать в папке</value>
+  </data>
 </root>

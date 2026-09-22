@@ -186,7 +186,8 @@ public sealed class EntriesViewModelAddDeleteTests : IDisposable
             new AddinFileRowViewModelFactory(store, NullLoggerFactory.Instance, TestLocalization.For<AddinFileRowViewModel>()),
             new FakeToastService(),
             stoppedGuard,
-            new FakeDialogService());
+            new FakeDialogService(),
+            new FakeFolderOpener());
         var dialog = new FakeDialogService();
         var entries = new EntriesViewModel(
             list,

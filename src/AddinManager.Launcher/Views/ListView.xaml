@@ -351,19 +351,34 @@
                         </StackPanel>
                     </StackPanel>
 
-                    <Button
+                    <!-- Папка и крестик строки: команды — у строки (удаление) и у списка (папка). -->
+                    <StackPanel
                         Grid.Column="1"
                         Margin="8,0,0,0"
                         VerticalAlignment="Top"
-                        Command="{Binding DeleteCommand}"
-                        Style="{StaticResource LayoutIconButton}"
-                        ToolTip="{Binding DeleteButtonTooltip}">
-                        <ContentControl
-                            Width="{StaticResource IconSize}"
-                            Height="{StaticResource IconSize}"
-                            Focusable="False"
-                            Template="{StaticResource Icon.Close}" />
-                    </Button>
+                        Orientation="Horizontal">
+                        <Button
+                            Command="{Binding RelativeSource={RelativeSource AncestorType=ListBox}, Path=DataContext.ShowInFolderCommand}"
+                            Style="{StaticResource LayoutIconButton}"
+                            ToolTip="{Binding RelativeSource={RelativeSource AncestorType=ListBox}, Path=DataContext.ShowInFolderLabel}">
+                            <ContentControl
+                                Width="{StaticResource IconSize}"
+                                Height="{StaticResource IconSize}"
+                                Focusable="False"
+                                Template="{StaticResource Icon.Folder}" />
+                        </Button>
+                        <Button
+                            Margin="4,0,0,0"
+                            Command="{Binding DeleteCommand}"
+                            Style="{StaticResource LayoutIconButton}"
+                            ToolTip="{Binding DeleteButtonTooltip}">
+                            <ContentControl
+                                Width="{StaticResource IconSize}"
+                                Height="{StaticResource IconSize}"
+                                Focusable="False"
+                                Template="{StaticResource Icon.Close}" />
+                        </Button>
+                    </StackPanel>
                 </Grid>
             </Border>
         </DataTemplate>

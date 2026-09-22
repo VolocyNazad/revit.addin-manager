@@ -97,7 +97,8 @@ public sealed class EntriesViewModelSearchTests : IDisposable
             new AddinFileRowViewModelFactory(store, NullLoggerFactory.Instance, TestLocalization.For<AddinFileRowViewModel>()),
             new FakeToastService(),
             stoppedGuard,
-            new FakeDialogService());
+            new FakeDialogService(),
+            new FakeFolderOpener());
 
         return new EntriesViewModel(
             list,

@@ -80,6 +80,7 @@ public partial class App
                 services.AddSingleton<IDialogService, WpfDialogService>();
                 services.AddSingleton<IToastService, ToastService>();
                 services.AddSingleton<IUrlOpener, UrlOpener>();
+                services.AddSingleton<IFolderOpener, ExplorerFolderOpener>();
                 services.AddSingleton(_ =>
                 {
                     // GitHub API требует User-Agent, иначе отвечает 403.

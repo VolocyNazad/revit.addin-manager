@@ -206,7 +206,8 @@ public sealed class RowWarningTests : IDisposable
             new AddinFileRowViewModelFactory(store, NullLoggerFactory.Instance, TestLocalization.For<AddinFileRowViewModel>()),
             new FakeToastService(),
             new FakeRevitProcessGuard(),
-            new FakeDialogService());
+            new FakeDialogService(),
+            new FakeFolderOpener());
         var entries = new EntriesViewModel(
             list,
             new FakeLocalizationService(),
@@ -255,7 +256,8 @@ public sealed class RowWarningTests : IDisposable
             new AddinFileRowViewModelFactory(store, NullLoggerFactory.Instance, TestLocalization.For<AddinFileRowViewModel>()),
             new FakeToastService(),
             new FakeRevitProcessGuard(),
-            new FakeDialogService());
+            new FakeDialogService(),
+            new FakeFolderOpener());
 
     private EntriesViewModel NewEntries(ListViewModel list) =>
         new(list,

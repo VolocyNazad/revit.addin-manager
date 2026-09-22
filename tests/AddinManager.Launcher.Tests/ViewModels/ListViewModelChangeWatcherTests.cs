@@ -98,7 +98,8 @@ public sealed class ListViewModelChangeWatcherTests
             new AddinFileRowViewModelFactory(store, NullLoggerFactory.Instance, TestLocalization.For<AddinFileRowViewModel>()),
             new FakeToastService(),
             new FakeRevitProcessGuard(),
-            new FakeDialogService());
+            new FakeDialogService(),
+            new FakeFolderOpener());
         Assert.Equal("Gone.addin", list.SelectedFile?.FileName);
 
         store.SetFiles("2025");
@@ -123,7 +124,8 @@ public sealed class ListViewModelChangeWatcherTests
             new AddinFileRowViewModelFactory(store, NullLoggerFactory.Instance, TestLocalization.For<AddinFileRowViewModel>()),
             new FakeToastService(),
             new FakeRevitProcessGuard(),
-            new FakeDialogService());
+            new FakeDialogService(),
+            new FakeFolderOpener());
 
         Assert.True(
             logger.HasEntry(LogLevel.Debug, "2025"),
@@ -186,7 +188,8 @@ public sealed class ListViewModelChangeWatcherTests
             factory,
             new FakeToastService(),
             new FakeRevitProcessGuard(),
-            new FakeDialogService());
+            new FakeDialogService(),
+            new FakeFolderOpener());
 
         Assert.Equal(2, factory.CreatedFiles.Count);
         Assert.Equal(2, list.Files.Count);
@@ -211,7 +214,8 @@ public sealed class ListViewModelChangeWatcherTests
             new AddinFileRowViewModelFactory(store, NullLoggerFactory.Instance, TestLocalization.For<AddinFileRowViewModel>()),
             toast,
             new FakeRevitProcessGuard(),
-            new FakeDialogService());
+            new FakeDialogService(),
+            new FakeFolderOpener());
         Assert.Empty(toast.ShownMessages);
 
         TestCulture.RunIn("ru", () =>
@@ -246,7 +250,8 @@ public sealed class ListViewModelChangeWatcherTests
             new AddinFileRowViewModelFactory(store, NullLoggerFactory.Instance, TestLocalization.For<AddinFileRowViewModel>()),
             new FakeToastService(),
             guard,
-            new FakeDialogService());
+            new FakeDialogService(),
+            new FakeFolderOpener());
         var row = Assert.Single(list.Files);
         Assert.False(row.IsLocked);
 
@@ -354,7 +359,8 @@ public sealed class ListViewModelChangeWatcherTests
             new AddinFileRowViewModelFactory(store, NullLoggerFactory.Instance, TestLocalization.For<AddinFileRowViewModel>()),
             new FakeToastService(),
             guard,
-            dialog);
+            dialog,
+            new FakeFolderOpener());
     }
 
     private static AddinFile NewFile(string fileName, string version) =>

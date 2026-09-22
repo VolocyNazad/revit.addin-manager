@@ -85,5 +85,6 @@ public sealed class ListViewModelAddFileTests
             new AddinFileRowViewModelFactory(store, NullLoggerFactory.Instance, TestLocalization.For<AddinFileRowViewModel>()),
             new FakeToastService(),
             guard ?? new FakeRevitProcessGuard(),
-            dialog);
+            dialog,
+            new FakeFolderOpener());
 }
