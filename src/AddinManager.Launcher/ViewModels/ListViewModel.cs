@@ -471,16 +471,18 @@ public sealed partial class ListViewModel : ObservableObject, IFileSelection, IA
         _toastService.Show(_localizer["ListRefreshed"]);
     }
 
-    private bool CanShowInFolder() => SelectedFile is not null;
+    private bool CanShowInFolder(AddinFileRowViewModel? row) => (row ?? SelectedFile) is not null;
 
     /// <summary>
-    /// Показывает выбранный манифест в проводнике (папка открывается, файл подсвечен).
+    /// Показывает манифест в проводнике (папка открывается, файл подсвечен).
+    /// Кнопка строки передаёт свою строку параметром — клик по кнопке выбор не двигает,
+    /// поэтому брать всегда SelectedFile было бы неверно; без параметра — выбранный файл.
     /// Только чтение — сторож Revit не при чём, работает и при живом Revit.
     /// </summary>
     [RelayCommand(CanExecute = nameof(CanShowInFolder))]
-    public void ShowInFolder()
+    public void ShowInFolder(AddinFileRowViewModel? row)
     {
-        if (SelectedFile is not { } file)
+        if ((row ?? SelectedFile) is not { } file)
             return;
 
         _logger.LogInformation(

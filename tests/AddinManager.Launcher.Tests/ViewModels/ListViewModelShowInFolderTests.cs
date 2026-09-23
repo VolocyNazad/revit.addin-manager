@@ -32,6 +32,24 @@ public sealed class ListViewModelShowInFolderTests
         Assert.False(list.ShowInFolderCommand.CanExecute(null));
     }
 
+    [Fact]
+    public void ShowInFolder_ExplicitRow_RevealsThatRowNotSelection()
+    {
+        var store = new FakeAddinStore();
+        store.SetFiles(
+            "2025",
+            NewFile("A.addin", AddinScope.User, "2025", enabled: true),
+            NewFile("B.addin", AddinScope.User, "2025", enabled: true));
+        var opener = new FakeFolderOpener();
+        var list = NewList(store, opener);
+        var clicked = list.Files.Single(f => f.FileName == "B.addin");
+        Assert.NotEqual(clicked, list.SelectedFile);
+
+        list.ShowInFolderCommand.Execute(clicked);
+
+        Assert.Equal([clicked.FullPath], opener.RevealedPaths);
+    }
+
     private static ListViewModel NewList(FakeAddinStore store, FakeFolderOpener opener) =>
         new(
             store,

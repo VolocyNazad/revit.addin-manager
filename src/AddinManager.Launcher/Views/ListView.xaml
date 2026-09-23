@@ -359,6 +359,7 @@
                         Orientation="Horizontal">
                         <Button
                             Command="{Binding RelativeSource={RelativeSource AncestorType=ListBox}, Path=DataContext.ShowInFolderCommand}"
+                            CommandParameter="{Binding}"
                             Style="{StaticResource LayoutIconButton}"
                             ToolTip="{Binding RelativeSource={RelativeSource AncestorType=ListBox}, Path=DataContext.ShowInFolderLabel}">
                             <ContentControl
