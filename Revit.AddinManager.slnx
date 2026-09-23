@@ -16,7 +16,6 @@
     <File Path="docs/architecture.md" />
     <File Path="docs/FEATURES.md" />
     <File Path="docs/repository.md" />
-    <File Path="docs/ui-mockup.html" />
     <File Path="docs/WIKI.md" />
   </Folder>
   <Folder Name="/docs/policies/">
