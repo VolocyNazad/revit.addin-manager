@@ -242,7 +242,7 @@
                         </StackPanel>
                     </StackPanel>
 
-                    <!-- Папка и крестик строки: команды — у строки (удаление) и у списка (папка). -->
+                    <!--  Папка и крестик строки: команды — у строки (удаление) и у списка (папка).  -->
                     <StackPanel
                         Grid.Column="1"
                         Margin="8,0,0,0"
@@ -276,8 +276,8 @@
         </DataTemplate>
     </UserControl.Resources>
 
-    <DockPanel Margin="8" LastChildFill="True">
-        <StackPanel Margin="4,0,4,8" DockPanel.Dock="Top">
+    <DockPanel Margin="8 8 0 8" LastChildFill="True">
+        <StackPanel DockPanel.Dock="Top">
             <Grid Margin="0,0,0,8">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="*" />
@@ -441,7 +441,7 @@
         </StackPanel>
 
         <Border
-            Margin="4,0,4,8"
+            Margin="4"
             Padding="10,6"
             Background="{DynamicResource WarningBackgroundBrush}"
             BorderBrush="{DynamicResource WarningBorderBrush}"
@@ -456,7 +456,6 @@
         </Border>
 
         <Border
-            Margin="4,8,4,0"
             Padding="10,8"
             Background="{DynamicResource CaptionHoverBrush}"
             CornerRadius="8"
@@ -486,7 +485,6 @@
         </Border>
 
         <ListBox
-            Margin="4"
             Padding="0,0,12,0"
             Background="Transparent"
             BorderThickness="0"

@@ -238,9 +238,8 @@
                 <ColumnDefinition x:Name="EditorColumn" Width="2*" />
             </Grid.ColumnDefinitions>
             <!--  Зона: группы + список файлов (контент позже)  -->
-            <Grid Grid.Column="0">
-                <ContentControl x:Name="ListHost" Content="{composition:ViewModelLocator {x:Type viewmodels:ListViewModel}}" />
-            </Grid>
+            <ContentControl x:Name="ListHost" Content="{composition:ViewModelLocator {x:Type viewmodels:ListViewModel}}" />
+
             <GridSplitter
                 x:Name="PaneSplitter"
                 Grid.Column="1"

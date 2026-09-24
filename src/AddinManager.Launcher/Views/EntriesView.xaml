@@ -329,7 +329,7 @@
             </StackPanel>
 
             <!--  Поиск + добавить запись (иконка; тип спрашивает диалог).  -->
-            <Grid Margin="4,0,4,8" DockPanel.Dock="Bottom">
+            <Grid Margin="0,0,0,8" DockPanel.Dock="Bottom">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="*" />
                     <ColumnDefinition Width="Auto" />
@@ -361,7 +361,7 @@
 
             <!--  Bulk-панель: записи без тоглов (план, раздел 2), массово только удаляем.  -->
             <Border
-                Margin="4,0,4,8"
+                Margin="0,0,0,8"
                 Padding="10,8"
                 Background="{DynamicResource CaptionHoverBrush}"
                 CornerRadius="8"
@@ -387,7 +387,6 @@
             </Border>
 
             <ListBox
-                Margin="4"
                 Padding="0,0,12,0"
                 Background="Transparent"
                 BorderThickness="0"
