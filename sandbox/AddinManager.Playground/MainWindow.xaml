@@ -9,7 +9,9 @@
       <RowDefinition Height="Auto" />
     </Grid.RowDefinitions>
 
-    <Button Grid.Row="0" Margin="12,12,12,8" HorizontalAlignment="Left" Click="OnRender">Показать (Ctrl+Enter)</Button>
+    <StackPanel Grid.Row="0" Margin="12,12,12,8" Orientation="Horizontal">
+      <Button Click="OnRender">Показать (Ctrl+Enter)</Button>
+    </StackPanel>
 
     <Grid Grid.Row="1" Margin="12,0,12,12">
       <Grid.ColumnDefinitions>
