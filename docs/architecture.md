@@ -25,6 +25,7 @@ This document records stable architectural rules. Implementation details belong 
 
 - `ThemeService` persists `System`, `Light` or `Dark` under `%APPDATA%` and raises `ThemeChanged`.
 - WPF dictionaries define the same keys for light and dark themes. Consumers use `DynamicResource`.
+- Each theme composes shared chrome (`Themes/Chrome/`, без привязки к приложению) and app-specific parts (`Themes/App/`, подсветка AvalonEdit); key parity inside both pairs is enforced by `AddinManager.Theming.Wpf.Tests`.
 - The system theme is read from the registry. Missing or invalid settings fall back to `System`.
 
 ## Localization

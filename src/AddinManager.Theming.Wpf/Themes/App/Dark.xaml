@@ -1,0 +1,10 @@
+<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <!--
+        Токены подсветки AvalonEdit (см. MarkupView). Прикладные, живут с приложением.
+        Ключи один в один с Themes/App/Light.xaml.
+    -->
+    <SolidColorBrush x:Key="MarkupTagBrush" Color="#8AB4D6" />
+    <SolidColorBrush x:Key="MarkupAttributeNameBrush" Color="#C9A26D" />
+    <SolidColorBrush x:Key="MarkupAttributeValueBrush" Color="#8FBF9F" />
+    <SolidColorBrush x:Key="MarkupMetaBrush" Color="#8A8A8A" />
+</ResourceDictionary>

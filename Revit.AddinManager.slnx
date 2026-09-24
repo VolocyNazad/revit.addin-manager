@@ -11,6 +11,7 @@
     <Project Path="tests/AddinManager.Launcher.Tests/AddinManager.Launcher.Tests.csproj" />
     <Project Path="tests/AddinManager.Localization.Tests/AddinManager.Localization.Tests.csproj" />
     <Project Path="tests/AddinManager.Theming.Tests/AddinManager.Theming.Tests.csproj" />
+    <Project Path="tests/AddinManager.Theming.Wpf.Tests/AddinManager.Theming.Wpf.Tests.csproj" />
   </Folder>
   <Folder Name="/docs/">
     <File Path="docs/architecture.md" />

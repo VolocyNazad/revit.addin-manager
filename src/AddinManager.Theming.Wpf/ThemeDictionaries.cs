@@ -4,9 +4,8 @@ namespace AddinManager.Theming.Wpf;
 
 /// <summary>
 /// Переключает набор кистей темы целиком: <c>Themes/Light.xaml</c> и <c>Themes/Dark.xaml</c>
-/// задают одни и те же ключи (<c>AppBackgroundBrush</c>, <c>AppForegroundBrush</c>,
-/// <c>EditorAccentBrush</c>, <c>CaptionHoverBrush</c>) с разными значениями. Потребители
-/// используют <c>DynamicResource</c> и сами ничего не знают про светлую/тёмную тему.
+/// задают одни и те же ключи с разными значениями. Потребители используют
+/// <c>DynamicResource</c> и сами ничего не знают про светлую/тёмную тему.
 /// </summary>
 public static class ThemeDictionaries
 {
