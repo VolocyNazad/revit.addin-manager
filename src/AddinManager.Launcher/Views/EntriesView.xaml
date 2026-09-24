@@ -355,7 +355,7 @@
                         Width="{StaticResource IconSize}"
                         Height="{StaticResource IconSize}"
                         Focusable="False"
-                        Template="{StaticResource Icon.Add}" />
+                        Kind="Add" />
                 </Button>
             </Grid>
 
