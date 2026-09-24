@@ -8,120 +8,16 @@
             <ResourceDictionary.MergedDictionaries>
                 <ResourceDictionary Source="pack://application:,,,/PresentationFramework.Fluent;component/Themes/Fluent.xaml" />
                 <ResourceDictionary Source="Resources/Icons.xaml" />
+                <ResourceDictionary Source="Styles/Buttons.xaml" />
+                <ResourceDictionary Source="Styles/Toggles.xaml" />
+                <ResourceDictionary Source="Styles/Inputs.xaml" />
+                <ResourceDictionary Source="Styles/Tooltips.xaml" />
             </ResourceDictionary.MergedDictionaries>
             <DrawingImage x:Key="ApplicationIcon">
                 <DrawingImage.Drawing>
                     <GeometryDrawing Brush="#45CDFF" Geometry="M19,4 C25.627,4 31,9.373 31,16 C31,22.627 25.627,28 19,28 C13.793,28 9.362,24.683 7.701,20.047 C6.692,21.241 5.185,22 3.5,22 C2.599,22 1.75,21.781 1,21.398 C2.78,20.487 4,18.637 4,16.5 C4,14.363 2.781,12.511 1,11.601 C1.75,11.217 2.6,11 3.5,11 C5.059,11 6.465,11.65 7.465,12.691 C8.901,7.673 13.521,4 19,4 M19,9 C15.134,9 12,12.134 12,16 C12,19.866 15.134,23 19,23 C22.866,23 26,19.866 26,16 C26,12.134 22.866,9 19,9 M22,11 C23.657,11 25,12.343 25,14 C25,15.657 23.657,17 22,17 C20.343,17 19,15.657 19,14 C19,12.343 20.343,11 22,11 M23,12 C22.448,12 22,12.448 22,13 C22,13.552 22.448,14 23,14 C23.552,14 24,13.552 24,13 C24,12.448 23.552,12 23,12" />
                 </DrawingImage.Drawing>
             </DrawingImage>
-            <Style x:Key="SearchBoxStyle" TargetType="TextBox">
-                <Setter Property="Padding" Value="0,7" />
-                <Setter Property="BorderThickness" Value="1" />
-                <Setter Property="BorderBrush" Value="{DynamicResource CaptionHoverBrush}" />
-                <Setter Property="Background" Value="Transparent" />
-                <Setter Property="Foreground" Value="{DynamicResource AppForegroundBrush}" />
-                <Setter Property="CaretBrush" Value="{DynamicResource AppForegroundBrush}" />
-                <Setter Property="FontSize" Value="12" />
-                <Setter Property="Template">
-                    <Setter.Value>
-                        <ControlTemplate TargetType="TextBox">
-                            <Border
-                                Background="{TemplateBinding Background}"
-                                BorderBrush="{TemplateBinding BorderBrush}"
-                                BorderThickness="{TemplateBinding BorderThickness}"
-                                CornerRadius="9">
-                                <ScrollViewer
-                                    x:Name="PART_ContentHost"
-                                    Margin="12,0"
-                                    VerticalAlignment="Center"
-                                    HorizontalScrollBarVisibility="Disabled"
-                                    VerticalScrollBarVisibility="Disabled" />
-                            </Border>
-                        </ControlTemplate>
-                    </Setter.Value>
-                </Setter>
-            </Style>
-            <Style x:Key="FieldTextBoxStyle" TargetType="TextBox">
-                <Setter Property="Padding" Value="10,7" />
-                <Setter Property="BorderThickness" Value="1" />
-                <Setter Property="BorderBrush" Value="{DynamicResource CaptionHoverBrush}" />
-                <Setter Property="Background" Value="Transparent" />
-                <Setter Property="Foreground" Value="{DynamicResource AppForegroundBrush}" />
-                <Setter Property="CaretBrush" Value="{DynamicResource AppForegroundBrush}" />
-                <Setter Property="FontSize" Value="12" />
-                <Setter Property="IsReadOnly" Value="{Binding IsLocked}" />
-                <Setter Property="Template">
-                    <Setter.Value>
-                        <ControlTemplate TargetType="TextBox">
-                            <Border
-                                Background="{TemplateBinding Background}"
-                                BorderBrush="{TemplateBinding BorderBrush}"
-                                BorderThickness="{TemplateBinding BorderThickness}"
-                                CornerRadius="9">
-                                <ScrollViewer
-                                    x:Name="PART_ContentHost"
-                                    Margin="{TemplateBinding Padding}"
-                                    VerticalAlignment="Center"
-                                    HorizontalScrollBarVisibility="Disabled"
-                                    VerticalScrollBarVisibility="Disabled" />
-                            </Border>
-                        </ControlTemplate>
-                    </Setter.Value>
-                </Setter>
-            </Style>
-            <Style x:Key="CardToolTipStyle" TargetType="ToolTip">
-                <Setter Property="HasDropShadow" Value="True" />
-                <Setter Property="Placement" Value="Right" />
-                <Setter Property="HorizontalOffset" Value="8" />
-                <Setter Property="Template">
-                    <Setter.Value>
-                        <ControlTemplate TargetType="ToolTip">
-                            <Border
-                                Padding="12,10"
-                                Background="{DynamicResource AppBackgroundBrush}"
-                                BorderBrush="{DynamicResource CaptionHoverBrush}"
-                                BorderThickness="1"
-                                CornerRadius="10"
-                                TextElement.Foreground="{DynamicResource AppForegroundBrush}">
-                                <ContentPresenter />
-                            </Border>
-                        </ControlTemplate>
-                    </Setter.Value>
-                </Setter>
-            </Style>
-            <Style x:Key="WarningCardToolTipStyle" TargetType="ToolTip">
-                <Setter Property="HasDropShadow" Value="True" />
-                <Setter Property="Placement" Value="Right" />
-                <Setter Property="HorizontalOffset" Value="8" />
-                <Setter Property="Template">
-                    <Setter.Value>
-                        <ControlTemplate TargetType="ToolTip">
-                            <Border
-                                Padding="12,10"
-                                Background="{DynamicResource WarningBackgroundBrush}"
-                                BorderBrush="{DynamicResource WarningBorderBrush}"
-                                BorderThickness="1"
-                                CornerRadius="10"
-                                TextElement.Foreground="{DynamicResource AppForegroundBrush}">
-                                <ContentPresenter />
-                            </Border>
-                        </ControlTemplate>
-                    </Setter.Value>
-                </Setter>
-            </Style>
-            <Style x:Key="TooltipFieldLabelStyle" TargetType="TextBlock">
-                <Setter Property="FontSize" Value="11" />
-                <Setter Property="Foreground" Value="{DynamicResource TooltipLabelBrush}" />
-                <Setter Property="Margin" Value="0,0,10,4" />
-                <Setter Property="TextWrapping" Value="Wrap" />
-            </Style>
-            <Style x:Key="TooltipFieldValueStyle" TargetType="TextBlock">
-                <Setter Property="FontSize" Value="11" />
-                <Setter Property="Foreground" Value="{DynamicResource AppForegroundBrush}" />
-                <Setter Property="Margin" Value="0,0,0,4" />
-                <Setter Property="TextWrapping" Value="Wrap" />
-            </Style>
-
             <Style x:Key="FieldLabelStyle" TargetType="TextBlock">
                 <Setter Property="FontSize" Value="11" />
                 <Setter Property="Opacity" Value="0.55" />

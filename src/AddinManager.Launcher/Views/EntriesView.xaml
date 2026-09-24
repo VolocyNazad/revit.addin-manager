@@ -25,33 +25,6 @@
 
         <!--  Без родного хрома ListBoxItem — выбор/ховер рисует Border строки.  -->
 
-
-        <!--
-            Локальная копия (стили не выносятся из вида); только скрытая пара ниже.
-            Foreground — явно из токенов: без него текст берёт цвет родного Fluent-стиля
-            кнопки (за системной темой), и в тёмной теме приложения на светлой системе
-            его не видно на CaptionHoverBrush.
-        -->
-        <Style x:Key="EditorButtonStyle" TargetType="Button">
-            <Setter Property="Padding" Value="12,5" />
-            <Setter Property="Margin" Value="6,0,0,0" />
-            <Setter Property="FontSize" Value="11" />
-            <Setter Property="BorderThickness" Value="1" />
-            <Setter Property="Foreground" Value="{DynamicResource AppForegroundBrush}" />
-            <Setter Property="Template">
-                <Setter.Value>
-                    <ControlTemplate TargetType="Button">
-                        <Border
-                            Padding="{TemplateBinding Padding}"
-                            BorderThickness="{TemplateBinding BorderThickness}"
-                            CornerRadius="8">
-                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" />
-                        </Border>
-                    </ControlTemplate>
-                </Setter.Value>
-            </Setter>
-        </Style>
-
         <!--  Локальная копия (см. ListView.xaml, там же история откатов).  -->
 
 

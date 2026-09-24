@@ -28,6 +28,10 @@ This document records stable architectural rules. Implementation details belong 
 - Each theme composes shared chrome (`Themes/Chrome/`, без привязки к приложению) and app-specific parts (`Themes/App/`, подсветка AvalonEdit); key parity inside both pairs is enforced by `AddinManager.Theming.Wpf.Tests`.
 - The system theme is read from the registry. Missing or invalid settings fall back to `System`.
 
+## Styles
+
+- Shared control styles live in `Styles/` (`Buttons.xaml`, `Toggles.xaml`, `Inputs.xaml`, `Tooltips.xaml`) and merge once in `App.xaml`; views must not duplicate them. View-specific behavior goes into a small local `BasedOn` style (`OptionToggleStyle`, `OptionButtonStyle`), never into a full copy.
+
 ## Localization
 
 - `LocalizationService` persists `System`, `Russian` or `English` and applies `CurrentUICulture` and `DefaultThreadCurrentUICulture`.

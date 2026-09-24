@@ -7,116 +7,33 @@
     xmlns:design="clr-namespace:AddinManager.Launcher.Design"
     xmlns:manifests="clr-namespace:AddinManager.Core.Manifests;assembly=AddinManager.Core"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-    mc:Ignorable="d"
-    d:DataContext="{d:DesignInstance Type=design:DesignFormViewModel, IsDesignTimeCreatable=True}"
-    d:DesignWidth="370" d:DesignHeight="680"
-    TextElement.Foreground="{DynamicResource AppForegroundBrush}">
+    d:DataContext="{d:DesignInstance Type=design:DesignFormViewModel,
+                                     IsDesignTimeCreatable=True}"
+    d:DesignHeight="680"
+    d:DesignWidth="370"
+    TextElement.Foreground="{DynamicResource AppForegroundBrush}"
+    mc:Ignorable="d">
     <UserControl.Resources>
         <converters:NullToVisibilityConverter x:Key="HasSelection" />
         <converters:NullOrEmptyToVisibilityConverter x:Key="NullOrEmptyToVisibility" />
         <converters:EnumEqualsToOpacityConverter x:Key="ActiveOpacity" />
         <BooleanToVisibilityConverter x:Key="BoolToVisibility" />
-
-        <!-- Локальная копия (стили не выносятся из вида, см. architecture.md, Themes). -->
-        <Style x:Key="EditorButtonStyle" TargetType="Button">
-            <Setter Property="Padding" Value="12,5" />
-            <Setter Property="Margin" Value="6,0,0,0" />
-            <Setter Property="Cursor" Value="Hand" />
-            <Setter Property="FontSize" Value="11" />
-            <Setter Property="Foreground" Value="{DynamicResource AppForegroundBrush}" />
-            <Setter Property="Background" Value="Transparent" />
-            <Setter Property="BorderThickness" Value="1" />
-            <Setter Property="BorderBrush" Value="{DynamicResource CaptionHoverBrush}" />
-            <Setter Property="Template">
-                <Setter.Value>
-                    <ControlTemplate TargetType="Button">
-                        <Border
-                            Padding="{TemplateBinding Padding}"
-                            Background="{TemplateBinding Background}"
-                            BorderBrush="{TemplateBinding BorderBrush}"
-                            BorderThickness="{TemplateBinding BorderThickness}"
-                            CornerRadius="8">
-                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" />
-                        </Border>
-                    </ControlTemplate>
-                </Setter.Value>
-            </Setter>
-            <Style.Triggers>
-                <Trigger Property="IsEnabled" Value="False">
-                    <Setter Property="Opacity" Value="0.35" />
-                    <Setter Property="Cursor" Value="Arrow" />
-                </Trigger>
-            </Style.Triggers>
-        </Style>
-
-        <!-- Локальная копия; тип менять нельзя — чипы без команды, только индикатор. -->
-        <Style x:Key="ChipButtonStyle" TargetType="Button">
-            <Setter Property="Padding" Value="10,4" />
-            <Setter Property="Margin" Value="0,0,6,0" />
-            <Setter Property="FontSize" Value="11" />
-            <Setter Property="Foreground" Value="{DynamicResource AppForegroundBrush}" />
-            <Setter Property="Background" Value="Transparent" />
-            <Setter Property="BorderThickness" Value="1" />
-            <Setter Property="BorderBrush" Value="{DynamicResource CaptionHoverBrush}" />
-            <Setter Property="Template">
-                <Setter.Value>
-                    <ControlTemplate TargetType="Button">
-                        <Border
-                            Padding="{TemplateBinding Padding}"
-                            Background="{TemplateBinding Background}"
-                            BorderBrush="{TemplateBinding BorderBrush}"
-                            BorderThickness="{TemplateBinding BorderThickness}"
-                            CornerRadius="10">
-                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" />
-                        </Border>
-                    </ControlTemplate>
-                </Setter.Value>
-            </Setter>
-        </Style>
-
-        <!-- Локальная копия (стили не выносятся из вида). -->
-        <Style x:Key="ChipToggleStyle" TargetType="ToggleButton">
-            <Setter Property="Padding" Value="10,4" />
+        <!--  Довесок общего ChipToggleStyle: вертикальным рядам нужен нижний отступ, пункты гаснут за Revit.  -->
+        <Style
+            x:Key="OptionToggleStyle"
+            BasedOn="{StaticResource ChipToggleStyle}"
+            TargetType="ToggleButton">
             <Setter Property="Margin" Value="0,0,6,6" />
-            <Setter Property="Cursor" Value="Hand" />
-            <Setter Property="FontSize" Value="11" />
-            <Setter Property="Foreground" Value="{DynamicResource AppForegroundBrush}" />
-            <Setter Property="Background" Value="Transparent" />
-            <Setter Property="BorderThickness" Value="1" />
-            <Setter Property="BorderBrush" Value="{DynamicResource CaptionHoverBrush}" />
-            <Setter Property="Opacity" Value="0.55" />
-            <Setter Property="Template">
-                <Setter.Value>
-                    <ControlTemplate TargetType="ToggleButton">
-                        <Border
-                            Padding="{TemplateBinding Padding}"
-                            Background="{TemplateBinding Background}"
-                            BorderBrush="{TemplateBinding BorderBrush}"
-                            BorderThickness="{TemplateBinding BorderThickness}"
-                            CornerRadius="10">
-                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" />
-                        </Border>
-                    </ControlTemplate>
-                </Setter.Value>
-            </Setter>
             <Style.Triggers>
-                <Trigger Property="IsChecked" Value="True">
-                    <Setter Property="Opacity" Value="1" />
-                    <Setter Property="Background" Value="{DynamicResource CaptionHoverBrush}" />
-                </Trigger>
-                <!-- Revit запущен: чипс гаснет (IsLocked выставляет FormViewModel на каждый пункт). -->
+                <!--  Revit запущен: чипс гаснет (IsLocked выставляет FormViewModel на каждый пункт).  -->
                 <DataTrigger Binding="{Binding IsLocked}" Value="True">
                     <Setter Property="IsEnabled" Value="False" />
                 </DataTrigger>
             </Style.Triggers>
         </Style>
 
-        
 
-        <!-- Border + PART_ContentHost вместо родного хрома TextBox — как поиск в списке. -->
-        
 
-        
     </UserControl.Resources>
 
     <Grid>
@@ -129,7 +46,7 @@
             Visibility="{Binding SelectedEntry, Converter={StaticResource HasSelection}, ConverterParameter=Invert}" />
 
         <DockPanel LastChildFill="True" Visibility="{Binding SelectedEntry, Converter={StaticResource HasSelection}}">
-            <!-- Высота и левый край заголовка — как у соседних подпанелей (см. architecture.md, Themes). -->
+            <!--  Высота и левый край заголовка — как у соседних подпанелей (см. architecture.md, Themes).  -->
             <StackPanel Margin="12,12,12,10" DockPanel.Dock="Top">
                 <Grid>
                     <TextBlock
@@ -171,7 +88,7 @@
                 </Border>
             </StackPanel>
 
-            <!-- 26 справа = 16 + 10 толщина скроллбара: Fluent рисует внахлёст (см. architecture.md, Themes). -->
+            <!--  26 справа = 16 + 10 толщина скроллбара: Fluent рисует внахлёст (см. architecture.md, Themes).  -->
             <Border Background="Transparent">
                 <ScrollViewer Padding="16,16,26,16" VerticalScrollBarVisibility="Auto">
                     <StackPanel>
@@ -324,7 +241,7 @@
                                         <ToggleButton
                                             Content="{Binding Value}"
                                             IsChecked="{Binding IsSelected, Mode=TwoWay}"
-                                            Style="{StaticResource ChipToggleStyle}" />
+                                            Style="{StaticResource OptionToggleStyle}" />
                                     </DataTemplate>
                                 </ItemsControl.ItemTemplate>
                             </ItemsControl>
@@ -343,7 +260,7 @@
                                         <ToggleButton
                                             Content="{Binding Value}"
                                             IsChecked="{Binding IsSelected, Mode=TwoWay}"
-                                            Style="{StaticResource ChipToggleStyle}" />
+                                            Style="{StaticResource OptionToggleStyle}" />
                                     </DataTemplate>
                                 </ItemsControl.ItemTemplate>
                             </ItemsControl>

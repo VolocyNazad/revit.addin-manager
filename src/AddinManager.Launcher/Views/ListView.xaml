@@ -19,126 +19,16 @@
         <converters:BoolToVisibilityConverter x:Key="BoolToVisibility" />
         <converters:EnumEqualsToOpacityConverter x:Key="ActiveOpacity" />
 
-        <Style x:Key="ToggleSwitchStyle" TargetType="CheckBox">
-            <Setter Property="Cursor" Value="Hand" />
-            <Setter Property="Template">
-                <Setter.Value>
-                    <ControlTemplate TargetType="CheckBox">
-                        <Grid Width="34" Height="18">
-                            <Border
-                                x:Name="Track"
-                                Background="{DynamicResource AppForegroundBrush}"
-                                CornerRadius="9"
-                                Opacity="0.25" />
-                            <Ellipse
-                                x:Name="Thumb"
-                                Width="14"
-                                Height="14"
-                                Margin="2,0,0,0"
-                                HorizontalAlignment="Left"
-                                Fill="{DynamicResource AppForegroundBrush}" />
-                        </Grid>
-                        <ControlTemplate.Triggers>
-                            <Trigger Property="IsChecked" Value="True">
-                                <Setter TargetName="Track" Property="Opacity" Value="1" />
-                                <Setter TargetName="Thumb" Property="Fill" Value="{DynamicResource AppBackgroundBrush}" />
-                                <Setter TargetName="Thumb" Property="HorizontalAlignment" Value="Right" />
-                                <Setter TargetName="Thumb" Property="Margin" Value="0,0,2,0" />
-                            </Trigger>
-                            <!--  Revit запущен: тоггл гаснет (IsLocked выставляет ListViewModel).  -->
-                            <DataTrigger Binding="{Binding IsLocked}" Value="True">
-                                <Setter Property="IsEnabled" Value="False" />
-                            </DataTrigger>
-                        </ControlTemplate.Triggers>
-                    </ControlTemplate>
-                </Setter.Value>
-            </Setter>
-        </Style>
-
-        <Style x:Key="ChipButtonStyle" TargetType="Button">
-            <Setter Property="Padding" Value="10,4" />
-            <Setter Property="Margin" Value="0,0,6,0" />
-            <Setter Property="Cursor" Value="Hand" />
-            <Setter Property="FontSize" Value="11" />
-            <Setter Property="Foreground" Value="{DynamicResource AppForegroundBrush}" />
-            <Setter Property="Background" Value="Transparent" />
-            <Setter Property="BorderThickness" Value="1" />
-            <Setter Property="BorderBrush" Value="{DynamicResource CaptionHoverBrush}" />
-            <Setter Property="Template">
-                <Setter.Value>
-                    <ControlTemplate TargetType="Button">
-                        <Border
-                            Padding="{TemplateBinding Padding}"
-                            Background="{TemplateBinding Background}"
-                            BorderBrush="{TemplateBinding BorderBrush}"
-                            BorderThickness="{TemplateBinding BorderThickness}"
-                            CornerRadius="10">
-                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" />
-                        </Border>
-                    </ControlTemplate>
-                </Setter.Value>
-            </Setter>
-        </Style>
-
-        <!--
-            Только для чипов версий: они переносятся на несколько строк, и строкам нужен
-            нижний отступ. Однострочным рядам (Scope/Sort/Group) его давать нельзя.
-        -->
-        <Style
-            x:Key="VersionChipButtonStyle"
-            BasedOn="{StaticResource ChipButtonStyle}"
-            TargetType="Button">
-            <Setter Property="Margin" Value="0,0,6,6" />
-        </Style>
-
-        <!--  Независимые вкл/выкл-чипсы (активность — родное IsChecked, без конвертера).  -->
-        <Style x:Key="ChipToggleStyle" TargetType="ToggleButton">
-            <Setter Property="Padding" Value="10,4" />
-            <Setter Property="Margin" Value="0,0,6,0" />
-            <Setter Property="Cursor" Value="Hand" />
-            <Setter Property="FontSize" Value="11" />
-            <Setter Property="Foreground" Value="{DynamicResource AppForegroundBrush}" />
-            <Setter Property="Background" Value="Transparent" />
-            <Setter Property="BorderThickness" Value="1" />
-            <Setter Property="BorderBrush" Value="{DynamicResource CaptionHoverBrush}" />
-            <Setter Property="Opacity" Value="0.55" />
-            <Setter Property="Template">
-                <Setter.Value>
-                    <ControlTemplate TargetType="ToggleButton">
-                        <Border
-                            Padding="{TemplateBinding Padding}"
-                            Background="{TemplateBinding Background}"
-                            BorderBrush="{TemplateBinding BorderBrush}"
-                            BorderThickness="{TemplateBinding BorderThickness}"
-                            CornerRadius="10">
-                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" />
-                        </Border>
-                    </ControlTemplate>
-                </Setter.Value>
-            </Setter>
-            <Style.Triggers>
-                <Trigger Property="IsChecked" Value="True">
-                    <Setter Property="Opacity" Value="1" />
-                    <Setter Property="Background" Value="{DynamicResource CaptionHoverBrush}" />
-                </Trigger>
-            </Style.Triggers>
-        </Style>
-
         <!--
             Карточка вместо системного ToolTip (тот же вид, что подпанели редактора).
             Контрастные варианты пробовали — откачены, подробности в docs/architecture.md,
             раздел "Plugin list": не повторять.
         -->
 
-
         <!--  Карточка тултипа иконки предупреждения — тот же желтый стиль, что у баннеров.  -->
 
 
         <!--  Подписи полей карточки — сплошным приглушённым цветом темы, не полупрозрачностью.  -->
-
-
-
-
 
         <DataTemplate x:Key="RowTemplate" DataType="{x:Type viewmodels:AddinFileRowViewModel}">
             <Border

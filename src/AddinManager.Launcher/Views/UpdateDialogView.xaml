@@ -18,39 +18,6 @@
     <i:Interaction.Behaviors>
         <behaviors:DialogResultBehavior DialogResult="{Binding Result}" />
     </i:Interaction.Behaviors>
-    <Window.Resources>
-        <!-- Локальная копия (стили не выносятся из вида); как Save/Discard в форме. -->
-        <Style x:Key="EditorButtonStyle" TargetType="Button">
-            <Setter Property="Padding" Value="12,5" />
-            <Setter Property="Margin" Value="6,0,0,0" />
-            <Setter Property="Cursor" Value="Hand" />
-            <Setter Property="FontSize" Value="11" />
-            <Setter Property="Foreground" Value="{DynamicResource AppForegroundBrush}" />
-            <Setter Property="Background" Value="Transparent" />
-            <Setter Property="BorderThickness" Value="1" />
-            <Setter Property="BorderBrush" Value="{DynamicResource CaptionHoverBrush}" />
-            <Setter Property="Template">
-                <Setter.Value>
-                    <ControlTemplate TargetType="Button">
-                        <Border
-                            Padding="{TemplateBinding Padding}"
-                            Background="{TemplateBinding Background}"
-                            BorderBrush="{TemplateBinding BorderBrush}"
-                            BorderThickness="{TemplateBinding BorderThickness}"
-                            CornerRadius="8">
-                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" />
-                        </Border>
-                    </ControlTemplate>
-                </Setter.Value>
-            </Setter>
-            <Style.Triggers>
-                <Trigger Property="IsEnabled" Value="False">
-                    <Setter Property="Opacity" Value="0.35" />
-                    <Setter Property="Cursor" Value="Arrow" />
-                </Trigger>
-            </Style.Triggers>
-        </Style>
-    </Window.Resources>
     <Border Padding="20,16"
             Background="{DynamicResource AppBackgroundBrush}"
             BorderBrush="{DynamicResource CaptionHoverBrush}"
