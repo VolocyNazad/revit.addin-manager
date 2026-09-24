@@ -13,10 +13,16 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 ### Changed
 
 - Zone ViewModels share selection and the file catalog through narrow contracts instead of concrete neighbors: `IFileSelection`/`IEntrySelection` (single slots with change notifications) and `IAddinFileCatalog` (live rows plus rescan), implemented by the owning zones themselves — selection flows one way, list → entries. See `docs/architecture.md`, "MVVM".
+- Icon consumption consolidated behind a `PackIcon` control (`PackIconKind` enum instead of `ContentControl` + `Icon.*` template at every usage site).
+- Icon artwork switched to Material Design Icons paths (`refresh`, `plus`, `close`, `delete-outline`, `folder-outline`, `alert-outline`, `download`, `help`, `heart`, `earth`); the eight view-mode icons and the theme half-moon stay hand-drawn.
+- Shared button and toggle styles moved from per-view copies to `Styles/Buttons.xaml`/`Styles/Toggles.xaml` (merged once in `App.xaml`); view-specific bits (wrapping margins, `IsLocked` dimming) stay as small local `BasedOn` styles.
+- Shared text-field and tooltip styles moved to `Styles/Inputs.xaml`/`Styles/Tooltips.xaml` the same way.
+- Theme dictionaries split into shared chrome (`Themes/Chrome/`, no application ties) and app-specific parts (`Themes/App/`, AvalonEdit highlighting), composed by thin `Themes/Light.xaml`/`Dark.xaml` entry points — first step toward a reusable theme library.
 
 ### Fixed
 
 - Row button "Show in folder" revealed the selected file instead of the clicked row (a button click does not move the `ListBox` selection): the button now passes its own row as the command parameter, falling back to the selection without one.
+- `TooltipLabelBrush` missing in the light theme: tooltip field labels fell back to the default instead of muted gray; the key now exists in both themes, and `AddinManager.Theming.Wpf.Tests` pins key parity of both dictionary pairs.
 
 ## [1.2.0] - 2026-09-22
 
