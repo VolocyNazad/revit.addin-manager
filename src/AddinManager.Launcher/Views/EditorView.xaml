@@ -3,6 +3,7 @@
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:composition="clr-namespace:AddinManager.Launcher.Composition"
+    xmlns:controls="clr-namespace:AddinManager.Launcher.Controls"
     xmlns:converters="clr-namespace:AddinManager.Launcher.Converters"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:design="clr-namespace:AddinManager.Launcher.Design"
@@ -40,11 +41,11 @@
                     Opacity="{Binding Mode, Converter={StaticResource ActiveModeOpacityConverter}, ConverterParameter={x:Static viewmodels:EditorMode.Entries}}"
                     Style="{StaticResource LayoutIconButton}"
                     ToolTip="{Binding EntriesTooltip}">
-                    <ContentControl
+                    <controls:PackIcon
                         Width="{StaticResource IconSize}"
                         Height="{StaticResource IconSize}"
                         Focusable="False"
-                        Template="{StaticResource Icon.List}" />
+                        Kind="List" />
                 </Button>
                 <Button
                     Margin="2,0,0,0"
@@ -53,11 +54,11 @@
                     Opacity="{Binding Mode, Converter={StaticResource ActiveModeOpacityConverter}, ConverterParameter={x:Static viewmodels:EditorMode.Form}}"
                     Style="{StaticResource LayoutIconButton}"
                     ToolTip="{Binding FormTooltip}">
-                    <ContentControl
+                    <controls:PackIcon
                         Width="{StaticResource IconSize}"
                         Height="{StaticResource IconSize}"
                         Focusable="False"
-                        Template="{StaticResource Icon.Form}" />
+                        Kind="Form" />
                 </Button>
                 <Button
                     Margin="2,0,0,0"
@@ -66,11 +67,11 @@
                     Opacity="{Binding Mode, Converter={StaticResource ActiveModeOpacityConverter}, ConverterParameter={x:Static viewmodels:EditorMode.Markup}}"
                     Style="{StaticResource LayoutIconButton}"
                     ToolTip="{Binding MarkupTooltip}">
-                    <ContentControl
+                    <controls:PackIcon
                         Width="{StaticResource IconSize}"
                         Height="{StaticResource IconSize}"
                         Focusable="False"
-                        Template="{StaticResource Icon.Markup}" />
+                        Kind="Markup" />
                 </Button>
                 <Button
                     Margin="8,0,0,0"
@@ -79,11 +80,11 @@
                     Opacity="{Binding Mode, Converter={StaticResource ActiveModeOpacityConverter}, ConverterParameter={x:Static viewmodels:EditorMode.EntriesForm}}"
                     Style="{StaticResource LayoutIconButton}"
                     ToolTip="{Binding EntriesFormTooltip}">
-                    <ContentControl
+                    <controls:PackIcon
                         Width="{StaticResource IconSize}"
                         Height="{StaticResource IconSize}"
                         Focusable="False"
-                        Template="{StaticResource Icon.EntriesForm}" />
+                        Kind="EntriesForm" />
                 </Button>
                 <Button
                     Margin="2,0,0,0"
@@ -92,11 +93,11 @@
                     Opacity="{Binding Mode, Converter={StaticResource ActiveModeOpacityConverter}, ConverterParameter={x:Static viewmodels:EditorMode.EntriesMarkup}}"
                     Style="{StaticResource LayoutIconButton}"
                     ToolTip="{Binding EntriesMarkupTooltip}">
-                    <ContentControl
+                    <controls:PackIcon
                         Width="{StaticResource IconSize}"
                         Height="{StaticResource IconSize}"
                         Focusable="False"
-                        Template="{StaticResource Icon.EntriesMarkup}" />
+                        Kind="EntriesMarkup" />
                 </Button>
                 <Button
                     Margin="8,0,0,0"
@@ -105,11 +106,11 @@
                     Opacity="{Binding Mode, Converter={StaticResource ActiveModeOpacityConverter}, ConverterParameter={x:Static viewmodels:EditorMode.Settings}}"
                     Style="{StaticResource LayoutIconButton}"
                     ToolTip="{Binding SettingsTooltip}">
-                    <ContentControl
+                    <controls:PackIcon
                         Width="{StaticResource IconSize}"
                         Height="{StaticResource IconSize}"
                         Focusable="False"
-                        Template="{StaticResource Icon.Settings}" />
+                        Kind="Settings" />
                 </Button>
             </StackPanel>
             <Grid Grid.Row="1" Margin="8,0,8,8">

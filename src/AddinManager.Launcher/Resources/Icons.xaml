@@ -256,244 +256,92 @@
         </Viewbox>
     </ControlTemplate>
 
-    <!--  Круговая стрелка 300° с разрывом под наконечником; шеврон симметричен относительно Y=2.2.  -->
+    <!--  Material Design Icons "refresh" (сетка 24).  -->
     <ControlTemplate x:Key="Icon.Refresh" TargetType="ContentControl">
         <Viewbox Stretch="Uniform">
-            <Grid Width="{StaticResource IconSize}" Height="{StaticResource IconSize}">
-                <Path
-                    Data="M11.33,4.7 A5,5 0 1 1 7,2.2"
-                    Stroke="{DynamicResource AppForegroundBrush}"
-                    StrokeEndLineCap="Round"
-                    StrokeStartLineCap="Round"
-                    StrokeThickness="{StaticResource IconStrokeThickness}" />
-                <Path
-                    Data="M5.4,1.4 L7,2.2 L5.4,3"
-                    Stroke="{DynamicResource AppForegroundBrush}"
-                    StrokeEndLineCap="Round"
-                    StrokeLineJoin="Round"
-                    StrokeStartLineCap="Round"
-                    StrokeThickness="{StaticResource IconStrokeThickness}" />
+            <Grid Width="24" Height="24">
+                <Path Data="M17.65,6.35C16.2,4.9 14.21,4 12,4A8,8 0 0,0 4,12A8,8 0 0,0 12,20C15.73,20 18.84,17.45 19.73,14H17.65C16.83,16.33 14.61,18 12,18A6,6 0 0,1 6,12A6,6 0 0,1 12,6C13.66,6 15.14,6.69 16.22,7.78L13,11H20V4L17.65,6.35Z" Fill="{TemplateBinding Foreground}" />
             </Grid>
         </Viewbox>
     </ControlTemplate>
 
-    <!--
-        Глобус: внешняя окружность 12, меридиан-эллипс той же высоты и экватор —
-        тем же штрихом, что остальные иконки.
-    -->
+    <!--  Material Design Icons "earth" (сетка 24).  -->
     <ControlTemplate x:Key="Icon.Language" TargetType="ContentControl">
         <Viewbox Stretch="Uniform">
-            <Grid Width="{StaticResource IconSize}" Height="{StaticResource IconSize}">
-                <Ellipse
-                    Width="12"
-                    Height="12"
-                    HorizontalAlignment="Center"
-                    VerticalAlignment="Center"
-                    Stroke="{DynamicResource AppForegroundBrush}"
-                    StrokeThickness="{StaticResource IconStrokeThickness}" />
-                <Ellipse
-                    Width="5"
-                    Height="12"
-                    HorizontalAlignment="Center"
-                    VerticalAlignment="Center"
-                    Stroke="{DynamicResource AppForegroundBrush}"
-                    StrokeThickness="{StaticResource IconStrokeThickness}" />
-                <Rectangle
-                    Width="12"
-                    Height="{StaticResource IconStrokeThickness}"
-                    HorizontalAlignment="Center"
-                    VerticalAlignment="Center"
-                    Fill="{DynamicResource AppForegroundBrush}"
-                    RadiusX="{StaticResource IconLineRadius}"
-                    RadiusY="{StaticResource IconLineRadius}" />
+            <Grid Width="24" Height="24">
+                <Path Data="M17.9,17.39C17.64,16.59 16.89,16 16,16H15V13A1,1 0 0,0 14,12H8V10H10A1,1 0 0,0 11,9V7H13A2,2 0 0,0 15,5V4.59C17.93,5.77 20,8.64 20,12C20,14.08 19.2,15.97 17.9,17.39M11,19.93C7.05,19.44 4,16.08 4,12C4,11.38 4.08,10.78 4.21,10.21L9,15V16A2,2 0 0,0 11,18M12,2A10,10 0 0,0 2,12A10,10 0 0,0 12,22A10,10 0 0,0 22,12A10,10 0 0,0 12,2Z" Fill="{TemplateBinding Foreground}" />
             </Grid>
         </Viewbox>
     </ControlTemplate>
-    <!--  Стрелка вниз в лоток: скачивание/обновление.  -->
+    <!--  Material Design Icons "download" (сетка 24).  -->
     <ControlTemplate x:Key="Icon.Update" TargetType="ContentControl">
         <Viewbox Stretch="Uniform">
-            <Grid Width="{StaticResource IconSize}" Height="{StaticResource IconSize}">
-                <Path
-                    Data="M7,1.5 L7,8"
-                    Stroke="{DynamicResource AppForegroundBrush}"
-                    StrokeEndLineCap="Round"
-                    StrokeStartLineCap="Round"
-                    StrokeThickness="{StaticResource IconStrokeThickness}" />
-                <Path
-                    Data="M4.5,5.5 L7,8 L9.5,5.5"
-                    Stroke="{DynamicResource AppForegroundBrush}"
-                    StrokeEndLineCap="Round"
-                    StrokeLineJoin="Round"
-                    StrokeStartLineCap="Round"
-                    StrokeThickness="{StaticResource IconStrokeThickness}" />
-                <Path
-                    Data="M2.5,11.5 L11.5,11.5"
-                    Stroke="{DynamicResource AppForegroundBrush}"
-                    StrokeEndLineCap="Round"
-                    StrokeStartLineCap="Round"
-                    StrokeThickness="{StaticResource IconStrokeThickness}" />
+            <Grid Width="24" Height="24">
+                <Path Data="M5,20H19V18H5M19,9H15V3H9V9H5L12,16L19,9Z" Fill="{TemplateBinding Foreground}" />
             </Grid>
         </Viewbox>
     </ControlTemplate>
-    <!--  Вопросительный знак: помощь/поддержка.  -->
+    <!--  Material Design Icons "help" (сетка 24).  -->
     <ControlTemplate x:Key="Icon.Support" TargetType="ContentControl">
         <Viewbox Stretch="Uniform">
-            <Grid Width="{StaticResource IconSize}" Height="{StaticResource IconSize}">
-                <Path
-                    Data="M5.5,3.5 C5.5,2.6 6.2,2 7,2 C8.5,2 9.5,3.1 9.5,4.3 C9.5,5.6 8.6,6.2 7.6,6.6 L7.6,8.4"
-                    Stroke="{DynamicResource AppForegroundBrush}"
-                    StrokeEndLineCap="Round"
-                    StrokeStartLineCap="Round"
-                    StrokeThickness="{StaticResource IconStrokeThickness}" />
-                <Path
-                    Data="M7.6,10.6 L7.6,11"
-                    Stroke="{DynamicResource AppForegroundBrush}"
-                    StrokeEndLineCap="Round"
-                    StrokeThickness="{StaticResource IconStrokeThickness}" />
+            <Grid Width="24" Height="24">
+                <Path Data="M10,19H13V22H10V19M12,2C17.35,2.22 19.68,7.62 16.5,11.67C15.67,12.67 14.33,13.33 13.67,14.17C13,15 13,16 13,17H10C10,15.33 10,13.92 10.67,12.92C11.33,11.92 12.67,11.33 13.5,10.67C15.92,8.43 15.32,5.26 12,5A3,3 0 0,0 9,8H6A6,6 0 0,1 12,2Z" Fill="{TemplateBinding Foreground}" />
             </Grid>
         </Viewbox>
     </ControlTemplate>
-    <!--  Сердце: спонсорство/поддержать автора.  -->
+    <!--  Material Design Icons "heart" (сетка 24).  -->
     <ControlTemplate x:Key="Icon.Sponsor" TargetType="ContentControl">
         <Viewbox Stretch="Uniform">
-            <Grid Width="{StaticResource IconSize}" Height="{StaticResource IconSize}">
-                <Path Data="M7,10.5 C7,10.5 2.5,7.5 2.5,5 C2.5,3.6 3.6,2.6 5,2.6 C5.9,2.6 6.6,3.1 7,3.8 C7.4,3.1 8.1,2.6 9,2.6 C10.4,2.6 11.5,3.6 11.5,5 C11.5,7.5 7,10.5 7,10.5 Z" Fill="{DynamicResource AppForegroundBrush}" />
+            <Grid Width="24" Height="24">
+                <Path Data="M12,21.35L10.55,20.03C5.4,15.36 2,12.27 2,8.5C2,5.41 4.42,3 7.5,3C9.24,3 10.91,3.81 12,5.08C13.09,3.81 14.76,3 16.5,3C19.58,3 22,5.41 22,8.5C22,12.27 18.6,15.36 13.45,20.03L12,21.35Z" Fill="{TemplateBinding Foreground}" />
             </Grid>
         </Viewbox>
     </ControlTemplate>
-    <!--  Урна без контура, на всю сетку: ручка, крышка и корпус со шлицами.  -->
+    <!--  Material Design Icons "delete-outline" (сетка 24).  -->
     <ControlTemplate x:Key="Icon.Delete" TargetType="ContentControl">
         <Viewbox Stretch="Uniform">
-            <Grid Width="{StaticResource IconSize}" Height="{StaticResource IconSize}">
-                <Rectangle
-                    Width="3.4"
-                    Height="{StaticResource IconLineThickness}"
-                    Margin="0,1.2,0,0"
-                    HorizontalAlignment="Center"
-                    VerticalAlignment="Top"
-                    Fill="{DynamicResource AppForegroundBrush}"
-                    RadiusX="{StaticResource IconLineRadius}"
-                    RadiusY="{StaticResource IconLineRadius}" />
-                <Rectangle
-                    Width="9.5"
-                    Height="{StaticResource IconLineThickness}"
-                    Margin="0,3,0,0"
-                    HorizontalAlignment="Center"
-                    VerticalAlignment="Top"
-                    Fill="{DynamicResource AppForegroundBrush}"
-                    RadiusX="{StaticResource IconLineRadius}"
-                    RadiusY="{StaticResource IconLineRadius}" />
-                <Rectangle
-                    Width="7"
-                    Height="7"
-                    Margin="0,5,0,0"
-                    HorizontalAlignment="Center"
-                    VerticalAlignment="Top"
-                    RadiusX="{StaticResource IconBoxRadius}"
-                    RadiusY="{StaticResource IconBoxRadius}"
-                    Stroke="{DynamicResource AppForegroundBrush}"
-                    StrokeThickness="{StaticResource IconStrokeThickness}" />
-                <StackPanel
-                    Width="4.4"
-                    Height="3.6"
-                    Margin="0,6.6,0,0"
-                    HorizontalAlignment="Center"
-                    VerticalAlignment="Top"
-                    Orientation="Horizontal">
-                    <Rectangle
-                        Width="1.2"
-                        Height="3.6"
-                        Fill="{DynamicResource AppForegroundBrush}"
-                        RadiusX="0.6"
-                        RadiusY="0.6" />
-                    <Rectangle
-                        Width="1.2"
-                        Height="3.6"
-                        Margin="2,0,0,0"
-                        Fill="{DynamicResource AppForegroundBrush}"
-                        RadiusX="0.6"
-                        RadiusY="0.6" />
-                </StackPanel>
+            <Grid Width="24" Height="24">
+                <Path Data="M6,19A2,2 0 0,0 8,21H16A2,2 0 0,0 18,19V7H6V19M8,9H16V19H8V9M15.5,4L14.5,3H9.5L8.5,4H5V6H19V4H15.5Z" Fill="{TemplateBinding Foreground}" />
             </Grid>
         </Viewbox>
     </ControlTemplate>
-    <!--  Крестик: два штриха с круглыми концами, тем же штрихом, что остальные иконки.  -->
+    <!--  Material Design Icons "close" (сетка 24).  -->
     <ControlTemplate x:Key="Icon.Close" TargetType="ContentControl">
         <Viewbox Stretch="Uniform">
-            <Grid Width="{StaticResource IconSize}" Height="{StaticResource IconSize}">
-                <Path
-                    Data="M3.5,3.5 L10.5,10.5 M10.5,3.5 L3.5,10.5"
-                    Stroke="{DynamicResource AppForegroundBrush}"
-                    StrokeEndLineCap="Round"
-                    StrokeStartLineCap="Round"
-                    StrokeThickness="{StaticResource IconStrokeThickness}" />
+            <Grid Width="24" Height="24">
+                <Path Data="M19,6.41L17.59,5L12,10.59L6.41,5L5,6.41L10.59,12L5,17.59L6.41,19L12,13.41L17.59,19L19,17.59L13.41,12L19,6.41Z" Fill="{TemplateBinding Foreground}" />
             </Grid>
         </Viewbox>
     </ControlTemplate>
     <!--
-        Предупреждение: та же конструкция, что у остальных иконок (скруглённый контур +
-        глиф со скруглёнными концами), но желтым — в цвет рамки предупреждающих баннеров
-        (WarningBorderBrush). Прозрачный фон — не для вида, а для хит-теста: иконка стоит
-        голым ContentControl (не в кнопке), и без фона тултип срабатывал бы только при
-        наведении точно на штрихи.
+        Material Design Icons "alert-outline" (сетка 24), желтым — в цвет рамки
+        предупреждающих баннеров (WarningBorderBrush). Прозрачный фон — не для вида,
+        а для хит-теста: иконка стоит голым PackIcon (не в кнопке), и без фона тултип
+        срабатывал бы только при наведении точно на залитые области.
     -->
     <ControlTemplate x:Key="Icon.Warning" TargetType="ContentControl">
         <Viewbox Stretch="Uniform">
             <Grid
-                Width="{StaticResource IconSize}"
-                Height="{StaticResource IconSize}"
+                Width="24"
+                Height="24"
                 Background="Transparent">
-                <Rectangle
-                    RadiusX="{StaticResource IconOutlineRadius}"
-                    RadiusY="{StaticResource IconOutlineRadius}"
-                    Stroke="#E6A700"
-                    StrokeThickness="{StaticResource IconStrokeThickness}" />
-                <Rectangle
-                    Width="2"
-                    Height="5"
-                    Margin="0,3.2,0,0"
-                    HorizontalAlignment="Center"
-                    VerticalAlignment="Top"
-                    Fill="#E6A700"
-                    RadiusX="1"
-                    RadiusY="1" />
-                <Ellipse
-                    Width="2"
-                    Height="2"
-                    Margin="0,0,0,2.8"
-                    HorizontalAlignment="Center"
-                    VerticalAlignment="Bottom"
-                    Fill="#E6A700" />
+                <Path Data="M12,2L1,21H23M12,6L19.53,19H4.47M11,10V14H13V10M11,16V18H13,16Z" Fill="#E6A700" />
             </Grid>
         </Viewbox>
     </ControlTemplate>
-    <!--  Плюс: два штриха с круглыми концами, тем же штрихом, что остальные иконки.  -->
+    <!--  Material Design Icons "plus" (сетка 24).  -->
     <ControlTemplate x:Key="Icon.Add" TargetType="ContentControl">
         <Viewbox Stretch="Uniform">
-            <Grid Width="{StaticResource IconSize}" Height="{StaticResource IconSize}">
-                <Path
-                    Data="M7,3.5 L7,10.5 M3.5,7 L10.5,7"
-                    Stroke="{DynamicResource AppForegroundBrush}"
-                    StrokeEndLineCap="Round"
-                    StrokeStartLineCap="Round"
-                    StrokeThickness="{StaticResource IconStrokeThickness}" />
+            <Grid Width="24" Height="24">
+                <Path Data="M19,13H13V19H11V13H5V11H11V5H13V11H19V13Z" Fill="{TemplateBinding Foreground}" />
             </Grid>
         </Viewbox>
     </ControlTemplate>
-    <!--
-        Папка (кнопка "Показать в папке"): контур Feather Icons, штрих 2 на сетке 24 —
-        во Viewbox 14 он садится в те же ~1.2, что IconStrokeThickness остальных иконок.
-    -->
+    <!--  Material Design Icons "folder-outline" (сетка 24).  -->
     <ControlTemplate x:Key="Icon.Folder" TargetType="ContentControl">
         <Viewbox Stretch="Uniform">
             <Grid Width="24" Height="24">
-                <Path
-                    Data="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"
-                    Stroke="{DynamicResource AppForegroundBrush}"
-                    StrokeEndLineCap="Round"
-                    StrokeLineJoin="Round"
-                    StrokeStartLineCap="Round"
-                    StrokeThickness="2" />
+                <Path Data="M20,18H4V8H20M20,6H12L10,4H4C2.89,4 2,4.89 2,6V18A2,2 0 0,0 4,20H20A2,2 0 0,0 22,18V8C22,6.89 21.1,6 20,6Z" Fill="{TemplateBinding Foreground}" />
             </Grid>
         </Viewbox>
     </ControlTemplate>

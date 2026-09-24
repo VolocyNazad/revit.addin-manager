@@ -3,6 +3,7 @@
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:converters="clr-namespace:AddinManager.Launcher.Converters"
+    xmlns:controls="clr-namespace:AddinManager.Launcher.Controls"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:design="clr-namespace:AddinManager.Launcher.Design"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
@@ -231,15 +232,15 @@
                                     FontWeight="SemiBold"
                                     Text="{Binding DisplayName}"
                                     TextTrimming="CharacterEllipsis" />
-                                <ContentControl
+                                <controls:PackIcon
                                     Width="12"
                                     Height="12"
                                     Margin="6,0,0,0"
                                     VerticalAlignment="Center"
                                     Focusable="False"
-                                    Template="{StaticResource Icon.Warning}"
+                                    Kind="Warning"
                                     Visibility="{Binding WarningMessage, Converter={StaticResource NullOrEmptyToVisibility}}">
-                                    <ContentControl.ToolTip>
+                                    <controls:PackIcon.ToolTip>
                                         <ToolTip Style="{StaticResource WarningCardToolTipStyle}">
                                             <StackPanel MaxWidth="260">
                                                 <TextBlock
@@ -259,8 +260,8 @@
                                                     TextWrapping="Wrap" />
                                             </StackPanel>
                                         </ToolTip>
-                                    </ContentControl.ToolTip>
-                                </ContentControl>
+                                    </controls:PackIcon.ToolTip>
+                                </controls:PackIcon>
                             </StackPanel>
                             <TextBlock
                                 Margin="0,2,0,0"
@@ -287,11 +288,11 @@
                         CommandParameter="{Binding}"
                         Style="{StaticResource LayoutIconButton}"
                         ToolTip="{Binding DataContext.DeleteEntryTooltip, RelativeSource={RelativeSource AncestorType=ListBox}}">
-                        <ContentControl
+                        <controls:PackIcon
                             Width="{StaticResource IconSize}"
                             Height="{StaticResource IconSize}"
                             Focusable="False"
-                            Template="{StaticResource Icon.Close}" />
+                            Kind="Close" />
                     </Button>
                 </Grid>
             </Border>
@@ -377,7 +378,7 @@
                     Command="{Binding AddEntryCommand}"
                     Style="{StaticResource LayoutIconButton}"
                     ToolTip="{Binding AddEntryTooltip}">
-                    <ContentControl
+                    <controls:PackIcon
                         Width="{StaticResource IconSize}"
                         Height="{StaticResource IconSize}"
                         Focusable="False"

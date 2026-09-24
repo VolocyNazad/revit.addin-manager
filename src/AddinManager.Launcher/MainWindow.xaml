@@ -3,6 +3,7 @@
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:composition="clr-namespace:AddinManager.Launcher.Composition"
+    xmlns:controls="clr-namespace:AddinManager.Launcher.Controls"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:design="clr-namespace:AddinManager.Launcher.Design"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
@@ -114,11 +115,11 @@
                     CommandParameter="{x:Static viewmodels:MainLayout.List}"
                     Style="{StaticResource LayoutIconButton}"
                     ToolTip="{Binding ListOnlyTooltip}">
-                    <ContentControl
+                    <controls:PackIcon
                         Width="{StaticResource IconSize}"
                         Height="{StaticResource IconSize}"
                         Focusable="False"
-                        Template="{StaticResource Icon.List}" />
+                        Kind="List" />
                 </Button>
                 <Button
                     x:Name="ShowSplitButton"
@@ -127,11 +128,11 @@
                     CommandParameter="{x:Static viewmodels:MainLayout.Split}"
                     Style="{StaticResource LayoutIconButton}"
                     ToolTip="{Binding SplitTooltip}">
-                    <ContentControl
+                    <controls:PackIcon
                         Width="{StaticResource IconSize}"
                         Height="{StaticResource IconSize}"
                         Focusable="False"
-                        Template="{StaticResource Icon.Split}" />
+                        Kind="Split" />
                 </Button>
                 <Button
                     x:Name="ShowEditorButton"
@@ -140,11 +141,11 @@
                     CommandParameter="{x:Static viewmodels:MainLayout.Editor}"
                     Style="{StaticResource LayoutIconButton}"
                     ToolTip="{Binding EditorOnlyTooltip}">
-                    <ContentControl
+                    <controls:PackIcon
                         Width="{StaticResource IconSize}"
                         Height="{StaticResource IconSize}"
                         Focusable="False"
-                        Template="{StaticResource Icon.Editor}" />
+                        Kind="Editor" />
                 </Button>
                 <Button
                     x:Name="CycleThemeButton"
@@ -152,11 +153,11 @@
                     Command="{Binding CycleThemeCommand}"
                     Style="{StaticResource LayoutIconButton}"
                     ToolTip="{Binding ThemeButtonTooltip}">
-                    <ContentControl
+                    <controls:PackIcon
                         Width="{StaticResource IconSize}"
                         Height="{StaticResource IconSize}"
                         Focusable="False"
-                        Template="{StaticResource Icon.Theme}" />
+                        Kind="Theme" />
                 </Button>
                 <Button
                     x:Name="CycleLanguageButton"
@@ -164,11 +165,11 @@
                     Command="{Binding CycleLanguageCommand}"
                     Style="{StaticResource LayoutIconButton}"
                     ToolTip="{Binding LanguageButtonTooltip}">
-                    <ContentControl
+                    <controls:PackIcon
                         Width="{StaticResource IconSize}"
                         Height="{StaticResource IconSize}"
                         Focusable="False"
-                        Template="{StaticResource Icon.Language}" />
+                        Kind="Language" />
                 </Button>
                 <Button
                     x:Name="CheckUpdatesButton"
@@ -176,11 +177,11 @@
                     Command="{Binding CheckForUpdatesCommand}"
                     Style="{StaticResource LayoutIconButton}"
                     ToolTip="{Binding UpdateButtonTooltip}">
-                    <ContentControl
+                    <controls:PackIcon
                         Width="{StaticResource IconSize}"
                         Height="{StaticResource IconSize}"
                         Focusable="False"
-                        Template="{StaticResource Icon.Update}" />
+                        Kind="Update" />
                 </Button>
                 <Button
                     x:Name="SupportButton"
@@ -188,11 +189,11 @@
                     Command="{Binding OpenSupportCommand}"
                     Style="{StaticResource LayoutIconButton}"
                     ToolTip="{Binding SupportButtonTooltip}">
-                    <ContentControl
+                    <controls:PackIcon
                         Width="{StaticResource IconSize}"
                         Height="{StaticResource IconSize}"
                         Focusable="False"
-                        Template="{StaticResource Icon.Support}" />
+                        Kind="Support" />
                 </Button>
                 <Button
                     x:Name="SponsorButton"
@@ -200,11 +201,11 @@
                     Command="{Binding OpenSponsorCommand}"
                     Style="{StaticResource LayoutIconButton}"
                     ToolTip="{Binding SponsorButtonTooltip}">
-                    <ContentControl
+                    <controls:PackIcon
                         Width="{StaticResource IconSize}"
                         Height="{StaticResource IconSize}"
                         Focusable="False"
-                        Template="{StaticResource Icon.Sponsor}" />
+                        Kind="Sponsor" />
                 </Button>
             </StackPanel>
             <StackPanel
