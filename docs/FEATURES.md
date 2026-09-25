@@ -43,6 +43,7 @@ files and edit their manifests — everything happens before Revit starts.
   marked files, `Ctrl+O` show in folder; `Delete` deletes marked files and `Ctrl+A`
   toggles select-all/clear — both scoped to the focused list (files or entries), so search
   boxes keep their own text editing. Shortcuts are named in the button tooltips.
+- `Ctrl+U` runs the same update check as the toolbar button.
 
 ## Editor zone
 

@@ -94,6 +94,11 @@
             Key="N"
             Command="{Binding DataContext.AddEntryCommand, Source={composition:ViewModelLocator {x:Type viewmodels:EntriesViewModel}}}"
             Modifiers="Control+Shift" />
+        <!--  Проверка обновлений: команда живёт в MainViewModel — он же DataContext окна.  -->
+        <KeyBinding
+            Key="U"
+            Command="{Binding CheckForUpdatesCommand}"
+            Modifiers="Control" />
     </Window.InputBindings>
     <Grid>
         <Grid.RowDefinitions>

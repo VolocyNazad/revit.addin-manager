@@ -173,8 +173,8 @@ public sealed partial class MainViewModel : ObservableObject
     public string LanguageButtonTooltip =>
         string.Format(_localizer["LanguageButtonTooltip"], LanguageDisplayName(AppLanguage));
 
-    /// <summary>Тултип кнопки проверки обновлений.</summary>
-    public string UpdateButtonTooltip => _localizer["UpdateButtonTooltip"];
+    /// <summary>Тултип кнопки проверки обновлений (хоткей: Ctrl+U).</summary>
+    public string UpdateButtonTooltip => $"{_localizer["UpdateButtonTooltip"]} (Ctrl+U)";
 
     /// <summary>Тултип кнопки поддержки.</summary>
     public string SupportButtonTooltip => _localizer["SupportButtonTooltip"];
