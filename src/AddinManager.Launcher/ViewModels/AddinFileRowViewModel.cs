@@ -87,8 +87,8 @@ public sealed partial class AddinFileRowViewModel : ObservableObject
     [RelayCommand(CanExecute = nameof(CanDelete))]
     public void Delete() => DeleteRequested?.Invoke(this, EventArgs.Empty);
 
-    /// <summary>Тултип крестика.</summary>
-    public string DeleteButtonTooltip => _localizer["DeleteButtonTooltip"];
+    /// <summary>Тултип крестика (хоткей: Delete — удаляет отмеченные файлы).</summary>
+    public string DeleteButtonTooltip => $"{_localizer["DeleteButtonTooltip"]} (Delete)";
 
     private bool CanDelete() => !IsLocked;
 

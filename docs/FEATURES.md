@@ -39,6 +39,10 @@ files and edit their manifests — everything happens before Revit starts.
   Like moves and saves, deletion is refused while Revit runs.
 - The + button creates a new `.addin` file: name, scope (`User`/`Machine`), version and
   the `disabled` flag are asked in a dialog; the file starts as an empty manifest.
+- Keyboard shortcuts: `Ctrl+N` new file, `F5`/`Ctrl+R` refresh, `Ctrl+E` enable/disable
+  marked files, `Ctrl+O` show in folder; `Delete` deletes marked files and `Ctrl+A`
+  toggles select-all/clear — both scoped to the focused list (files or entries), so search
+  boxes keep their own text editing. Shortcuts are named in the button tooltips.
 
 ## Editor zone
 
@@ -60,6 +64,8 @@ files and edit their manifests — everything happens before Revit starts.
   for Command), all other fields are empty. The entry is written to the file at once as a
   separate change and selected for editing; the form fills the rest, and saving is blocked
   until the required `Assembly` and `FullClassName` are set.
+- Keyboard shortcuts: `Insert`/`Ctrl+Shift+N` new entry (same contextual `Delete`/`Ctrl+A`
+  as the file list).
 
 ## Structured form
 

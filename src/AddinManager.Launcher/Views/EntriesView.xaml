@@ -396,6 +396,14 @@
                 ScrollViewer.VerticalScrollBarVisibility="Auto"
                 SelectedItem="{Binding SelectedEntry, Mode=TwoWay}"
                 SelectionMode="Extended">
+                <!--  Контекстные хоткеи записей: тот же приём, что у списка (см. ListView).  -->
+                <ListBox.InputBindings>
+                    <KeyBinding Key="Delete" Command="{Binding DeleteSelectedCommand}" />
+                    <KeyBinding
+                        Key="A"
+                        Command="{Binding ToggleSelectAllCommand}"
+                        Modifiers="Control" />
+                </ListBox.InputBindings>
                 <ListBox.ItemContainerStyle>
                     <Style BasedOn="{StaticResource RowContainerStyle}" TargetType="ListBoxItem">
                         <Setter Property="IsSelected" Value="{Binding IsSelected, Mode=TwoWay}" />

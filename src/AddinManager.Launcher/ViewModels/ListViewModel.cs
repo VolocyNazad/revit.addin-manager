@@ -424,8 +424,8 @@ public sealed partial class ListViewModel : ObservableObject, IFileSelection, IA
         Refresh();
     }
 
-    /// <summary>Тултип кнопки добавления файла.</summary>
-    public string AddFileTooltip => _localizer["AddFileTooltip"];
+    /// <summary>Тултип кнопки добавления файла (хоткей: Ctrl+N).</summary>
+    public string AddFileTooltip => $"{_localizer["AddFileTooltip"]} (Ctrl+N)";
 
     private bool CanAddFile() => !IsLocked;
 
@@ -491,14 +491,14 @@ public sealed partial class ListViewModel : ObservableObject, IFileSelection, IA
         _folderOpener.Reveal(file.FullPath);
     }
 
-    /// <summary>Пункт контекстного меню строки "Показать в папке".</summary>
-    public string ShowInFolderLabel => _localizer["ShowInFolderLabel"];
+    /// <summary>Пункт контекстного меню строки "Показать в папке" (хоткей: Ctrl+O).</summary>
+    public string ShowInFolderLabel => $"{_localizer["ShowInFolderLabel"]} (Ctrl+O)";
 
     /// <summary>Плейсхолдер поиска. "User"/"Machine"/"Scope"/годы/типы записей — технические токены данных, не переводятся.</summary>
     public string SearchPlaceholder => _localizer["ListSearchPlaceholder"];
 
-    /// <summary>Тултип кнопки обновления.</summary>
-    public string RefreshTooltip => _localizer["RefreshButtonTooltip"];
+    /// <summary>Тултип кнопки обновления (хоткей: F5).</summary>
+    public string RefreshTooltip => $"{_localizer["RefreshButtonTooltip"]} (F5)";
 
     /// <summary>Чипс scope "все".</summary>
     public string ScopeAllLabel => _localizer["ScopeFilter_AllOption"];

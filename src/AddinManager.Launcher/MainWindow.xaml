@@ -64,6 +64,37 @@
             GlassFrameThickness="0"
             UseAeroCaptionButtons="False" />
     </WindowChrome.WindowChrome>
+    <!--  Хоткеи коллекций (v1): команды живут в зонных ViewModel, главное окно их не агрегирует
+          (см. MainViewModel) — биндимся к DataContext синглтон-видов из контейнера через ViewModelLocator.
+          Delete/Ctrl+A сюда не входят: они контекстные и висят на самих списках (см. ListView/EntriesView).  -->
+    <Window.InputBindings>
+        <KeyBinding
+            Key="N"
+            Command="{Binding DataContext.AddFileCommand, Source={composition:ViewModelLocator {x:Type viewmodels:ListViewModel}}}"
+            Modifiers="Control" />
+        <KeyBinding
+            Key="F5"
+            Command="{Binding DataContext.RefreshManualCommand, Source={composition:ViewModelLocator {x:Type viewmodels:ListViewModel}}}" />
+        <KeyBinding
+            Key="R"
+            Command="{Binding DataContext.RefreshManualCommand, Source={composition:ViewModelLocator {x:Type viewmodels:ListViewModel}}}"
+            Modifiers="Control" />
+        <KeyBinding
+            Key="E"
+            Command="{Binding DataContext.ToggleSelectedCommand, Source={composition:ViewModelLocator {x:Type viewmodels:ListViewModel}}}"
+            Modifiers="Control" />
+        <KeyBinding
+            Key="O"
+            Command="{Binding DataContext.ShowInFolderCommand, Source={composition:ViewModelLocator {x:Type viewmodels:ListViewModel}}}"
+            Modifiers="Control" />
+        <KeyBinding
+            Key="Insert"
+            Command="{Binding DataContext.AddEntryCommand, Source={composition:ViewModelLocator {x:Type viewmodels:EntriesViewModel}}}" />
+        <KeyBinding
+            Key="N"
+            Command="{Binding DataContext.AddEntryCommand, Source={composition:ViewModelLocator {x:Type viewmodels:EntriesViewModel}}}"
+            Modifiers="Control+Shift" />
+    </Window.InputBindings>
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="40" />

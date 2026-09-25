@@ -120,8 +120,8 @@ public sealed partial class EntriesViewModel : ObservableObject, IEntrySelection
     [ObservableProperty]
     private string? _errorMessage;
 
-    /// <summary>Тултип крестика строки.</summary>
-    public string DeleteEntryTooltip => _localizer["DeleteEntryTooltip"];
+    /// <summary>Тултип крестика строки (хоткей: Delete — удаляет отмеченные записи).</summary>
+    public string DeleteEntryTooltip => $"{_localizer["DeleteEntryTooltip"]} (Delete)";
 
     /// <summary>
     /// Добавляет запись выбранного в диалоге типа как отдельное изменение в файле: генерирует
@@ -355,8 +355,8 @@ public sealed partial class EntriesViewModel : ObservableObject, IEntrySelection
     /// <summary>Кнопка "Сохранить" (и её скрытый placeholder для выравнивания заголовков).</summary>
     public string SaveButtonLabel => _localizer["SaveButton"];
 
-    /// <summary>Тултип иконки "Добавить запись".</summary>
-    public string AddEntryTooltip => _localizer["AddEntryTooltip"];
+    /// <summary>Тултип иконки "Добавить запись" (хоткей: Insert).</summary>
+    public string AddEntryTooltip => $"{_localizer["AddEntryTooltip"]} (Insert)";
 
     /// <summary>Плейсхолдер поиска по записям.</summary>
     public string SearchPlaceholder => _localizer["EntriesSearchPlaceholder"];

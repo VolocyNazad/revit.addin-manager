@@ -494,6 +494,15 @@
             ScrollViewer.VerticalScrollBarVisibility="Auto"
             SelectedItem="{Binding SelectedFile, Mode=TwoWay}"
             SelectionMode="Extended">
+            <!--  Контекстные хоткеи списка: висят на самом ListBox, а не на окне, — фокус в поиске
+                  и фильтрах их не ловит, фокус в записях уходит аналогам EntriesView.  -->
+            <ListBox.InputBindings>
+                <KeyBinding Key="Delete" Command="{Binding DeleteSelectedCommand}" />
+                <KeyBinding
+                    Key="A"
+                    Command="{Binding ToggleSelectAllCommand}"
+                    Modifiers="Control" />
+            </ListBox.InputBindings>
             <ListBox.ItemContainerStyle>
                 <Style BasedOn="{StaticResource RowContainerStyle}" TargetType="ListBoxItem">
                     <Setter Property="IsSelected" Value="{Binding IsSelected, Mode=TwoWay}" />
