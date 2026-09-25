@@ -13,6 +13,10 @@
     d:DesignWidth="370"
     TextElement.Foreground="{DynamicResource AppForegroundBrush}"
     mc:Ignorable="d">
+    <!--  Отмена правок формы: скоуп панели, а не окна, — Esc дропдаунов и соседних зон не трогаем.  -->
+    <UserControl.InputBindings>
+        <KeyBinding Key="Escape" Command="{Binding DiscardCommand}" />
+    </UserControl.InputBindings>
     <UserControl.Resources>
         <converters:NullToVisibilityConverter x:Key="HasSelection" />
         <converters:NullOrEmptyToVisibilityConverter x:Key="NullOrEmptyToVisibility" />

@@ -105,6 +105,16 @@ public partial class App
                 services.AddSingleton<IFileSelection>(provider => provider.GetRequiredService<ListViewModel>());
                 services.AddSingleton<IEntrySelection>(provider => provider.GetRequiredService<EntriesViewModel>());
                 services.AddSingleton<IAddinFileCatalog>(provider => provider.GetRequiredService<ListViewModel>());
+                // Роутер сохранения (см. EditorViewModel.SaveActive): режим редактора -> видимая
+                // панель с сохранением. Ленивый Func, как фабрики диалогов ниже: сами панели
+                // резолвятся только в момент сохранения, циклов в DI нет.
+                services.AddSingleton<Func<EditorMode, ISavablePane?>>(provider => mode => mode switch
+                {
+                    EditorMode.Form or EditorMode.EntriesForm => provider.GetRequiredService<FormViewModel>(),
+                    EditorMode.Markup or EditorMode.EntriesMarkup => provider.GetRequiredService<MarkupViewModel>(),
+                    EditorMode.Settings => provider.GetRequiredService<ManifestSettingsViewModel>(),
+                    _ => null,
+                });
                 // Диалог подтверждения — НЕ синглтон: закрытое окно нельзя показать повторно,
                 // каждый Confirm собирает свежие вид+модель. Фабрика — в корне композиции.
                 services.AddTransient<ConfirmDialogViewModel>();

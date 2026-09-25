@@ -21,7 +21,7 @@ namespace AddinManager.Launcher.ViewModels;
 /// Подпанель разметки: сырой XML выбранного в списке файла — просмотр, правка, валидация и
 /// сохранение (план, раздел 6 — "The raw XML tab shows the whole file").
 /// </summary>
-public sealed partial class MarkupViewModel : ObservableObject
+public sealed partial class MarkupViewModel : ObservableObject, ISavablePane
 {
     private readonly IFileSelection _fileSelection;
     private readonly IEntrySelection _entrySelection;
@@ -35,6 +35,12 @@ public sealed partial class MarkupViewModel : ObservableObject
     private AddinFile? _boundFile;
     private string? _savedXml;
     private bool _loading;
+
+    /// <inheritdoc />
+    System.Windows.Input.ICommand ISavablePane.SaveCommand => SaveCommand;
+
+    /// <inheritdoc />
+    System.Windows.Input.ICommand ISavablePane.DiscardCommand => DiscardCommand;
 
     [ObservableProperty]
     private AddinFileRowViewModel? _selectedFile;
@@ -402,11 +408,11 @@ public sealed partial class MarkupViewModel : ObservableObject
     /// <summary>Приглашение выбрать файл, когда ничего не выбрано.</summary>
     public string EmptySelectionPrompt => _localizer["EmptySelection_FilePrompt"];
 
-    /// <summary>Кнопка "Отменить".</summary>
-    public string DiscardButtonLabel => _localizer["DiscardButton"];
+    /// <summary>Кнопка "Отменить" (хоткей: Esc в пределах панели).</summary>
+    public string DiscardButtonLabel => $"{_localizer["DiscardButton"]} (Esc)";
 
-    /// <summary>Кнопка "Сохранить".</summary>
-    public string SaveButtonLabel => _localizer["SaveButton"];
+    /// <summary>Кнопка "Сохранить" (хоткей: Ctrl+S).</summary>
+    public string SaveButtonLabel => $"{_localizer["SaveButton"]} (Ctrl+S)";
 
     /// <summary>Бейдж несохранённых изменений рядом с именем файла.</summary>
     public string UnsavedBadge => _localizer["Markup_UnsavedBadge"];

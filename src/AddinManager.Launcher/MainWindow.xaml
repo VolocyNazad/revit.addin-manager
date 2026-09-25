@@ -99,6 +99,11 @@
             Key="U"
             Command="{Binding CheckForUpdatesCommand}"
             Modifiers="Control" />
+        <!--  Сохранение редактора: роутер видимой панели (см. EditorViewModel.SaveActive).  -->
+        <KeyBinding
+            Key="S"
+            Command="{Binding DataContext.SaveActiveCommand, Source={composition:ViewModelLocator {x:Type viewmodels:EditorViewModel}}}"
+            Modifiers="Control" />
     </Window.InputBindings>
     <Grid>
         <Grid.RowDefinitions>

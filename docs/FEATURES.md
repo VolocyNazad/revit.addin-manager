@@ -78,7 +78,8 @@ files and edit their manifests — everything happens before Revit starts.
 - Only fields valid for the entry's type are shown; anything else is hidden, not disabled.
 - Saving validates the GUID and the whole file, writes atomically (temp file plus `.bak`
   backup) and refreshes the list, entries and markup views. Failures surface in the panel
-  banner; the form keeps the edits.
+  banner; the form keeps the edits. Global `Ctrl+S` saves the visible panel, `Esc` discards
+  its edits while the focus stays inside the panel.
 
 ## Raw XML markup
 

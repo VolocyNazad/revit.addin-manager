@@ -27,7 +27,7 @@ namespace AddinManager.Launcher.ViewModels;
 /// <see cref="IEntrySelection"/> — те же узкие контракты зон, что у остальных подпанели
 /// (docs/architecture.md, раздел MVVM).
 /// </summary>
-public sealed partial class ManifestSettingsViewModel : ObservableObject
+public sealed partial class ManifestSettingsViewModel : ObservableObject, ISavablePane
 {
     private readonly IFileSelection _fileSelection;
     private readonly IAddinFileCatalog _fileCatalog;
@@ -42,6 +42,12 @@ public sealed partial class ManifestSettingsViewModel : ObservableObject
 
     private ManifestSettings? _originalSettings;
     private bool _loading;
+
+    /// <inheritdoc />
+    System.Windows.Input.ICommand ISavablePane.SaveCommand => SaveCommand;
+
+    /// <inheritdoc />
+    System.Windows.Input.ICommand ISavablePane.DiscardCommand => DiscardCommand;
 
     /// <summary>Создает подпанель и сразу читает блок настроек уже выбранного файла.</summary>
     /// <param name="fileSelection">Выбор файла — источник подпанели.</param>
@@ -237,11 +243,11 @@ public sealed partial class ManifestSettingsViewModel : ObservableObject
     /// <summary>Приглашение выбрать файл, когда ничего не выбрано.</summary>
     public string EmptySelectionPrompt => _localizer["EmptySelection_FilePrompt"];
 
-    /// <summary>Кнопка "Отменить".</summary>
-    public string DiscardButtonLabel => _localizer["DiscardButton"];
+    /// <summary>Кнопка "Отменить" (хоткей: Esc в пределах панели).</summary>
+    public string DiscardButtonLabel => $"{_localizer["DiscardButton"]} (Esc)";
 
-    /// <summary>Кнопка "Сохранить".</summary>
-    public string SaveButtonLabel => _localizer["SaveButton"];
+    /// <summary>Кнопка "Сохранить" (хоткей: Ctrl+S).</summary>
+    public string SaveButtonLabel => $"{_localizer["SaveButton"]} (Ctrl+S)";
 
     /// <summary>Пояснение для версий без поддержки ManifestSettings.</summary>
     public string UnsupportedNotice => _localizer["ManifestSettings_UnsupportedNotice"];

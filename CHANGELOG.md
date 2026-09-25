@@ -11,6 +11,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - Markup playground (`sandbox/AddinManager.Playground`, in `AddinManager.Sandbox.slnx`): paste a XAML fragment and preview it live via `XamlReader` (element roots render, resource-dictionary roots merge into the preview).
 - Collection keyboard shortcuts (v1): global `Ctrl+N` (new file), `F5`/`Ctrl+R` (refresh), `Ctrl+E` (enable/disable marked files), `Ctrl+O` (show in folder),   `Insert`/`Ctrl+Shift+N` (new entry); contextual `Delete` (delete marked rows) and `Ctrl+A` (select all/clear) scoped to the focused list — files or entries (search boxes keep their own text editing). Button tooltips name their shortcut.
 - `Ctrl+U` check-for-updates shortcut (same command as the toolbar button, with the shortcut named in its tooltip).
+- Editor save shortcuts: global `Ctrl+S` saves the visible detail panel of the current editor mode (form/markup/settings, through its own save readiness checks; nothing to save in entries-only mode), `Esc` discards the panel's edits while the focus stays inside it. The `Save`/`Discard` buttons name their shortcut.
 
 ### Changed
 

@@ -33,7 +33,7 @@ namespace AddinManager.Launcher.ViewModels;
 /// "above the entry tabs" по плану: своя подпанель и режим (<see cref="ManifestSettingsViewModel"/>,
 /// <see cref="EditorMode.Settings"/>), а не часть формы одной записи.
 /// </summary>
-public sealed partial class FormViewModel : ObservableObject
+public sealed partial class FormViewModel : ObservableObject, ISavablePane
 {
     private readonly IEntrySelection _entrySelection;
     private readonly IFileSelection _fileSelection;
@@ -52,6 +52,12 @@ public sealed partial class FormViewModel : ObservableObject
 
     private AddinEntry? _originalEntry;
     private bool _loading;
+
+    /// <inheritdoc />
+    System.Windows.Input.ICommand ISavablePane.SaveCommand => SaveCommand;
+
+    /// <inheritdoc />
+    System.Windows.Input.ICommand ISavablePane.DiscardCommand => DiscardCommand;
 
     /// <summary>
     /// Создает подпанель и сразу строит форму по тому, что уже выбрано в <see cref="IEntrySelection"/>.
@@ -483,11 +489,11 @@ public sealed partial class FormViewModel : ObservableObject
     /// <summary>Приглашение выбрать запись, когда ничего не выбрано.</summary>
     public string EmptySelectionPrompt => _localizer["Form_EmptySelectionPrompt"];
 
-    /// <summary>Кнопка "Отменить".</summary>
-    public string DiscardButtonLabel => _localizer["DiscardButton"];
+    /// <summary>Кнопка "Отменить" (хоткей: Esc в пределах панели).</summary>
+    public string DiscardButtonLabel => $"{_localizer["DiscardButton"]} (Esc)";
 
-    /// <summary>Кнопка "Сохранить".</summary>
-    public string SaveButtonLabel => _localizer["SaveButton"];
+    /// <summary>Кнопка "Сохранить" (хоткей: Ctrl+S).</summary>
+    public string SaveButtonLabel => $"{_localizer["SaveButton"]} (Ctrl+S)";
 
     /// <summary>Подпись "Тип записи *". Имена типов/тегов — технические токены, не переводятся.</summary>
     public string EntryTypeLabel => _localizer["Form_EntryTypeLabel"];

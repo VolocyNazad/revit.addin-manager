@@ -1,3 +1,4 @@
+using AddinManager.Launcher.Abstractions.Services;
 using AddinManager.Localization;
 using AddinManager.Localization.Abstractions;
 using CommunityToolkit.Mvvm.ComponentModel;
@@ -11,6 +12,7 @@ public sealed partial class EditorViewModel : ObservableObject
 {
     private readonly ILocalizationService _localizationService;
     private readonly IStringLocalizer<EditorViewModel> _localizer;
+    private readonly Func<EditorMode, ISavablePane?> _activePane;
 
     [ObservableProperty]
     private EditorMode _mode = EditorMode.Form;
@@ -21,10 +23,15 @@ public sealed partial class EditorViewModel : ObservableObject
     /// <summary>Создает зону.</summary>
     /// <param name="localizationService">Сервис языка — смена языка перечитывает тултипы режимов.</param>
     /// <param name="localizer">Строки тултипов режимов.</param>
-    public EditorViewModel(ILocalizationService localizationService, IStringLocalizer<EditorViewModel> localizer)
+    /// <param name="activePane">Видимая панель с сохранением для режима (см. корень композиции).</param>
+    public EditorViewModel(
+        ILocalizationService localizationService,
+        IStringLocalizer<EditorViewModel> localizer,
+        Func<EditorMode, ISavablePane?> activePane)
     {
         _localizationService = localizationService;
         _localizer = localizer;
+        _activePane = activePane;
         _localizationService.LanguageChanged += (_, _) => OnPropertyChanged((string?)null);
     }
 
@@ -35,11 +42,29 @@ public sealed partial class EditorViewModel : ObservableObject
             EntriesFraction = clamped;
     }
 
-    partial void OnModeChanged(EditorMode value) => OnPropertyChanged((string?)null);
+    partial void OnModeChanged(EditorMode value)
+    {
+        SaveActiveCommand.NotifyCanExecuteChanged();
+        OnPropertyChanged((string?)null);
+    }
 
     /// <summary>Переключить режим панели редактора.</summary>
     [RelayCommand]
     public void SetEditorMode(EditorMode mode) => Mode = mode;
+
+    private bool CanSaveActive() => _activePane(Mode)?.SaveCommand.CanExecute(null) == true;
+
+    /// <summary>
+    /// Сохраняет видимую панель текущего режима (хоткей Ctrl+S): проверки готовности —
+    /// те же <c>CanExecute</c> её собственной кнопки сохранения (файл выбран, есть изменения,
+    /// текст валиден, Revit закрыт). В режиме одних записей сохранять нечего — команда гаснет.
+    /// </summary>
+    [RelayCommand(CanExecute = nameof(CanSaveActive))]
+    public void SaveActive()
+    {
+        if (_activePane(Mode)?.SaveCommand is { } save && save.CanExecute(null))
+            save.Execute(null);
+    }
 
     /// <summary>Тултип режима "Записи манифеста".</summary>
     public string EntriesTooltip => _localizer["EditorMode_EntriesTooltip"];
