@@ -46,6 +46,7 @@ public partial class MainWindow
         _viewModel.PropertyChanged += OnViewModelPropertyChanged;
         SystemEvents.UserPreferenceChanged += OnUserPreferenceChanged;
         Activated += OnActivated;
+        Loaded += OnLoaded;
         Closed += OnClosed;
     }
 
@@ -54,6 +55,14 @@ public partial class MainWindow
         _viewModel.PropertyChanged -= OnViewModelPropertyChanged;
         SystemEvents.UserPreferenceChanged -= OnUserPreferenceChanged;
         Activated -= OnActivated;
+        Loaded -= OnLoaded;
+    }
+
+    /// <summary>Механика вида: первая загрузка окна — тихая проверка обновлений (см. MainViewModel).</summary>
+    private void OnLoaded(object? sender, RoutedEventArgs e)
+    {
+        Loaded -= OnLoaded;
+        _ = _viewModel.CheckForUpdatesOnStartupAsync();
     }
 
     /// <summary>Механика вида: возврат фокуса — внеочередной опрос сторожа Revit (план, раздел 5).</summary>

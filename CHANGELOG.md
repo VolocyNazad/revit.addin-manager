@@ -12,6 +12,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - Collection keyboard shortcuts (v1): global `Ctrl+N` (new file), `F5`/`Ctrl+R` (refresh), `Ctrl+E` (enable/disable marked files), `Ctrl+O` (show in folder),   `Insert`/`Ctrl+Shift+N` (new entry); contextual `Delete` (delete marked rows) and `Ctrl+A` (select all/clear) scoped to the focused list — files or entries (search boxes keep their own text editing). Button tooltips name their shortcut.
 - `Ctrl+U` check-for-updates shortcut (same command as the toolbar button, with the shortcut named in its tooltip).
 - Editor save shortcuts: global `Ctrl+S` saves the visible detail panel of the current editor mode (form/markup/settings, through its own save readiness checks; nothing to save in entries-only mode), `Esc` discards the panel's edits while the focus stays inside it. The `Save`/`Discard` buttons name their shortcut.
+- Automatic update check at startup: when a newer release exists, the same download dialog as the toolbar button opens over the just-opened window; up-to-date and offline starts stay silent.
 - Layout and editor-mode shortcuts: `Ctrl+1`/`Ctrl+2`/`Ctrl+3` switch list-only/split/editor-only layout, `Alt+1`–`Alt+4` switch the entries/form/markup/settings editor mode (combined entries+detail modes stay mouse-only). Shortcuts are named in the button tooltips.
 
 ### Changed
