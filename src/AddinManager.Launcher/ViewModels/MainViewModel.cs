@@ -157,14 +157,14 @@ public sealed partial class MainViewModel : ObservableObject
         ShowToast(LanguageButtonTooltip);
     }
 
-    /// <summary>Тултип кнопки раскладки "только список".</summary>
-    public string ListOnlyTooltip => _localizer["Layout_ListOnlyTooltip"];
+    /// <summary>Тултип кнопки раскладки "только список" (хоткей: Ctrl+1).</summary>
+    public string ListOnlyTooltip => $"{_localizer["Layout_ListOnlyTooltip"]} (Ctrl+1)";
 
-    /// <summary>Тултип кнопки раскладки "список и редактор".</summary>
-    public string SplitTooltip => _localizer["Layout_SplitTooltip"];
+    /// <summary>Тултип кнопки раскладки "список и редактор" (хоткей: Ctrl+2).</summary>
+    public string SplitTooltip => $"{_localizer["Layout_SplitTooltip"]} (Ctrl+2)";
 
-    /// <summary>Тултип кнопки раскладки "только редактор".</summary>
-    public string EditorOnlyTooltip => _localizer["Layout_EditorOnlyTooltip"];
+    /// <summary>Тултип кнопки раскладки "только редактор" (хоткей: Ctrl+3).</summary>
+    public string EditorOnlyTooltip => $"{_localizer["Layout_EditorOnlyTooltip"]} (Ctrl+3)";
 
     /// <summary>Тултип кнопки темы ("Тема: ...").</summary>
     public string ThemeButtonTooltip => string.Format(_localizer["ThemeButtonTooltip"], ThemeDisplayName(AppTheme));
@@ -258,6 +258,29 @@ public sealed partial class MainViewModel : ObservableObject
         else
         {
             ShowToast(_localizer["UpdateUpToDate"]);
+        }
+    }
+
+    /// <summary>
+    /// Тихая проверка обновлений при старте окна: есть обновление — тот же диалог скачивания,
+    /// что у кнопки; актуально или неполадки сети — молчим (тост на каждый запуск — спам,
+    /// офлайн-старт — штатная ситуация). Исключения гасим: фоновая проверка не должна ронять запуск.
+    /// </summary>
+    public async Task CheckForUpdatesOnStartupAsync()
+    {
+        try
+        {
+            var result = await _updateChecker.CheckAsync(CancellationToken.None);
+            if (result is not { HasUpdate: true, DownloadUrl: not null })
+                return;
+
+            var message = string.Format(
+                _localizer["UpdateAvailableMessage"], result.LatestVersion, result.CurrentVersion);
+            _dialogService.PromptUpdate(message, result.DownloadUrl);
+        }
+        catch (Exception)
+        {
+            // См. политику логирования: benign documented fallback — молча, с комментарием.
         }
     }
 

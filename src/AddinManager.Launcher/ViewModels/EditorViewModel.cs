@@ -66,14 +66,14 @@ public sealed partial class EditorViewModel : ObservableObject
             save.Execute(null);
     }
 
-    /// <summary>Тултип режима "Записи манифеста".</summary>
-    public string EntriesTooltip => _localizer["EditorMode_EntriesTooltip"];
+    /// <summary>Тултип режима "Записи манифеста" (хоткей: Alt+1).</summary>
+    public string EntriesTooltip => $"{_localizer["EditorMode_EntriesTooltip"]} (Alt+1)";
 
-    /// <summary>Тултип режима "Форма".</summary>
-    public string FormTooltip => _localizer["EditorMode_FormTooltip"];
+    /// <summary>Тултип режима "Форма" (хоткей: Alt+2).</summary>
+    public string FormTooltip => $"{_localizer["EditorMode_FormTooltip"]} (Alt+2)";
 
-    /// <summary>Тултип режима "Разметка".</summary>
-    public string MarkupTooltip => _localizer["EditorMode_MarkupTooltip"];
+    /// <summary>Тултип режима "Разметка" (хоткей: Alt+3).</summary>
+    public string MarkupTooltip => $"{_localizer["EditorMode_MarkupTooltip"]} (Alt+3)";
 
     /// <summary>Тултип режима "Записи и форма".</summary>
     public string EntriesFormTooltip => _localizer["EditorMode_EntriesFormTooltip"];
@@ -81,8 +81,8 @@ public sealed partial class EditorViewModel : ObservableObject
     /// <summary>Тултип режима "Записи и разметка".</summary>
     public string EntriesMarkupTooltip => _localizer["EditorMode_EntriesMarkupTooltip"];
 
-    /// <summary>Тултип режима "Настройки файла".</summary>
-    public string SettingsTooltip => _localizer["EditorMode_SettingsTooltip"];
+    /// <summary>Тултип режима "Настройки файла" (хоткей: Alt+4).</summary>
+    public string SettingsTooltip => $"{_localizer["EditorMode_SettingsTooltip"]} (Alt+4)";
 
     /// <inheritdoc />
     public override string ToString() => $"Editor(Mode={Mode}, Split={EntriesFraction:0.##})";

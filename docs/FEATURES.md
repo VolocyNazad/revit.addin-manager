@@ -47,9 +47,11 @@ files and edit their manifests — everything happens before Revit starts.
 
 ## Editor zone
 
-- Layout switcher in the title bar: list only, list + editor (resizable split), editor only.
-- Four editor modes with toolbar icons: manifest entries, structured form, raw XML markup,
-  file settings (`ManifestSettings`).
+- Layout switcher in the title bar: list only (`Ctrl+1`), list + editor (resizable split,
+  `Ctrl+2`), editor only (`Ctrl+3`).
+- Four editor modes with toolbar icons: manifest entries (`Alt+1`), structured form (`Alt+2`),
+  raw XML markup (`Alt+3`), file settings (`ManifestSettings`, `Alt+4`); the combined
+  entries+form and entries+markup views stay mouse-only.
 
 ## Manifest entries
 
@@ -110,6 +112,8 @@ files and edit their manifests — everything happens before Revit starts.
 - A "Check for updates" toolbar button queries the latest GitHub release: if a newer
   version exists it offers to download it (opening the release page in the browser),
   otherwise it confirms "up to date" — and reports check failures as a toast.
+  The same check runs automatically at startup: a newer release opens the download
+  dialog over the just-opened window, up-to-date and offline starts stay silent.
 - A "Support" toolbar button opens the repository's issue tracker in the browser for
   help and bug reports.
 - A "Sponsor" toolbar button opens the GitHub Sponsors page to support the author.

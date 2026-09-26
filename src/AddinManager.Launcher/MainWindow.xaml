@@ -104,6 +104,43 @@
             Key="S"
             Command="{Binding DataContext.SaveActiveCommand, Source={composition:ViewModelLocator {x:Type viewmodels:EditorViewModel}}}"
             Modifiers="Control" />
+        <!--  Раскладка окна: команды в MainViewModel — он же DataContext окна.  -->
+        <KeyBinding
+            Key="D1"
+            Command="{Binding SetMainLayoutCommand}"
+            CommandParameter="{x:Static viewmodels:MainLayout.List}"
+            Modifiers="Control" />
+        <KeyBinding
+            Key="D2"
+            Command="{Binding SetMainLayoutCommand}"
+            CommandParameter="{x:Static viewmodels:MainLayout.Split}"
+            Modifiers="Control" />
+        <KeyBinding
+            Key="D3"
+            Command="{Binding SetMainLayoutCommand}"
+            CommandParameter="{x:Static viewmodels:MainLayout.Editor}"
+            Modifiers="Control" />
+        <!--  Режимы редактора: только одиночные (комбинированные — мышью); команды в EditorViewModel.  -->
+        <KeyBinding
+            Key="D1"
+            Command="{Binding DataContext.SetEditorModeCommand, Source={composition:ViewModelLocator {x:Type viewmodels:EditorViewModel}}}"
+            CommandParameter="{x:Static viewmodels:EditorMode.Entries}"
+            Modifiers="Alt" />
+        <KeyBinding
+            Key="D2"
+            Command="{Binding DataContext.SetEditorModeCommand, Source={composition:ViewModelLocator {x:Type viewmodels:EditorViewModel}}}"
+            CommandParameter="{x:Static viewmodels:EditorMode.Form}"
+            Modifiers="Alt" />
+        <KeyBinding
+            Key="D3"
+            Command="{Binding DataContext.SetEditorModeCommand, Source={composition:ViewModelLocator {x:Type viewmodels:EditorViewModel}}}"
+            CommandParameter="{x:Static viewmodels:EditorMode.Markup}"
+            Modifiers="Alt" />
+        <KeyBinding
+            Key="D4"
+            Command="{Binding DataContext.SetEditorModeCommand, Source={composition:ViewModelLocator {x:Type viewmodels:EditorViewModel}}}"
+            CommandParameter="{x:Static viewmodels:EditorMode.Settings}"
+            Modifiers="Alt" />
     </Window.InputBindings>
     <Grid>
         <Grid.RowDefinitions>
