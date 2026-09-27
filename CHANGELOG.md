@@ -6,6 +6,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+## [1.3.0] - 2026-09-27
+
 ### Added
 
 - Markup playground (`sandbox/AddinManager.Playground`, in `AddinManager.Sandbox.slnx`): paste a XAML fragment and preview it live via `XamlReader` (element roots render, resource-dictionary roots merge into the preview).
@@ -17,6 +19,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Changed
 
+- Application artwork replaced with the pufferfish design; the executable and main window now use the same `Resources/Icon.ico` resource.
 - Zone ViewModels share selection and the file catalog through narrow contracts instead of concrete neighbors: `IFileSelection`/`IEntrySelection` (single slots with change notifications) and `IAddinFileCatalog` (live rows plus rescan), implemented by the owning zones themselves — selection flows one way, list → entries. See `docs/architecture.md`, "MVVM".
 - Icon consumption consolidated behind a `PackIcon` control (`PackIconKind` enum instead of `ContentControl` + `Icon.*` template at every usage site).
 - Icon artwork switched to Material Design Icons paths (`refresh`, `plus`, `close`, `delete-outline`, `folder-outline`, `alert-outline`, `download`, `help`, `heart`, `earth`); the eight view-mode icons and the theme half-moon stay hand-drawn.
