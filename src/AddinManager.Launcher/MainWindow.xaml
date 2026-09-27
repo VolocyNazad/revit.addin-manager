@@ -15,7 +15,7 @@
                                      IsDesignTimeCreatable=True}"
     Background="{DynamicResource AppBackgroundBrush}"
     Foreground="{DynamicResource AppForegroundBrush}"
-    Icon="Resources/ApplicationIcon.ico"
+    Icon="Resources/Icon.ico"
     ResizeMode="CanResize"
     WindowStyle="None"
     mc:Ignorable="d">
