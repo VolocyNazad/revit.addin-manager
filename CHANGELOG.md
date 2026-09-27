@@ -6,6 +6,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+### Changed
+
+- Launcher logs now use `%LOCALAPPDATA%`, roll daily and at 20 MB, retain the newest 14 files, and default to Information level in Release builds; startup and shutdown failures are captured before the process exits.
+
 ## [1.3.0] - 2026-09-27
 
 ### Added

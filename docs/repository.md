@@ -35,8 +35,9 @@ Detailed behavior is defined in [FEATURES.md](FEATURES.md).
 - `Microsoft.Extensions.*` (DependencyInjection, Hosting, Localization, Logging.Abstractions) for composition
 - `CommunityToolkit.Mvvm` for view models (`MainViewModel`: layout state plus commands)
 - `Microsoft.Xaml.Behaviors.Wpf` for view mechanics shared across views (window drag, dialog-result mirroring)
-- Serilog (`Serilog.Extensions.Hosting`, `Serilog.Sinks.File`) for structured logging to a rolling
-  daily file under `%APPDATA%\Volocy\Revit.AddinManager\logs\`
+- Serilog (`Serilog.Extensions.Hosting`, `Serilog.Sinks.File`) for structured logging to size- and
+  day-rolled files under `%LOCALAPPDATA%\Volocy\Revit.AddinManager\logs\`, retaining at most
+  14 files of up to 20 MB each
 - AvalonEdit for the Markup zone's raw-XML editor (line numbers, undo/redo, XML syntax
   highlighting)
 - Tests: **xunit.v3** via Microsoft.Testing.Platform (test projects are executables)

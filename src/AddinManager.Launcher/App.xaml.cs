@@ -30,6 +30,8 @@ namespace AddinManager.Launcher;
 /// <summary>Точка входа лаунчера: хост и композиция сервисов.</summary>
 public partial class App
 {
+    private const long LogFileSizeLimitBytes = 20 * 1024 * 1024;
+    private const int RetainedLogFileCountLimit = 14;
     private IHost? _host;
 
     /// <summary>Контейнер внедрения зависимостей приложения. Используется <see cref="ViewModelLocator"/> для получения View по типу ViewModel.</summary>
@@ -39,22 +41,34 @@ public partial class App
     protected override void OnStartup(StartupEventArgs e)
     {
         var logPath = Path.Combine(
-            Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
+            Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
             "Volocy", "Revit.AddinManager", "logs", "launcher-.log");
 
-        Log.Logger = new LoggerConfiguration()
-            .MinimumLevel.Debug()
-            .WriteTo.File(logPath, rollingInterval: RollingInterval.Day)
+        var loggerConfiguration = new LoggerConfiguration();
+#if DEBUG
+        loggerConfiguration.MinimumLevel.Debug();
+#else
+        loggerConfiguration.MinimumLevel.Information();
+#endif
+        Log.Logger = loggerConfiguration
+            .WriteTo.File(
+                logPath,
+                rollingInterval: RollingInterval.Day,
+                fileSizeLimitBytes: LogFileSizeLimitBytes,
+                rollOnFileSizeLimit: true,
+                retainedFileCountLimit: RetainedLogFileCountLimit)
             .CreateLogger();
 
-        Log.Information(
-            "Starting Revit.AddinManager {Version}",
-            Assembly.GetExecutingAssembly().GetName().Version?.ToString() ?? "?");
+        try
+        {
+            Log.Information(
+                "Starting Revit.AddinManager {Version}",
+                Assembly.GetExecutingAssembly().GetName().Version?.ToString() ?? "?");
 
-        _host = Host.CreateDefaultBuilder()
-            .UseSerilog()
-            .ConfigureServices(services =>
-            {
+            _host = Host.CreateDefaultBuilder()
+                .UseSerilog()
+                .ConfigureServices(services =>
+                {
                 // Локализация
                 // remark: resx лежат рядом с классами: пустой ResourcesPath оставляет базовым именем
                 // полное имя типа — IStringLocalizer{Class} резолвится без соглашений.
@@ -163,22 +177,39 @@ public partial class App
                     provider => () => provider.GetRequiredService<UpdateDialogView>());
                 services.AddSingleton<MainViewModel>();
                 services.AddSingleton<MainWindow>();
-            })
-            .Build();
-        _host.Start();
+                })
+                .Build();
+            _host.Start();
 
-        MainWindow = _host.Services.GetRequiredService<MainWindow>();
-        MainWindow.Show();
+            MainWindow = _host.Services.GetRequiredService<MainWindow>();
+            MainWindow.Show();
 
-        base.OnStartup(e);
+            base.OnStartup(e);
+        }
+        catch (Exception exception)
+        {
+            Log.Fatal(exception, "Revit.AddinManager failed to start");
+            Shutdown(-1);
+        }
     }
 
     /// <inheritdoc />
     protected override void OnExit(ExitEventArgs e)
     {
-        Log.Information("Shutting down Revit.AddinManager");
-        _host?.Dispose();
-        Log.CloseAndFlush();
-        base.OnExit(e);
+        try
+        {
+            Log.Information("Shutting down Revit.AddinManager");
+            _host?.Dispose();
+        }
+        catch (Exception exception)
+        {
+            Log.Error(exception, "Revit.AddinManager failed to shut down cleanly");
+        }
+        finally
+        {
+            _host = null;
+            Log.CloseAndFlush();
+            base.OnExit(e);
+        }
     }
 }

@@ -131,7 +131,7 @@ files and edit their manifests — everything happens before Revit starts.
 
 ## Diagnostics and settings storage
 
-- Structured log: rolling daily file under `%APPDATA%\Volocy\Revit.AddinManager\logs\`.
+- Structured log: daily and 20 MB rolling files under `%LOCALAPPDATA%\Volocy\Revit.AddinManager\logs\`, retaining the newest 14 files.
 - Choices persist under `%APPDATA%\Volocy\Revit.AddinManager\` (`theme.txt`, `language.txt`);
   a missing or corrupt file falls back to the system value.
 
