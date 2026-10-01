@@ -33,6 +33,7 @@ public partial class App
     private const long LogFileSizeLimitBytes = 20 * 1024 * 1024;
     private const int RetainedLogFileCountLimit = 14;
     private IHost? _host;
+    private ISingleInstanceGuard? _singleInstanceGuard;
 
     /// <summary>Контейнер внедрения зависимостей приложения. Используется <see cref="ViewModelLocator"/> для получения View по типу ViewModel.</summary>
     public static IServiceProvider Services => ((App)Current)._host!.Services;
@@ -61,6 +62,26 @@ public partial class App
 
         try
         {
+            try
+            {
+                _singleInstanceGuard = new SingleInstanceGuard();
+            }
+            catch (Exception exception)
+            {
+                Log.Warning(exception, "Single instance guard unavailable, starting without it");
+                _singleInstanceGuard = null;
+            }
+
+            if (_singleInstanceGuard is not null && !_singleInstanceGuard.IsFirstInstance)
+            {
+                Log.Warning("Second Revit.AddinManager instance rejected, activating the first one");
+                _singleInstanceGuard.SignalFirstInstance();
+                _singleInstanceGuard.Dispose();
+                _singleInstanceGuard = null;
+                Shutdown(0);
+                return;
+            }
+
             Log.Information(
                 "Starting Revit.AddinManager {Version}",
                 Assembly.GetExecutingAssembly().GetName().Version?.ToString() ?? "?");
@@ -182,6 +203,11 @@ public partial class App
             _host.Start();
 
             MainWindow = _host.Services.GetRequiredService<MainWindow>();
+            if (_singleInstanceGuard is not null)
+            {
+                _singleInstanceGuard.AnotherInstanceStarted += OnAnotherInstanceStarted;
+            }
+
             MainWindow.Show();
 
             base.OnStartup(e);
@@ -193,6 +219,38 @@ public partial class App
         }
     }
 
+    /// <summary>Выводит окно первого экземпляра на передний план по запросу второго.</summary>
+    private void OnAnotherInstanceStarted(object? sender, EventArgs e)
+    {
+        try
+        {
+            Dispatcher.Invoke(() =>
+            {
+                var window = MainWindow;
+                if (window is null)
+                {
+                    return;
+                }
+
+                if (!window.IsVisible)
+                {
+                    window.Show();
+                }
+
+                if (window.WindowState == WindowState.Minimized)
+                {
+                    window.WindowState = WindowState.Normal;
+                }
+
+                window.Activate();
+            });
+        }
+        catch (Exception exception)
+        {
+            Log.Warning(exception, "Failed to activate the first Revit.AddinManager window");
+        }
+    }
+
     /// <inheritdoc />
     protected override void OnExit(ExitEventArgs e)
     {
@@ -200,6 +258,11 @@ public partial class App
         {
             Log.Information("Shutting down Revit.AddinManager");
             _host?.Dispose();
+            if (_singleInstanceGuard is not null)
+            {
+                _singleInstanceGuard.AnotherInstanceStarted -= OnAnotherInstanceStarted;
+                _singleInstanceGuard.Dispose();
+            }
         }
         catch (Exception exception)
         {
@@ -208,6 +271,7 @@ public partial class App
         finally
         {
             _host = null;
+            _singleInstanceGuard = null;
             Log.CloseAndFlush();
             base.OnExit(e);
         }

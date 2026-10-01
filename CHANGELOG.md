@@ -6,6 +6,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+### Added
+
+- Single-instance guard: a second launch signals the running copy to bring its window forward and exits, instead of opening a duplicate manager (`ISingleInstanceGuard`/`SingleInstanceGuard` over a named mutex plus activation event).
+
 ### Changed
 
 - Launcher logs now use `%LOCALAPPDATA%`, roll daily and at 20 MB, retain the newest 14 files, and default to Information level in Release builds; startup and shutdown failures are captured before the process exits.
