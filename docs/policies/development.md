@@ -34,6 +34,10 @@ Do not abbreviate words in identifiers, file names, or documentation — write `
 
 Use `global using` sparingly and rationally: a namespace belongs in a project-level `GlobalUsings.cs` only when most files of that project need it (the test framework, shared test doubles, pipeline module plumbing) — a couple of entries per project at most. Everything else stays a local `using`, and namespaces already covered by that project's `ImplicitUsings` stay out of both. Note the implicit set is smaller for WPF projects (`UseWPF` drops `System.IO`/`System.Net.Http`, among others — verify via `obj/*/*.GlobalUsings.g.cs`), so those stay explicit there.
 
+## Release changelog
+
+Before creating a release tag `vMAJOR.MINOR.PATCH`, move the content of `## [Unreleased]` in `CHANGELOG.md` into a new `## [MAJOR.MINOR.PATCH] - YYYY-MM-DD` section directly below it and leave `## [Unreleased]` empty. Commit that change and create the tag on that commit, so the changelog at the tagged commit names the released version and carries no unreleased entries. While moving the entries, review them against the previous release: keep changes a user of that release can observe, merge related entries, and drop fixes for behavior that was never released. The publish-release workflow enforces this before building: it refuses to publish when `## [Unreleased]` contains any entry or when the changelog has no section for the tagged version. Empty category headings under `Unreleased` are tolerated. The version section is published verbatim as the GitHub release description, so write it for users.
+
 ## .NET SDK selection
 
 Use the repository-root `global.json` for local builds and CI: SDK `10.0.100` or a later stable SDK in the `10.0` major/minor line (`rollForward: latestFeature`, `allowPrerelease: false`). Do not roll forward to another major/minor line without updating this policy and `global.json` together. GitHub Actions setup steps must read `global-json-file: global.json` after checkout. The `test` section of `global.json` selects the Microsoft.Testing.Platform runner for `dotnet test`.

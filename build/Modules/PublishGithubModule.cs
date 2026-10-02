@@ -25,11 +25,17 @@ public sealed class PublishGithubModule(
             $"RevitAddinManager-{versioning.Version}.msi");
         File.Exists(installer).ShouldBeTrue($"MSI was not created: {installer}");
 
+        string notesPath = Path.Combine(outputDirectory, $"release-notes-{versioning.Version}.md");
+        await File.WriteAllTextAsync(
+            notesPath,
+            ReleaseNotes.Create(BuildPaths.Changelog, versioning.Version, GetRepositoryUrl()),
+            cancellationToken);
+
         var arguments = new List<string>
         {
             "release", "create", $"v{versioning.Version}",
             "--verify-tag",
-            "--generate-notes",
+            "--notes-file", notesPath,
             "--title", $"Revit.AddinManager {versioning.Version}"
         };
 
@@ -41,5 +47,15 @@ public sealed class PublishGithubModule(
             new GenericCommandLineToolOptions("gh") { Arguments = arguments },
             new CommandExecutionOptions { WorkingDirectory = BuildPaths.Root },
             cancellationToken: cancellationToken);
+    }
+
+    // GitHub Actions supplies both variables; a local publish omits the changelog link instead of guessing the URL.
+    private static string? GetRepositoryUrl()
+    {
+        string? server = Environment.GetEnvironmentVariable("GITHUB_SERVER_URL");
+        string? repository = Environment.GetEnvironmentVariable("GITHUB_REPOSITORY");
+        return string.IsNullOrWhiteSpace(server) || string.IsNullOrWhiteSpace(repository)
+            ? null
+            : $"{server.TrimEnd('/')}/{repository}";
     }
 }

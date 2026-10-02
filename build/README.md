@@ -36,6 +36,11 @@ current commit (for example, `v1.4.0`), push the commit and tag, and run the
 workflow for that branch. GitVersion resolves the version from the tag; the
 pipeline creates the MSI file and publishes it as the release asset.
 
+The release description is the `## [version]` section of `CHANGELOG.md`, followed in
+GitHub Actions by a link to that section at the release tag. Publishing fails when the
+section is missing or empty; the extracted text is also written to
+`output/release-notes-<version>.md`.
+
 The workflow delegates the complete release to ModularPipelines. The equivalent
 local command (requires authenticated GitHub CLI) is:
 

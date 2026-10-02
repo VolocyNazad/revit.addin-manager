@@ -79,4 +79,6 @@ This document records stable architectural rules. Implementation details belong 
 
 - `installer/` builds one per-machine WixSharp MSI for the launcher.
 - `build/` resolves GitVersion, builds the launcher, packs the MSI and publishes releases.
+- A release is described by its `CHANGELOG.md` version section: the tagged commit carries that
+  section with an empty `Unreleased`, and the pipeline publishes it as the GitHub release notes.
 - Installer and build areas keep their own solutions and package configuration.

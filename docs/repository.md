@@ -118,4 +118,7 @@ manually; binaries and installers use the corresponding version. The release flo
 tag the commit (`v1.4.0`), push the commit and tag, run the `Publish release` workflow —
 GitVersion resolves the version from the tag, the pipeline builds the launcher with
 `-p:Version`, packs the single `RevitAddinManager-<version>.msi` and publishes it as
-the release asset (see `build/README.md`).
+the release asset (see `build/README.md`). The tagged commit must already contain the
+release section in `CHANGELOG.md` with an empty `Unreleased` section above it; the
+publish-release workflow stops otherwise, and the pipeline publishes that section as the
+GitHub release description. See the [release changelog policy](policies/development.md#release-changelog).

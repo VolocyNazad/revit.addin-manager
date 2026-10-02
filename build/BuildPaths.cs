@@ -4,6 +4,7 @@ internal static class BuildPaths
 {
     public static string Root { get; } = FindRoot();
     public static string Solution => Path.Combine(Root, "Revit.AddinManager.slnx");
+    public static string Changelog => Path.Combine(Root, "CHANGELOG.md");
     public static string LauncherProject => Path.Combine(Root, "src", "AddinManager.Launcher", "AddinManager.Launcher.csproj");
     public static string InstallerProject => Path.Combine(Root, "installer", "Revit.AddinManager.Installer", "Revit.AddinManager.Installer.csproj");
 
