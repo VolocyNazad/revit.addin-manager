@@ -23,7 +23,8 @@ public sealed class MoveCopyDialogViewModelTests
         Assert.True(vm.IsSameFolder);
         Assert.False(vm.CanConfirm);
         Assert.NotNull(vm.SameFolderError);
-        Assert.Equal("Переместить файл", vm.Title);
+        TestCulture.RunIn("ru", () => Assert.Equal("Переместить файл", vm.Title));
+        TestCulture.RunIn("en", () => Assert.Equal("Move file", vm.Title));
     }
 
     [Fact]
