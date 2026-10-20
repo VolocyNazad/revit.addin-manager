@@ -6,22 +6,23 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+## [1.4.0] - 2026-10-20
+
 ### Added
 
-- `Ctrl+Z` now also undoes a copy (removes the created copy and restores a replaced target) and a rename (returns the previous name), in addition to moves and deletions.
-- Move/copy a plugin file to another Revit version or scope from the row context menu: a target dialog selects version, scope, enable-after state and explicit replacement of an existing target (moved to the Recycle Bin), warns about cross-version `Assembly` paths, unsupported `ManifestSettings` and unsaved edits, creates missing folders, reports Machine permission failures, keeps copies on the source and lets `Ctrl+Z` undo a move.
-- Deletion in the plugin list moves files to the Windows Recycle Bin instead of deleting them permanently; `Ctrl+Z` undoes the last enable/disable move or deletion (a move returns to its previous folder/state, a deletion writes the saved manifest back to its original path).
-- Sort direction, state filter and chip counts in the plugin list: clicking the active sort field (or the arrow button) flips ascending/descending, a new state row filters all/enabled/disabled files, and scope/version/state chips show how many files they cover; the search box narrows those counts.
-- Inline `F2` rename in the plugin list (menu item too): Enter saves, Esc cancels, losing focus saves; the file keeps its scope/version and enabled/disabled folder. Empty or invalid names and existing-file collisions are rejected in the row, and the `.addin` extension is enforced.
-- Context menus for the plugin list and the manifest entries: right-click selects an unselected row like Explorer and keeps a multi-selection, then offers show in folder, rename, enable/disable, copy path/file name and delete for files, and copy `AddInId`/`FullClassName`, delete and new entry for entries; right-click on empty space offers refresh/new file or new entry. Copying confirms with a toast.
-- Search in the raw XML markup editor: a persistent find bar above the editor (`Ctrl+F`, `F3`/`Shift+F3`, `Esc` to clear) with match case, whole words and regular expressions, a live match counter, and highlighted matches (the current one stronger). The headless engine lives in `AddinManager.Core.Search`; search keeps working while Revit locks editing.
-- Single-instance guard: a second launch signals the running copy to bring its window forward and exits, instead of opening a duplicate manager (`ISingleInstanceGuard`/`SingleInstanceGuard` over a named mutex plus activation event).
+- Plugin-list actions: Explorer-style context menus on file and entry rows (right-click selects an unselected row and keeps a multi-selection) with show in folder, rename, enable/disable, copy path/file name and delete, plus empty-area actions for refresh/new file or new entry.
+- Inline `F2` rename: Enter saves, Esc cancels, losing focus saves; the `.addin` extension is enforced and invalid or existing names are rejected in the row.
+- Move/copy a plugin between Revit versions and scopes from the row menu: a target dialog picks version, scope, enable-after state and explicit replacement; warns about cross-version `Assembly`/`FullClassName`, unsupported `ManifestSettings` and unsaved editor changes; creates missing folders, reports Machine permission errors and keeps copies on the source.
+- Safe deletion and undo: deleting moves files to the Windows Recycle Bin; `Ctrl+Z` undoes the last enable/disable move, deletion, copy or rename (restoring saved content and replaced targets).
+- Sort direction, enabled/disabled filter and chip counters in the plugin list; the active sort field toggles ascending/descending and the name search narrows the chip counts.
+- Markup find bar (`Ctrl+F`, `F3`/`Shift+F3`, `Esc`) with match case, whole words, regular expressions, a live match counter and highlighted matches; search works while Revit locks editing.
+- Single-instance guard: a second launch activates the running copy and exits instead of opening a duplicate window.
 
 ### Changed
 
-- The editor zone now has one shared header for all modes and both combined views (file name, meta line, unsaved badge, Save/Discard and the visible pane's error): the sub-panes no longer repeat the file title next to each other in entries+form and entries+markup.
-- The title-bar app mark now shows the same pufferfish artwork as the executable and the desktop shortcut: the monochrome outline is replaced by the application icon (`Resources/Icon.png`, a 256 px rendering of `Resources/Icon.ico`).
-- Launcher logs now use `%LOCALAPPDATA%`, roll daily and at 20 MB, retain the newest 14 files, and default to Information level in Release builds; startup and shutdown failures are captured before the process exits.
+- One shared editor header for all modes and both combined views: file name, meta line, unsaved badge, Save/Discard and the visible pane's error are shown once.
+- The title-bar mark now uses the same pufferfish artwork as the executable and the desktop shortcut.
+- Launcher logs moved to `%LOCALAPPDATA%`, roll daily and at 20 MB, retain the newest 14 files, default to Information in Release builds and capture startup/shutdown failures.
 
 ## [1.3.0] - 2026-09-27
 
