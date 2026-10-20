@@ -163,4 +163,19 @@
   <data name="UndoFileExists" xml:space="preserve">
     <value>Не удалось отменить: '{0}' уже существует.</value>
   </data>
+  <data name="MoveMenuLabel" xml:space="preserve">
+    <value>Переместить в…</value>
+  </data>
+  <data name="CopyToMenuLabel" xml:space="preserve">
+    <value>Копировать в…</value>
+  </data>
+  <data name="CopyDoneToMessage" xml:space="preserve">
+    <value>Скопировано в {0} · {1}</value>
+  </data>
+  <data name="SaveBeforeMoveConfirm" xml:space="preserve">
+    <value>В файле есть несохранённые изменения. Сохранить их перед переносом/копированием?</value>
+  </data>
+  <data name="DiscardBeforeMoveConfirm" xml:space="preserve">
+    <value>Продолжить без сохранения изменений?</value>
+  </data>
 </root>

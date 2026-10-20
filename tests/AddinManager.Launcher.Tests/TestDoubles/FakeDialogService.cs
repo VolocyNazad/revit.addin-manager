@@ -21,6 +21,9 @@ public sealed class FakeDialogService : IDialogService
     /// <summary>Ответ на следующий диалог записи (<see langword="null"/> — отмена).</summary>
     public AddinEntryType? NewEntryResult { get; set; }
 
+    /// <summary>Ответ на следующий диалог перемещения/копирования (<see langword="null"/> — отмена).</summary>
+    public MoveCopyOptions? MoveCopyResult { get; set; }
+
     /// <inheritdoc />
     public bool Confirm(string message)
     {
@@ -33,6 +36,9 @@ public sealed class FakeDialogService : IDialogService
 
     /// <inheritdoc />
     public AddinEntryType? PromptNewEntry() => NewEntryResult;
+
+    /// <inheritdoc />
+    public MoveCopyOptions? PromptMoveCopy(MoveCopyRequest request) => MoveCopyResult;
 
     /// <inheritdoc />
     public bool PromptUpdate(string message, string downloadUrl)

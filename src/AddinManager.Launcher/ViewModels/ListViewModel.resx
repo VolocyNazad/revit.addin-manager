@@ -163,4 +163,19 @@
   <data name="UndoFileExists" xml:space="preserve">
     <value>Cannot undo: '{0}' already exists.</value>
   </data>
+  <data name="MoveMenuLabel" xml:space="preserve">
+    <value>Move to…</value>
+  </data>
+  <data name="CopyToMenuLabel" xml:space="preserve">
+    <value>Copy to…</value>
+  </data>
+  <data name="CopyDoneToMessage" xml:space="preserve">
+    <value>Copied to {0} · {1}</value>
+  </data>
+  <data name="SaveBeforeMoveConfirm" xml:space="preserve">
+    <value>The file has unsaved changes. Save them before moving/copying?</value>
+  </data>
+  <data name="DiscardBeforeMoveConfirm" xml:space="preserve">
+    <value>Continue without saving the changes?</value>
+  </data>
 </root>

@@ -69,6 +69,8 @@ public sealed class DesignListViewModel
     public string SelectionSummary { get; set; } = "Выбрано: 1";
     public string ShowInFolderLabel { get; set; } = "Показать в папке";
     public string RenameMenuLabel { get; set; } = "Переименовать (F2)";
+    public string MoveMenuLabel { get; set; } = "Переместить в…";
+    public string CopyToMenuLabel { get; set; } = "Копировать в…";
     public string ToggleSelectedLabel { get; set; } = "Выключить";
     public string DeleteSelectedLabel { get; set; } = "Удалить";
     public string SelectAllToggleLabel { get; set; } = "Снять выбор";
@@ -83,6 +85,8 @@ public sealed class DesignListViewModel
     public ICommand? ToggleSelectedCommand { get; set; }
     public ICommand? ShowInFolderCommand { get; set; }
     public ICommand? BeginRenameCommand { get; set; }
+    public ICommand? MoveToCommand { get; set; }
+    public ICommand? CopyToCommand { get; set; }
     public ICommand? DeleteSelectedCommand { get; set; }
     public ICommand? ToggleSelectAllCommand { get; set; }
 }

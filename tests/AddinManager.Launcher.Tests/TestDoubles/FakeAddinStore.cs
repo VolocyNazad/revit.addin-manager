@@ -50,6 +50,92 @@ public sealed class FakeAddinStore : IAddinStore
     /// </summary>
     public Exception? ThrowOnNextCreateFile { get; set; }
 
+    /// <summary>Когда задано, следующий вызов <see cref="Move"/> бросает это исключение.</summary>
+    public Exception? ThrowOnNextMove { get; set; }
+
+    /// <summary>Когда задано, следующий вызов <see cref="Copy"/> бросает это исключение.</summary>
+    public Exception? ThrowOnNextCopy { get; set; }
+
+    /// <summary>Сколько раз вызывали <see cref="Move"/>.</summary>
+    public int MoveCallCount { get; private set; }
+
+    /// <summary>Сколько раз вызывали <see cref="Copy"/>.</summary>
+    public int CopyCallCount { get; private set; }
+
+    /// <inheritdoc />
+    public string GetTargetPath(string fileName, string version, AddinScope scope, bool enabled) =>
+        enabled
+            ? $@"C:\fake\{version}\{fileName}"
+            : $@"C:\fake\{version}\disabled\{fileName}";
+
+    /// <inheritdoc />
+    public bool TargetExists(string fileName, string version, AddinScope scope, bool enabled)
+    {
+        var path = GetTargetPath(fileName, version, scope, enabled);
+        return _byVersion.Values.SelectMany(files => files)
+            .Any(file => string.Equals(file.FullPath, path, StringComparison.OrdinalIgnoreCase));
+    }
+
+    /// <inheritdoc />
+    public FileMoveResult Move(AddinFile file, string targetVersion, AddinScope targetScope, bool enabled, bool overwrite)
+    {
+        MoveCallCount++;
+        if (ThrowOnNextMove is { } exception)
+        {
+            ThrowOnNextMove = null;
+            throw exception;
+        }
+
+        RemoveFromVersion(file);
+        var moved = Place(file, targetVersion, targetScope, enabled, overwrite);
+        return new FileMoveResult(moved, null, null);
+    }
+
+    /// <inheritdoc />
+    public AddinFile Copy(AddinFile file, string targetVersion, AddinScope targetScope, bool enabled, bool overwrite)
+    {
+        CopyCallCount++;
+        if (ThrowOnNextCopy is { } exception)
+        {
+            ThrowOnNextCopy = null;
+            throw exception;
+        }
+
+        return Place(file, targetVersion, targetScope, enabled, overwrite);
+    }
+
+    private AddinFile Place(AddinFile file, string targetVersion, AddinScope targetScope, bool enabled, bool overwrite)
+    {
+        var targetPath = GetTargetPath(file.FileName, targetVersion, targetScope, enabled);
+        var existing = _byVersion.Values.SelectMany(files => files)
+            .FirstOrDefault(item => string.Equals(item.FullPath, targetPath, StringComparison.OrdinalIgnoreCase));
+        if (existing is not null)
+        {
+            if (!overwrite)
+                throw new IOException($"File '{file.FileName}' already exists.");
+            RemoveFromVersion(existing);
+        }
+
+        var placed = file with
+        {
+            Version = targetVersion,
+            Scope = targetScope,
+            Enabled = enabled,
+            FullPath = targetPath,
+            VersionRootDirectory = $@"C:\fake\{targetVersion}",
+        };
+        if (!_byVersion.TryGetValue(targetVersion, out var files))
+            _byVersion[targetVersion] = files = [];
+        files.Add(placed);
+        return placed;
+    }
+
+    private void RemoveFromVersion(AddinFile file)
+    {
+        foreach (var files in _byVersion.Values)
+            files.RemoveAll(item => item.FileName == file.FileName && item.Scope == file.Scope && item.Version == file.Version);
+    }
+
     /// <inheritdoc />
     public IReadOnlyList<AddinFile> ScanVersion(string version)
     {

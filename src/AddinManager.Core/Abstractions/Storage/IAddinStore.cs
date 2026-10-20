@@ -46,6 +46,33 @@ public interface IAddinStore
     /// <exception cref="IOException">Имя пустое/недопустимое или файл с таким именем уже есть.</exception>
     AddinFile Rename(AddinFile file, string newFileName);
 
+    /// <summary>Вычисляет путь, куда попадёт файл при переносе/копировании (без обращения к диску).</summary>
+    /// <param name="fileName">Имя файла.</param>
+    /// <param name="version">Версия Revit.</param>
+    /// <param name="scope">Область.</param>
+    /// <param name="enabled">Состояние: <see langword="true"/> — корень версии, иначе <c>disabled/</c>.</param>
+    string GetTargetPath(string fileName, string version, AddinScope scope, bool enabled);
+
+    /// <summary>Проверяет, занят ли путь, куда попадёт файл; используется диалогом выбора цели.</summary>
+    bool TargetExists(string fileName, string version, AddinScope scope, bool enabled);
+
+    /// <summary>
+    /// Перемещает файл в другую версию/scope, сохраняя имя. Недостающие папки создаются.
+    /// При <paramref name="overwrite"/> существующий целевой файл сначала уходит в Корзину,
+    /// а его содержимое возвращается в результате для отмены.
+    /// </summary>
+    /// <exception cref="RevitRunningException">Revit запущен — перенос запрещён.</exception>
+    /// <exception cref="IOException">Цель занята без <paramref name="overwrite"/>, нет прав или перенос не удался.</exception>
+    FileMoveResult Move(AddinFile file, string targetVersion, AddinScope targetScope, bool enabled, bool overwrite);
+
+    /// <summary>
+    /// Копирует файл в другую версию/scope, сохраняя имя и исходник. Недостающие папки создаются.
+    /// При <paramref name="overwrite"/> существующий целевой файл сначала уходит в Корзину.
+    /// </summary>
+    /// <exception cref="RevitRunningException">Revit запущен — копирование запрещено.</exception>
+    /// <exception cref="IOException">Цель занята без <paramref name="overwrite"/>, нет прав или копирование не удалось.</exception>
+    AddinFile Copy(AddinFile file, string targetVersion, AddinScope targetScope, bool enabled, bool overwrite);
+
     /// <summary>
     /// Создаёт пустой манифест (без записей) и возвращает его запись. Суффикс
     /// <c>.addin</c> дописывается, недостающие папки создаются.

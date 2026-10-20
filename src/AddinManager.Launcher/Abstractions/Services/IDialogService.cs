@@ -22,6 +22,11 @@ public interface IDialogService
     /// <returns>Тип или <see langword="null"/> — отменили.</returns>
     AddinEntryType? PromptNewEntry();
 
+    /// <summary>Просит цель для перемещения или копирования файла.</summary>
+    /// <param name="request">Файл и тип операции.</param>
+    /// <returns>Выбранная цель или <see langword="null"/> — отменили.</returns>
+    MoveCopyOptions? PromptMoveCopy(MoveCopyRequest request);
+
     /// <summary>Показывает новость о новой версии и предлагает скачать.</summary>
     /// <param name="message">Текст новости (уже локализован вызывающим).</param>
     /// <param name="downloadUrl">Ссылка на скачивание — откроется в браузере при согласии.</param>

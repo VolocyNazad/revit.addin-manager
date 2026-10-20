@@ -70,4 +70,7 @@
   <data name="InvalidFileName" xml:space="preserve">
     <value>Имя файла содержит недопустимые символы.</value>
   </data>
+  <data name="SameFolder" xml:space="preserve">
+    <value>Файл уже находится в этой папке.</value>
+  </data>
 </root>

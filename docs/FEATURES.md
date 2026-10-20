@@ -48,6 +48,11 @@ files and edit their manifests — everything happens before Revit starts.
 - `F2` renames the selected file in place, like Explorer: Enter saves, Esc cancels, losing
   focus saves. The `.addin` extension is enforced, invalid names and existing files are
   rejected in the row; the file keeps its scope/version and enabled/disabled folder.
+- "Move to…" and "Copy to…" in the row menu open a target dialog (version, scope, target path,
+  enable-after checkbox) with warnings for cross-version moves, unsupported `ManifestSettings`
+  and unsaved editor changes. Existing target files must be explicitly replaced (they go to
+  the Recycle Bin); missing folders are created, Machine permissions are reported clearly, and
+  a successful move is undoable with `Ctrl+Z`.
 - Sorting chips behave like Explorer columns: clicking the active field once more flips
   ascending/descending, and the arrow button next to them flips it explicitly. A state row
   filters all/enabled/disabled files, and the scope, version and state chips show counts

@@ -70,4 +70,7 @@
   <data name="InvalidFileName" xml:space="preserve">
     <value>File name contains invalid characters.</value>
   </data>
+  <data name="SameFolder" xml:space="preserve">
+    <value>The file is already in this folder.</value>
+  </data>
 </root>

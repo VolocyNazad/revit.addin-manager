@@ -8,6 +8,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Added
 
+- Move/copy a plugin file to another Revit version or scope from the row context menu: a target dialog selects version, scope, enable-after state and explicit replacement of an existing target (moved to the Recycle Bin), warns about cross-version `Assembly` paths, unsupported `ManifestSettings` and unsaved edits, creates missing folders, reports Machine permission failures, keeps copies on the source and lets `Ctrl+Z` undo a move.
 - Deletion in the plugin list moves files to the Windows Recycle Bin instead of deleting them permanently; `Ctrl+Z` undoes the last enable/disable move or deletion (a move returns to its previous folder/state, a deletion writes the saved manifest back to its original path).
 - Sort direction, state filter and chip counts in the plugin list: clicking the active sort field (or the arrow button) flips ascending/descending, a new state row filters all/enabled/disabled files, and scope/version/state chips show how many files they cover; the search box narrows those counts.
 - Inline `F2` rename in the plugin list (menu item too): Enter saves, Esc cancels, losing focus saves; the file keeps its scope/version and enabled/disabled folder. Empty or invalid names and existing-file collisions are rejected in the row, and the `.addin` extension is enforced.

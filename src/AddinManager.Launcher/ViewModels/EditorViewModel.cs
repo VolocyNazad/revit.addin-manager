@@ -1,5 +1,6 @@
 using System.ComponentModel;
 using AddinManager.Launcher.Abstractions.Services;
+using AddinManager.Launcher.Services;
 using AddinManager.Localization;
 using AddinManager.Localization.Abstractions;
 using CommunityToolkit.Mvvm.ComponentModel;
@@ -20,6 +21,7 @@ public sealed partial class EditorViewModel : ObservableObject
     private readonly IStringLocalizer<EditorViewModel> _localizer;
     private readonly IFileSelection _fileSelection;
     private readonly Func<EditorMode, ISavablePane?> _activePane;
+    private readonly EditorDirtyState? _dirtyState;
     private ISavablePane? _subscribedPane;
 
     [ObservableProperty]
@@ -33,16 +35,19 @@ public sealed partial class EditorViewModel : ObservableObject
     /// <param name="localizer">Строки тултипов режимов и заголовка.</param>
     /// <param name="fileSelection">Выбор файла — источник имени и мета-строки в заголовке.</param>
     /// <param name="activePane">Видимая панель с сохранением для режима (см. корень композиции).</param>
+    /// <param name="dirtyState">Общее состояние правок для списка перед переносом файла.</param>
     public EditorViewModel(
         ILocalizationService localizationService,
         IStringLocalizer<EditorViewModel> localizer,
         IFileSelection fileSelection,
-        Func<EditorMode, ISavablePane?> activePane)
+        Func<EditorMode, ISavablePane?> activePane,
+        EditorDirtyState? dirtyState = null)
     {
         _localizationService = localizationService;
         _localizer = localizer;
         _fileSelection = fileSelection;
         _activePane = activePane;
+        _dirtyState = dirtyState;
         _localizationService.LanguageChanged += (_, _) => OnPropertyChanged((string?)null);
         _fileSelection.PropertyChanged += OnFileSelectionChanged;
         AttachActivePane();
@@ -154,6 +159,13 @@ public sealed partial class EditorViewModel : ObservableObject
         OnPropertyChanged(nameof(SaveLabel));
         OnPropertyChanged(nameof(DiscardLabel));
         RefreshActiveCommands();
+        _dirtyState?.Update(IsDirty, SaveActiveAndCheck);
+    }
+
+    private bool SaveActiveAndCheck()
+    {
+        SaveActive();
+        return !IsDirty;
     }
 
     private void RefreshActiveCommands()

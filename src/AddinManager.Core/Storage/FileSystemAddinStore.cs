@@ -240,6 +240,102 @@ public sealed class FileSystemAddinStore : IAddinStore
     }
 
     /// <inheritdoc />
+    public string GetTargetPath(string fileName, string version, AddinScope scope, bool enabled)
+    {
+        var versionRoot = GetVersionRoot(scope, version);
+        var directory = enabled ? versionRoot : Path.Combine(versionRoot, DisabledFolderName);
+        return Path.Combine(directory, fileName);
+    }
+
+    /// <inheritdoc />
+    public bool TargetExists(string fileName, string version, AddinScope scope, bool enabled) =>
+        File.Exists(GetTargetPath(fileName, version, scope, enabled));
+
+    /// <inheritdoc />
+    public FileMoveResult Move(AddinFile file, string targetVersion, AddinScope targetScope, bool enabled, bool overwrite) =>
+        Transfer(file, targetVersion, targetScope, enabled, overwrite, copy: false);
+
+    /// <inheritdoc />
+    public AddinFile Copy(AddinFile file, string targetVersion, AddinScope targetScope, bool enabled, bool overwrite) =>
+        Transfer(file, targetVersion, targetScope, enabled, overwrite, copy: true).File;
+
+    private FileMoveResult Transfer(
+        AddinFile file,
+        string targetVersion,
+        AddinScope targetScope,
+        bool enabled,
+        bool overwrite,
+        bool copy)
+    {
+        if (_guard.IsRunning)
+        {
+            _logger.LogWarning(
+                "{Operation}({FileName}, {Scope}, {Version}): отклонено — запущен Revit",
+                copy ? "Copy" : "Move", file.FileName, file.Scope, file.Version);
+            throw new RevitRunningException(_localizer["BlockedByRunningRevit"]);
+        }
+
+        var targetPath = GetTargetPath(file.FileName, targetVersion, targetScope, enabled);
+        if (string.Equals(targetPath, file.FullPath, StringComparison.OrdinalIgnoreCase))
+            throw new IOException(_localizer["SameFolder"]);
+
+        string? replacedPath = null;
+        byte[]? replacedContent = null;
+        try
+        {
+            if (File.Exists(targetPath))
+            {
+                if (!overwrite)
+                    throw new IOException(_localizer["FileAlreadyExists", file.FileName]);
+
+                replacedPath = targetPath;
+                replacedContent = File.ReadAllBytes(targetPath);
+                if (_recycler is not null)
+                    _recycler.Recycle(targetPath);
+                else
+                    File.Delete(targetPath);
+            }
+
+            var targetRoot = GetVersionRoot(targetScope, targetVersion);
+            var targetDirectory = enabled ? targetRoot : Path.Combine(targetRoot, DisabledFolderName);
+            Directory.CreateDirectory(targetDirectory);
+
+            _logger.LogInformation(
+                "{Operation}({FileName}, {Scope}, {Version}): {From} -> {To}",
+                copy ? "Copy" : "Move", file.FileName, file.Scope, file.Version, file.FullPath, targetPath);
+
+            if (copy)
+                File.Copy(file.FullPath, targetPath);
+            else
+                File.Move(file.FullPath, targetPath);
+
+            var moved = file with
+            {
+                Version = targetVersion,
+                Scope = targetScope,
+                Enabled = enabled,
+                FullPath = targetPath,
+                VersionRootDirectory = targetRoot,
+            };
+            return new FileMoveResult(moved, replacedPath, replacedContent);
+        }
+        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
+        {
+            _logger.LogError(
+                ex,
+                "{Operation}({FileName}, {Scope}, {Version}): не удалось {From} -> {To}",
+                copy ? "Copy" : "Move", file.FileName, file.Scope, file.Version, file.FullPath, targetPath);
+            throw new IOException($"Не удалось {(copy ? "скопировать" : "переместить")} '{file.FullPath}'.", ex);
+        }
+    }
+
+    private string GetVersionRoot(AddinScope scope, string version)
+    {
+        var baseDirectory = scope == AddinScope.User ? _userBaseDirectory : _machineBaseDirectory;
+        return Path.Combine(baseDirectory, "Autodesk", "Revit", "Addins", version);
+    }
+
+    /// <inheritdoc />
     public AddinFile CreateFile(string fileName, string version, AddinScope scope, bool disabled)
     {
         if (_guard.IsRunning)

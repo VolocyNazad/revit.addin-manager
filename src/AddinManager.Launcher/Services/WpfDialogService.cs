@@ -12,6 +12,7 @@ public sealed class WpfDialogService(
     Func<AddFileDialogView> addFileViewFactory,
     Func<AddEntryDialogView> addEntryViewFactory,
     Func<UpdateDialogView> updateViewFactory,
+    Func<MoveCopyDialogView> moveCopyViewFactory,
     IUrlOpener urlOpener) : IDialogService
 {
     /// <inheritdoc />
@@ -46,6 +47,19 @@ public sealed class WpfDialogService(
             return null;
 
         return model.EntryType;
+    }
+
+    /// <inheritdoc />
+    public MoveCopyOptions? PromptMoveCopy(MoveCopyRequest request)
+    {
+        var view = moveCopyViewFactory();
+        var model = (MoveCopyDialogViewModel)view.DataContext;
+        model.Initialize(request);
+        view.Owner = Application.Current?.MainWindow;
+        if (view.ShowDialog() != true)
+            return null;
+
+        return new MoveCopyOptions(model.Version, model.Scope, model.EnableAfter, model.Overwrite);
     }
 
     /// <inheritdoc />

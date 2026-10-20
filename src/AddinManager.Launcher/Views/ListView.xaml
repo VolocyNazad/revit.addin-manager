@@ -50,6 +50,14 @@
                             CommandParameter="{Binding PlacementTarget.DataContext, RelativeSource={RelativeSource AncestorType=ContextMenu}}"
                             Header="{Binding RenameMenuLabel}" />
                         <MenuItem
+                            Command="{Binding MoveToCommand}"
+                            CommandParameter="{Binding PlacementTarget.DataContext, RelativeSource={RelativeSource AncestorType=ContextMenu}}"
+                            Header="{Binding MoveMenuLabel}" />
+                        <MenuItem
+                            Command="{Binding CopyToCommand}"
+                            CommandParameter="{Binding PlacementTarget.DataContext, RelativeSource={RelativeSource AncestorType=ContextMenu}}"
+                            Header="{Binding CopyToMenuLabel}" />
+                        <MenuItem
                             Command="{Binding ToggleSelectedCommand}"
                             Header="{Binding ToggleSelectedLabel}" />
                         <Separator />

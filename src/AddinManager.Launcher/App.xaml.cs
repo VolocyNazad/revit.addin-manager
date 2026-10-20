@@ -116,6 +116,8 @@ public partial class App
                 services.AddSingleton<IDialogService, WpfDialogService>();
                 services.AddSingleton<IToastService, ToastService>();
                 services.AddSingleton<IClipboardService, WpfClipboardService>();
+                services.AddSingleton<EditorDirtyState>();
+                services.AddSingleton<IEditorDirtyState>(provider => provider.GetRequiredService<EditorDirtyState>());
                 services.AddSingleton<IUrlOpener, UrlOpener>();
                 services.AddSingleton<IFolderOpener, ExplorerFolderOpener>();
                 services.AddSingleton(_ =>
@@ -199,6 +201,17 @@ public partial class App
                 });
                 services.AddSingleton<Func<UpdateDialogView>>(
                     provider => () => provider.GetRequiredService<UpdateDialogView>());
+                services.AddTransient<MoveCopyDialogViewModel>();
+                services.AddTransient(provider =>
+                {
+                    var view = new MoveCopyDialogView
+                    {
+                        DataContext = provider.GetRequiredService<MoveCopyDialogViewModel>()
+                    };
+                    return view;
+                });
+                services.AddSingleton<Func<MoveCopyDialogView>>(
+                    provider => () => provider.GetRequiredService<MoveCopyDialogView>());
                 services.AddSingleton<MainViewModel>();
                 services.AddSingleton<MainWindow>();
                 })

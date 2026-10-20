@@ -37,6 +37,7 @@ public sealed partial class ListViewModel : ObservableObject, IFileSelection, IA
     private readonly IRevitProcessGuard _guard;
     private readonly IDialogService _dialogService;
     private readonly IFolderOpener _folderOpener;
+    private readonly IEditorDirtyState? _dirtyState;
     private readonly ListCollectionView _filesView;
     private readonly ILogger<ListViewModel> _logger;
 
@@ -134,7 +135,8 @@ public sealed partial class ListViewModel : ObservableObject, IFileSelection, IA
         IRevitProcessGuard guard,
         IDialogService dialogService,
         IFolderOpener folderOpener,
-        IClipboardService clipboard)
+        IClipboardService clipboard,
+        IEditorDirtyState? dirtyState = null)
     {
         _store = store;
         _changeWatcher = changeWatcher;
@@ -148,6 +150,7 @@ public sealed partial class ListViewModel : ObservableObject, IFileSelection, IA
         _guard = guard;
         _dialogService = dialogService;
         _folderOpener = folderOpener;
+        _dirtyState = dirtyState;
 
         _filesView = (ListCollectionView)CollectionViewSource.GetDefaultView(Files);
         _filesView.Filter = MatchesFilter;
@@ -478,6 +481,29 @@ public sealed partial class ListViewModel : ObservableObject, IFileSelection, IA
                     SelectByIdentity(firstToggle.FileName, firstToggle.Scope, firstToggle.Version);
                     break;
 
+                case UndoMove move:
+                    var moved = Files.FirstOrDefault(file =>
+                        file.FileName == move.Moved.FileName
+                        && file.Scope == move.Moved.Scope
+                        && file.Version == move.Moved.Version);
+                    if (moved is null)
+                        throw new IOException(_localizer["UndoFileMissing"]);
+
+                    _store.Move(moved.File, move.Original.Version, move.Original.Scope, move.Original.Enabled, overwrite: false);
+                    if (move.ReplacedPath is not null && move.ReplacedContent is not null)
+                    {
+                        if (File.Exists(move.ReplacedPath))
+                            throw new IOException(_localizer["UndoFileExists", Path.GetFileName(move.ReplacedPath)]);
+                        var directory = Path.GetDirectoryName(move.ReplacedPath);
+                        if (!string.IsNullOrEmpty(directory))
+                            Directory.CreateDirectory(directory);
+                        File.WriteAllBytes(move.ReplacedPath, move.ReplacedContent);
+                    }
+
+                    Refresh();
+                    SelectByIdentity(move.Original.FileName, move.Original.Scope, move.Original.Version);
+                    break;
+
                 case UndoDelete delete:
                     foreach (var item in delete.Files)
                     {
@@ -690,6 +716,8 @@ public sealed partial class ListViewModel : ObservableObject, IFileSelection, IA
         ToggleSelectedCommand.NotifyCanExecuteChanged();
         DeleteSelectedCommand.NotifyCanExecuteChanged();
         UndoLastActionCommand.NotifyCanExecuteChanged();
+        MoveToCommand.NotifyCanExecuteChanged();
+        CopyToCommand.NotifyCanExecuteChanged();
     }
 
     /// <summary>
@@ -737,6 +765,88 @@ public sealed partial class ListViewModel : ObservableObject, IFileSelection, IA
     /// </summary>
     [RelayCommand(CanExecute = nameof(CanBeginRename))]
     public void BeginRename(AddinFileRowViewModel? row) => (row ?? SelectedFile)?.BeginRename();
+
+    /// <summary>Пункт меню "Переместить в…".</summary>
+    public string MoveMenuLabel => _localizer["MoveMenuLabel"];
+
+    /// <summary>Пункт меню "Копировать в…".</summary>
+    public string CopyToMenuLabel => _localizer["CopyToMenuLabel"];
+
+    private bool CanMoveCopy(AddinFileRowViewModel? row) => !IsLocked && (row ?? SelectedFile) is not null;
+
+    /// <summary>Открывает диалог цели и перемещает файл в другую версию/scope.</summary>
+    [RelayCommand(CanExecute = nameof(CanMoveCopy))]
+    public void MoveTo(AddinFileRowViewModel? row) => MoveCopy(row ?? SelectedFile, MoveCopyKind.Move);
+
+    /// <summary>Открывает диалог цели и копирует файл в другую версию/scope.</summary>
+    [RelayCommand(CanExecute = nameof(CanMoveCopy))]
+    public void CopyTo(AddinFileRowViewModel? row) => MoveCopy(row ?? SelectedFile, MoveCopyKind.Copy);
+
+    private void MoveCopy(AddinFileRowViewModel? row, MoveCopyKind kind)
+    {
+        if (row is null)
+            return;
+
+        if (!EnsureEditorSaved())
+            return;
+
+        var options = _dialogService.PromptMoveCopy(new MoveCopyRequest(row.File, kind));
+        if (options is null)
+            return;
+
+        try
+        {
+            if (kind == MoveCopyKind.Move)
+            {
+                var result = _store.Move(row.File, options.Version, options.Scope, options.EnableAfter, options.Overwrite);
+                SetUndo(new UndoMove(result.File, row.File, result.ReplacedPath, result.ReplacedContent));
+                RevealTarget(result.File);
+                Refresh();
+                SelectByIdentity(result.File.FileName, result.File.Scope, result.File.Version);
+            }
+            else
+            {
+                var copied = _store.Copy(row.File, options.Version, options.Scope, options.EnableAfter, options.Overwrite);
+                Refresh();
+                _toastService.Show(_localizer["CopyDoneToMessage", copied.Version, copied.Scope]);
+            }
+        }
+        catch (Exception ex) when (ex is IOException or RevitRunningException or UnauthorizedAccessException)
+        {
+            row.ErrorMessage = ex.Message;
+        }
+    }
+
+    /// <summary>
+    /// Перед переносом не даёт молча потерять правки открытого файла: сохраняет видимую панель
+    /// или спрашивает подтверждение на отбрасывание; отказ отменяет операцию.
+    /// </summary>
+    private bool EnsureEditorSaved()
+    {
+        if (_dirtyState is not { IsDirty: true })
+            return true;
+
+        if (_dialogService.Confirm(_localizer["SaveBeforeMoveConfirm"]))
+            return _dirtyState.TrySave();
+
+        return _dialogService.Confirm(_localizer["DiscardBeforeMoveConfirm"]);
+    }
+
+    /// <summary>Подстраивает scope/version/state фильтры, чтобы цель перемещения была видна; поиск не трогаем.</summary>
+    private void RevealTarget(AddinFile target)
+    {
+        if (ScopeFilter != ScopeFilter.All)
+            ScopeFilter = target.Scope == AddinScope.User ? ScopeFilter.User : ScopeFilter.Machine;
+
+        if (VersionFilter is not null && VersionFilter != target.Version)
+            VersionFilter = target.Version;
+
+        if (EnabledFilter != EnabledFilter.All
+            && (EnabledFilter == EnabledFilter.Enabled) != target.Enabled)
+        {
+            EnabledFilter = target.Enabled ? EnabledFilter.Enabled : EnabledFilter.Disabled;
+        }
+    }
 
     /// <summary>Пункт контекстного меню пустого места "Обновить".</summary>
     public string RefreshMenuLabel => _localizer["RefreshMenuLabel"];
@@ -1000,6 +1110,8 @@ public sealed partial class ListViewModel : ObservableObject, IFileSelection, IA
     {
         ShowInFolderCommand.NotifyCanExecuteChanged();
         BeginRenameCommand.NotifyCanExecuteChanged();
+        MoveToCommand.NotifyCanExecuteChanged();
+        CopyToCommand.NotifyCanExecuteChanged();
         RefreshSnapshot();
     }
 
@@ -1014,6 +1126,12 @@ public sealed partial class ListViewModel : ObservableObject, IFileSelection, IA
     private sealed record UndoToggleGroup(IReadOnlyList<UndoToggle> Toggles) : IUndoRecord;
 
     private sealed record UndoDelete(IReadOnlyList<DeletedFile> Files) : IUndoRecord;
+
+    private sealed record UndoMove(
+        AddinFile Moved,
+        AddinFile Original,
+        string? ReplacedPath,
+        byte[]? ReplacedContent) : IUndoRecord;
 
     private sealed record DeletedFile(AddinFile File, byte[] Content);
 
