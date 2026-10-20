@@ -60,6 +60,28 @@ public sealed class ListViewModelUndoTests
         Assert.All(list.Files, row => Assert.True(row.IsEnabled));
     }
 
+    [Fact]
+    public void Rename_ThenUndo_RestoresOldNameAndSelection()
+    {
+        var store = new FakeAddinStore();
+        store.SetFiles("2025", NewFile("A.addin", enabled: true));
+        var list = NewList(store);
+        var row = Assert.Single(list.Files);
+        row.BeginRename();
+        row.RenameText = "B";
+        row.CommitRename();
+
+        Assert.Equal("B.addin", Assert.Single(list.Files).FileName);
+        Assert.True(list.HasUndo);
+
+        list.UndoLastActionCommand.Execute(null);
+
+        var restored = Assert.Single(list.Files);
+        Assert.Equal("A.addin", restored.FileName);
+        Assert.Same(restored, list.SelectedFile);
+        Assert.False(list.HasUndo);
+    }
+
     private static ListViewModel NewList(FakeAddinStore store) =>
         new(
             store,

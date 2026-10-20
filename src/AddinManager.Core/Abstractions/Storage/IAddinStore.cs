@@ -69,9 +69,10 @@ public interface IAddinStore
     /// Копирует файл в другую версию/scope, сохраняя имя и исходник. Недостающие папки создаются.
     /// При <paramref name="overwrite"/> существующий целевой файл сначала уходит в Корзину.
     /// </summary>
+    /// <returns>Новая запись и данные заменённого целевого файла для отмены копирования.</returns>
     /// <exception cref="RevitRunningException">Revit запущен — копирование запрещено.</exception>
     /// <exception cref="IOException">Цель занята без <paramref name="overwrite"/>, нет прав или копирование не удалось.</exception>
-    AddinFile Copy(AddinFile file, string targetVersion, AddinScope targetScope, bool enabled, bool overwrite);
+    FileMoveResult Copy(AddinFile file, string targetVersion, AddinScope targetScope, bool enabled, bool overwrite);
 
     /// <summary>
     /// Создаёт пустой манифест (без записей) и возвращает его запись. Суффикс

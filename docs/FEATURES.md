@@ -37,8 +37,10 @@ files and edit their manifests — everything happens before Revit starts.
   occurrence lives in a different file.
 - The × button on each row moves its file to the Windows Recycle Bin (after confirmation), so
   Explorer can restore it. Like moves and saves, deletion is refused while Revit runs.
-  `Ctrl+Z` then undoes the last move (enable/disable) or deletion: a move returns to its previous
-  folder/state, a deletion writes the saved manifest back to its original path.
+  `Ctrl+Z` then undoes the last move (enable/disable), deletion, copy or rename: a move returns
+  to its previous folder/state, a deletion writes the saved manifest back to its original path,
+  a copy removes the created copy (and restores a replaced target), and a rename returns the old
+  name.
 - The + button creates a new `.addin` file: name, scope (`User`/`Machine`), version and
   the `disabled` flag are asked in a dialog; the file starts as an empty manifest.
 - Right-click a row for the Explorer-style context menu: show in folder, rename, enable/disable

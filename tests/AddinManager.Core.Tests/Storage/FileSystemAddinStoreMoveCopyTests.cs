@@ -40,7 +40,7 @@ public sealed class FileSystemAddinStoreMoveCopyTests : IDisposable
         var store = NewStore();
         var source = WriteFile(store, _userRoot, "2025", "A.addin", "A");
 
-        var copied = store.Copy(source, "2026", AddinScope.User, enabled: false, overwrite: false);
+        var copied = store.Copy(source, "2026", AddinScope.User, enabled: false, overwrite: false).File;
 
         Assert.True(File.Exists(source.FullPath));
         Assert.True(File.Exists(copied.FullPath));

@@ -84,7 +84,7 @@ public sealed partial class AddinFileRowViewModel : ObservableObject
     public event EventHandler? DeleteRequested;
 
     /// <summary>Файл переименован — <see cref="ListViewModel"/> перечитывает список и восстанавливает выбор.</summary>
-    public event EventHandler? Renamed;
+    public event EventHandler<FileRenamedEventArgs>? Renamed;
 
     /// <summary>Файл успешно переключён enabled/disabled — действие запоминается для <c>Ctrl+Z</c>.</summary>
     public event EventHandler<FileToggledEventArgs>? Toggled;
@@ -124,11 +124,12 @@ public sealed partial class AddinFileRowViewModel : ObservableObject
             return;
 
         IsRenaming = false;
+        var before = _file;
         try
         {
             _file = _store.Rename(_file, RenameText ?? string.Empty);
             ErrorMessage = null;
-            Renamed?.Invoke(this, EventArgs.Empty);
+            Renamed?.Invoke(this, new FileRenamedEventArgs(before, _file));
         }
         catch (IOException ex)
         {

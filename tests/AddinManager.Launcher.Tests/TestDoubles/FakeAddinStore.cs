@@ -92,7 +92,7 @@ public sealed class FakeAddinStore : IAddinStore
     }
 
     /// <inheritdoc />
-    public AddinFile Copy(AddinFile file, string targetVersion, AddinScope targetScope, bool enabled, bool overwrite)
+    public FileMoveResult Copy(AddinFile file, string targetVersion, AddinScope targetScope, bool enabled, bool overwrite)
     {
         CopyCallCount++;
         if (ThrowOnNextCopy is { } exception)
@@ -101,7 +101,7 @@ public sealed class FakeAddinStore : IAddinStore
             throw exception;
         }
 
-        return Place(file, targetVersion, targetScope, enabled, overwrite);
+        return new FileMoveResult(Place(file, targetVersion, targetScope, enabled, overwrite), null, null);
     }
 
     private AddinFile Place(AddinFile file, string targetVersion, AddinScope targetScope, bool enabled, bool overwrite)

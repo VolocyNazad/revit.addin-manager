@@ -490,18 +490,36 @@ public sealed partial class ListViewModel : ObservableObject, IFileSelection, IA
                         throw new IOException(_localizer["UndoFileMissing"]);
 
                     _store.Move(moved.File, move.Original.Version, move.Original.Scope, move.Original.Enabled, overwrite: false);
-                    if (move.ReplacedPath is not null && move.ReplacedContent is not null)
-                    {
-                        if (File.Exists(move.ReplacedPath))
-                            throw new IOException(_localizer["UndoFileExists", Path.GetFileName(move.ReplacedPath)]);
-                        var directory = Path.GetDirectoryName(move.ReplacedPath);
-                        if (!string.IsNullOrEmpty(directory))
-                            Directory.CreateDirectory(directory);
-                        File.WriteAllBytes(move.ReplacedPath, move.ReplacedContent);
-                    }
-
+                    RestoreReplacedTarget(move.ReplacedPath, move.ReplacedContent);
                     Refresh();
                     SelectByIdentity(move.Original.FileName, move.Original.Scope, move.Original.Version);
+                    break;
+
+                case UndoCopy copy:
+                    var currentCopy = Files.FirstOrDefault(file =>
+                        file.FileName == copy.Copy.FileName
+                        && file.Scope == copy.Copy.Scope
+                        && file.Version == copy.Copy.Version);
+                    if (currentCopy is null)
+                        throw new IOException(_localizer["UndoFileMissing"]);
+
+                    _store.Delete(currentCopy.File);
+                    RestoreReplacedTarget(copy.ReplacedPath, copy.ReplacedContent);
+                    Refresh();
+                    SelectByIdentity(copy.Source.FileName, copy.Source.Scope, copy.Source.Version);
+                    break;
+
+                case UndoRename rename:
+                    var currentRenamed = Files.FirstOrDefault(file =>
+                        file.FileName == rename.After.FileName
+                        && file.Scope == rename.After.Scope
+                        && file.Version == rename.After.Version);
+                    if (currentRenamed is null)
+                        throw new IOException(_localizer["UndoFileMissing"]);
+
+                    _store.Rename(currentRenamed.File, rename.Before.FileName);
+                    Refresh();
+                    SelectByIdentity(rename.Before.FileName, rename.Before.Scope, rename.Before.Version);
                     break;
 
                 case UndoDelete delete:
@@ -551,16 +569,32 @@ public sealed partial class ListViewModel : ObservableObject, IFileSelection, IA
         RefreshSelectionSnapshot();
     }
 
+    /// <summary>Возвращает заменённый целевой файл из сохранённых байтов после отмены перемещения/копирования.</summary>
+    private void RestoreReplacedTarget(string? path, byte[]? content)
+    {
+        if (path is null || content is null)
+            return;
+
+        if (File.Exists(path))
+            throw new IOException(_localizer["UndoFileExists", Path.GetFileName(path)]);
+
+        var directory = Path.GetDirectoryName(path);
+        if (!string.IsNullOrEmpty(directory))
+            Directory.CreateDirectory(directory);
+        File.WriteAllBytes(path, content);
+    }
+
     /// <summary>
     /// Возвращается после успешного переименования строки: перечитывает список (файл на диске уже
     /// с новым именем) и восстанавливает выбор на переименованном файле, а не на первой строке.
     /// </summary>
-    private void OnRowRenamed(object? sender, EventArgs e)
+    private void OnRowRenamed(object? sender, FileRenamedEventArgs e)
     {
-        if (sender is not AddinFileRowViewModel row)
+        if (sender is not AddinFileRowViewModel)
             return;
 
-        var renamedKey = (row.FileName, row.Scope, row.Version);
+        SetUndo(new UndoRename(e.Before, e.After));
+        var renamedKey = (e.After.FileName, e.After.Scope, e.After.Version);
         Refresh();
 
         var renamed = Files.FirstOrDefault(file =>
@@ -806,9 +840,10 @@ public sealed partial class ListViewModel : ObservableObject, IFileSelection, IA
             }
             else
             {
-                var copied = _store.Copy(row.File, options.Version, options.Scope, options.EnableAfter, options.Overwrite);
+                var result = _store.Copy(row.File, options.Version, options.Scope, options.EnableAfter, options.Overwrite);
+                SetUndo(new UndoCopy(row.File, result.File, result.ReplacedPath, result.ReplacedContent));
                 Refresh();
-                _toastService.Show(_localizer["CopyDoneToMessage", copied.Version, copied.Scope]);
+                _toastService.Show(_localizer["CopyDoneToMessage", result.File.Version, result.File.Scope]);
             }
         }
         catch (Exception ex) when (ex is IOException or RevitRunningException or UnauthorizedAccessException)
@@ -1132,6 +1167,14 @@ public sealed partial class ListViewModel : ObservableObject, IFileSelection, IA
         AddinFile Original,
         string? ReplacedPath,
         byte[]? ReplacedContent) : IUndoRecord;
+
+    private sealed record UndoCopy(
+        AddinFile Source,
+        AddinFile Copy,
+        string? ReplacedPath,
+        byte[]? ReplacedContent) : IUndoRecord;
+
+    private sealed record UndoRename(AddinFile Before, AddinFile After) : IUndoRecord;
 
     private sealed record DeletedFile(AddinFile File, byte[] Content);
 

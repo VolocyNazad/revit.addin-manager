@@ -256,8 +256,8 @@ public sealed class FileSystemAddinStore : IAddinStore
         Transfer(file, targetVersion, targetScope, enabled, overwrite, copy: false);
 
     /// <inheritdoc />
-    public AddinFile Copy(AddinFile file, string targetVersion, AddinScope targetScope, bool enabled, bool overwrite) =>
-        Transfer(file, targetVersion, targetScope, enabled, overwrite, copy: true).File;
+    public FileMoveResult Copy(AddinFile file, string targetVersion, AddinScope targetScope, bool enabled, bool overwrite) =>
+        Transfer(file, targetVersion, targetScope, enabled, overwrite, copy: true);
 
     private FileMoveResult Transfer(
         AddinFile file,

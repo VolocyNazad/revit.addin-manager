@@ -61,6 +61,30 @@ public sealed class ListViewModelMoveCopyTests
     }
 
     [Fact]
+    public void CopyTo_ThenUndo_RemovesCopyAndSelectsSource()
+    {
+        var store = new FakeAddinStore();
+        store.SetFiles("2025", NewFile("A.addin"));
+        var dialog = new FakeDialogService
+        {
+            MoveCopyResult = new MoveCopyOptions("2026", AddinScope.User, EnableAfter: true, Overwrite: false),
+        };
+        var list = NewList(store, dialog);
+        var source = list.Files.Single();
+
+        list.CopyToCommand.Execute(source);
+        Assert.Equal(2, list.Files.Count);
+        Assert.True(list.HasUndo);
+
+        list.UndoLastActionCommand.Execute(null);
+
+        var restored = Assert.Single(list.Files);
+        Assert.Equal("2025", restored.Version);
+        Assert.Same(restored, list.SelectedFile);
+        Assert.False(list.HasUndo);
+    }
+
+    [Fact]
     public void MoveTo_DialogCancelledDoesNothing()
     {
         var store = new FakeAddinStore();
