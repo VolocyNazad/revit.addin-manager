@@ -33,7 +33,7 @@ jobs:
 
       - name: Build solution
         shell: pwsh
-        run: dotnet build Revit.AddinManager.slnx --configuration "${{ matrix.configuration }}" /nologo
+        run: dotnet build Revit.AddinManager.slnx --configuration "${{ matrix.configuration }}" /nologo -warnaserror
 
       - name: Run headless tests
         shell: pwsh

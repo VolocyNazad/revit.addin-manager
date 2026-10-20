@@ -71,4 +71,26 @@ foreach ($item in $listed) {
 $missingItems = @($managed | Where-Object { $_ -notin $listed } | Sort-Object)
 if ($missingItems) { throw "Files missing from Solution Items: $($missingItems -join ', ')" }
 
+if (Test-Path -LiteralPath (Join-Path $root '.git')) {
+    $trackedGenerated = @(& git -C $root ls-files | Where-Object { $_ -match '(^|/)(bin|obj)/' })
+    if ($trackedGenerated) { throw "Generated bin/obj files are tracked: $($trackedGenerated -join ', ')" }
+}
+
+$resxFiles = @(Get-ChildItem -LiteralPath (Join-Path $root 'src'), (Join-Path $root 'tests') -Recurse -File -Filter '*.resx' |
+    Where-Object { $_.FullName -notmatch '[\\/](bin|obj)[\\/]' -and $_.Name -notmatch '\.ru\.resx$' })
+foreach ($neutral in $resxFiles) {
+    $russianPath = $neutral.FullName -replace '\.resx$', '.ru.resx'
+    if (-not (Test-Path -LiteralPath $russianPath -PathType Leaf)) {
+        throw "Missing Russian resources for $($neutral.FullName.Substring($root.Length + 1))"
+    }
+    $neutralText = [System.IO.File]::ReadAllText($neutral.FullName)
+    $russianText = [System.IO.File]::ReadAllText($russianPath)
+    $neutralKeys = @([regex]::Matches($neutralText, '<data name="([^"]+)"') | ForEach-Object { $_.Groups[1].Value })
+    $russianKeys = @([regex]::Matches($russianText, '<data name="([^"]+)"') | ForEach-Object { $_.Groups[1].Value })
+    $diff = @(Compare-Object -ReferenceObject $neutralKeys -DifferenceObject $russianKeys -PassThru)
+    if ($diff.Count -gt 0) {
+        throw "Resource key mismatch in $($neutral.Name)/$([IO.Path]::GetFileName($russianPath)): $($diff -join ', ')"
+    }
+}
+
 Write-Host "Repository policy validation passed: $($solution.Name); $($listed.Count) solution items."
