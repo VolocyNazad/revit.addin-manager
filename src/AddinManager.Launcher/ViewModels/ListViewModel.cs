@@ -193,6 +193,7 @@ public sealed partial class ListViewModel : ObservableObject, IFileSelection, IA
             {
                 var row = _rowFactory.Create(file);
                 row.DeleteRequested += OnRowDeleteRequested;
+                row.Renamed += OnRowRenamed;
                 row.PropertyChanged += OnRowPropertyChanged;
                 row.IsSelected = previousBulkSelection.Contains((row.FileName, row.Scope, row.Version));
                 Files.Add(row);
@@ -328,6 +329,30 @@ public sealed partial class ListViewModel : ObservableObject, IFileSelection, IA
     }
 
     /// <summary>
+    /// Возвращается после успешного переименования строки: перечитывает список (файл на диске уже
+    /// с новым именем) и восстанавливает выбор на переименованном файле, а не на первой строке.
+    /// </summary>
+    private void OnRowRenamed(object? sender, EventArgs e)
+    {
+        if (sender is not AddinFileRowViewModel row)
+            return;
+
+        var renamedKey = (row.FileName, row.Scope, row.Version);
+        Refresh();
+
+        var renamed = Files.FirstOrDefault(file =>
+            file.FileName == renamedKey.FileName
+            && file.Scope == renamedKey.Scope
+            && file.Version == renamedKey.Version);
+        if (renamed is null)
+            return;
+
+        SelectedFile = renamed;
+        renamed.IsSelected = true;
+        RefreshSelectionSnapshot();
+    }
+
+    /// <summary>
     /// Пересчитывает <see cref="SelectedCount"/>/<see cref="HasSelection"/> и доступность
     /// bulk-команд. Вызывается при смене отметок, тоглов, фильтров и после каждого <see cref="Refresh"/>.
     /// </summary>
@@ -349,6 +374,7 @@ public sealed partial class ListViewModel : ObservableObject, IFileSelection, IA
         IsLocked = _guard.IsRunning;
         foreach (var row in Files)
             row.IsLocked = IsLocked;
+        BeginRenameCommand.NotifyCanExecuteChanged();
     }
 
     /// <summary>
@@ -497,6 +523,18 @@ public sealed partial class ListViewModel : ObservableObject, IFileSelection, IA
 
     /// <summary>Пункт контекстного меню строки "Показать в папке" (хоткей: Ctrl+O).</summary>
     public string ShowInFolderLabel => $"{_localizer["ShowInFolderLabel"]} (Ctrl+O)";
+
+    /// <summary>Пункт контекстного меню строки "Переименовать" (хоткей: F2).</summary>
+    public string RenameMenuLabel => $"{_localizer["RenameMenuLabel"]} (F2)";
+
+    private bool CanBeginRename(AddinFileRowViewModel? row) => !IsLocked && (row ?? SelectedFile) is not null;
+
+    /// <summary>
+    /// Начинает встроенное переименование строки. Параметр — строка под курсором из контекстного
+    /// меню; без параметра (F2) — выбранная строка.
+    /// </summary>
+    [RelayCommand(CanExecute = nameof(CanBeginRename))]
+    public void BeginRename(AddinFileRowViewModel? row) => (row ?? SelectedFile)?.BeginRename();
 
     /// <summary>Пункт контекстного меню пустого места "Обновить".</summary>
     public string RefreshMenuLabel => _localizer["RefreshMenuLabel"];
@@ -691,6 +729,7 @@ public sealed partial class ListViewModel : ObservableObject, IFileSelection, IA
     partial void OnSelectedFileChanged(AddinFileRowViewModel? value)
     {
         ShowInFolderCommand.NotifyCanExecuteChanged();
+        BeginRenameCommand.NotifyCanExecuteChanged();
         RefreshSnapshot();
     }
 

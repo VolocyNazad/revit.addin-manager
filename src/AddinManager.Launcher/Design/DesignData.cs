@@ -51,6 +51,7 @@ public sealed class DesignListViewModel
     public bool HasSelection { get; set; } = true;
     public string SelectionSummary { get; set; } = "Выбрано: 1";
     public string ShowInFolderLabel { get; set; } = "Показать в папке";
+    public string RenameMenuLabel { get; set; } = "Переименовать (F2)";
     public string ToggleSelectedLabel { get; set; } = "Выключить";
     public string DeleteSelectedLabel { get; set; } = "Удалить";
     public string SelectAllToggleLabel { get; set; } = "Снять выбор";
@@ -60,6 +61,7 @@ public sealed class DesignListViewModel
     public ICommand? SetSortOrderCommand { get; set; }
     public ICommand? ToggleSelectedCommand { get; set; }
     public ICommand? ShowInFolderCommand { get; set; }
+    public ICommand? BeginRenameCommand { get; set; }
     public ICommand? DeleteSelectedCommand { get; set; }
     public ICommand? ToggleSelectAllCommand { get; set; }
 }
@@ -72,6 +74,8 @@ public sealed class DesignFileRow
     public bool IsEnabled { get; set; } = true;
     public bool IsSelected { get; set; }
     public bool IsLocked { get; set; }
+    public bool IsRenaming { get; set; }
+    public string? RenameText { get; set; } = "pyRevit.addin";
     public string? ErrorMessage { get; set; }
     public string? WarningMessage { get; set; } = "Повторяющийся AddInId внутри файла";
     public string WarningTooltipTitle { get; set; } = "Предупреждение";

@@ -64,4 +64,10 @@
   <data name="FileAlreadyExists" xml:space="preserve">
     <value>Файл '{0}' уже существует.</value>
   </data>
+  <data name="EmptyFileName" xml:space="preserve">
+    <value>Имя файла не может быть пустым.</value>
+  </data>
+  <data name="InvalidFileName" xml:space="preserve">
+    <value>Имя файла содержит недопустимые символы.</value>
+  </data>
 </root>

@@ -39,14 +39,17 @@ files and edit their manifests — everything happens before Revit starts.
   Like moves and saves, deletion is refused while Revit runs.
 - The + button creates a new `.addin` file: name, scope (`User`/`Machine`), version and
   the `disabled` flag are asked in a dialog; the file starts as an empty manifest.
-- Right-click a row for the Explorer-style context menu: show in folder, enable/disable
+- Right-click a row for the Explorer-style context menu: show in folder, rename, enable/disable
   the marked rows, copy path, copy file name and delete. Right-click selects an unselected
   row first (like Explorer) and keeps an existing multi-selection; right-click on the empty
   area offers refresh and new file.
+- `F2` renames the selected file in place, like Explorer: Enter saves, Esc cancels, losing
+  focus saves. The `.addin` extension is enforced, invalid names and existing files are
+  rejected in the row; the file keeps its scope/version and enabled/disabled folder.
 - Keyboard shortcuts: `Ctrl+N` new file, `F5`/`Ctrl+R` refresh, `Ctrl+E` enable/disable
-  marked files, `Ctrl+O` show in folder; `Delete` deletes marked files and `Ctrl+A`
-  toggles select-all/clear — both scoped to the focused list (files or entries), so search
-  boxes keep their own text editing. Shortcuts are named in the button tooltips.
+  marked files, `Ctrl+O` show in folder; `F2` rename, `Delete` deletes marked files and
+  `Ctrl+A` toggles select-all/clear — both scoped to the focused list (files or entries), so
+  search boxes keep their own text editing. Shortcuts are named in the button tooltips.
 - `Ctrl+U` runs the same update check as the toolbar button.
 
 ## Editor zone

@@ -33,6 +33,17 @@ public interface IAddinStore
     void Delete(AddinFile file);
 
     /// <summary>
+    /// Переименовывает файл на месте, сохраняя папку (корень версии или <c>disabled/</c>), scope и
+    /// состояние enabled/disabled. Расширение <c>.addin</c> дописывается, если его нет.
+    /// </summary>
+    /// <param name="file">Текущая запись файла.</param>
+    /// <param name="newFileName">Новое имя файла (без пути).</param>
+    /// <returns>Обновлённая запись с новыми <see cref="AddinFile.FileName"/> и <see cref="AddinFile.FullPath"/>.</returns>
+    /// <exception cref="RevitRunningException">Revit запущен — переименование запрещено.</exception>
+    /// <exception cref="IOException">Имя пустое/недопустимое или файл с таким именем уже есть.</exception>
+    AddinFile Rename(AddinFile file, string newFileName);
+
+    /// <summary>
     /// Создаёт пустой манифест (без записей) и возвращает его запись. Суффикс
     /// <c>.addin</c> дописывается, недостающие папки создаются.
     /// </summary>

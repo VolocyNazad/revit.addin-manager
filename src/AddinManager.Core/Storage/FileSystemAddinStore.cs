@@ -118,6 +118,82 @@ public sealed class FileSystemAddinStore : IAddinStore
     }
 
     /// <inheritdoc />
+    public AddinFile Rename(AddinFile file, string newFileName)
+    {
+        if (_guard.IsRunning)
+        {
+            _logger.LogWarning(
+                "Rename({FileName}, {Scope}, {Version}): отклонено — запущен Revit",
+                file.FileName, file.Scope, file.Version);
+            throw new RevitRunningException(_localizer["BlockedByRunningRevit"]);
+        }
+
+        var normalizedName = (newFileName ?? string.Empty).Trim();
+        if (normalizedName.Length == 0)
+            throw new IOException(_localizer["EmptyFileName"]);
+
+        if (!normalizedName.EndsWith(".addin", StringComparison.OrdinalIgnoreCase))
+            normalizedName += ".addin";
+
+        if (normalizedName.IndexOfAny(Path.GetInvalidFileNameChars()) >= 0)
+            throw new IOException(_localizer["InvalidFileName"]);
+
+        var targetDirectory = file.Enabled
+            ? file.VersionRootDirectory
+            : Path.Combine(file.VersionRootDirectory, DisabledFolderName);
+        var targetPath = Path.Combine(targetDirectory, normalizedName);
+
+        if (string.Equals(targetPath, file.FullPath, StringComparison.Ordinal))
+            return file;
+
+        if (!string.Equals(targetPath, file.FullPath, StringComparison.OrdinalIgnoreCase)
+            && File.Exists(targetPath))
+        {
+            throw new IOException(_localizer["FileAlreadyExists", normalizedName]);
+        }
+
+        _logger.LogInformation(
+            "Rename({FileName}, {Scope}, {Version}): {From} -> {To}",
+            file.FileName, file.Scope, file.Version, file.FullPath, targetPath);
+
+        try
+        {
+            if (string.Equals(targetPath, file.FullPath, StringComparison.OrdinalIgnoreCase))
+            {
+                // Переименование только регистра: Windows не отличит старый путь от нового,
+                // поэтому идём через промежуточное имя в той же папке.
+                var temporaryPath = Path.Combine(targetDirectory, $"{Guid.NewGuid():N}.tmp");
+                File.Move(file.FullPath, temporaryPath);
+                try
+                {
+                    File.Move(temporaryPath, targetPath);
+                }
+                catch (Exception)
+                {
+                    File.Move(temporaryPath, file.FullPath);
+                    throw;
+                }
+            }
+            else
+            {
+                File.Move(file.FullPath, targetPath);
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(
+                ex,
+                "Rename({FileName}, {Scope}, {Version}): не удалось переименовать {From} -> {To}",
+                file.FileName, file.Scope, file.Version, file.FullPath, targetPath);
+
+            // Не throw; — тот же экземпляр не должен уйти наверх залогированным дважды (S2139).
+            throw new IOException($"Не удалось переименовать '{file.FullPath}'.", ex);
+        }
+
+        return file with { FileName = normalizedName, FullPath = targetPath };
+    }
+
+    /// <inheritdoc />
     public void Delete(AddinFile file)
     {
         if (_guard.IsRunning)

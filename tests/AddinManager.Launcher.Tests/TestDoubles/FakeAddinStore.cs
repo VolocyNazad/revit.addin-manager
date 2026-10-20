@@ -1,3 +1,4 @@
+using System.IO;
 using AddinManager.Core.Abstractions.Storage;
 using AddinManager.Core.Manifests;
 using AddinManager.Core.Storage;
@@ -84,6 +85,40 @@ public sealed class FakeAddinStore : IAddinStore
         foreach (var files in _byVersion.Values)
             files.RemoveAll(f => f.FileName == file.FileName && f.Scope == file.Scope && f.Version == file.Version);
     }
+
+    /// <inheritdoc />
+    public AddinFile Rename(AddinFile file, string newFileName)
+    {
+        RenameCallCount++;
+
+        if (ThrowOnNextRename is { } exception)
+        {
+            ThrowOnNextRename = null;
+            throw exception;
+        }
+
+        var name = newFileName.Trim();
+        if (!name.EndsWith(".addin", StringComparison.OrdinalIgnoreCase))
+            name += ".addin";
+
+        var targetPath = Path.Combine(Path.GetDirectoryName(file.FullPath), name);
+        var renamed = file with { FileName = name, FullPath = targetPath };
+
+        foreach (var files in _byVersion.Values)
+        {
+            var index = files.FindIndex(f => f.FileName == file.FileName && f.Scope == file.Scope && f.Version == file.Version);
+            if (index >= 0)
+                files[index] = renamed;
+        }
+
+        return renamed;
+    }
+
+    /// <summary>Когда задано, следующий вызов <see cref="Rename"/> бросает это исключение.</summary>
+    public Exception? ThrowOnNextRename { get; set; }
+
+    /// <summary>Сколько раз вызывали <see cref="Rename"/>.</summary>
+    public int RenameCallCount { get; private set; }
 
     /// <inheritdoc />
     public AddinFile CreateFile(string fileName, string version, AddinScope scope, bool disabled)

@@ -133,4 +133,7 @@
   <data name="CopyDoneMessage" xml:space="preserve">
     <value>Copied</value>
   </data>
+  <data name="RenameMenuLabel" xml:space="preserve">
+    <value>Rename</value>
+  </data>
 </root>

@@ -46,6 +46,10 @@
                             CommandParameter="{Binding PlacementTarget.DataContext, RelativeSource={RelativeSource AncestorType=ContextMenu}}"
                             Header="{Binding ShowInFolderLabel}" />
                         <MenuItem
+                            Command="{Binding BeginRenameCommand}"
+                            CommandParameter="{Binding PlacementTarget.DataContext, RelativeSource={RelativeSource AncestorType=ContextMenu}}"
+                            Header="{Binding RenameMenuLabel}" />
+                        <MenuItem
                             Command="{Binding ToggleSelectedCommand}"
                             Header="{Binding ToggleSelectedLabel}" />
                         <Separator />
@@ -201,10 +205,24 @@
 
                         <StackPanel VerticalAlignment="Center">
                             <StackPanel Orientation="Horizontal">
-                                <TextBlock
-                                    FontSize="13"
-                                    FontWeight="SemiBold"
-                                    Text="{Binding FileName}" />
+                                <Grid VerticalAlignment="Center">
+                                    <TextBlock
+                                        FontSize="13"
+                                        FontWeight="SemiBold"
+                                        Text="{Binding FileName}"
+                                        Visibility="{Binding IsRenaming, Converter={StaticResource BoolToVisibility}, ConverterParameter=Invert}" />
+                                    <TextBox
+                                        x:Name="RenameBox"
+                                        MinWidth="180"
+                                        Padding="6,2"
+                                        FontSize="13"
+                                        IsVisibleChanged="OnRenameBoxIsVisibleChanged"
+                                        KeyDown="OnRenameBoxKeyDown"
+                                        LostKeyboardFocus="OnRenameBoxLostFocus"
+                                        Style="{StaticResource FieldTextBoxStyle}"
+                                        Text="{Binding RenameText, UpdateSourceTrigger=PropertyChanged}"
+                                        Visibility="{Binding IsRenaming, Converter={StaticResource BoolToVisibility}}" />
+                                </Grid>
                                 <controls:PackIcon
                                     Width="12"
                                     Height="12"
@@ -299,6 +317,10 @@
             </Border>
         </DataTemplate>
     </UserControl.Resources>
+    <!--  F2 переименовывает выбранный файл: скоуп — вся панель, чтобы работать и из поиска/фильтров.  -->
+    <UserControl.InputBindings>
+        <KeyBinding Key="F2" Command="{Binding BeginRenameCommand}" />
+    </UserControl.InputBindings>
 
     <DockPanel Margin="8 8 0 8" LastChildFill="True">
         <StackPanel DockPanel.Dock="Top">

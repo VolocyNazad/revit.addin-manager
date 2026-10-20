@@ -83,6 +83,65 @@ public sealed partial class AddinFileRowViewModel : ObservableObject
     /// <summary>Просьба удалить файл — обрабатывает <see cref="ListViewModel"/> (подтверждение, удаление, обновление).</summary>
     public event EventHandler? DeleteRequested;
 
+    /// <summary>Файл переименован — <see cref="ListViewModel"/> перечитывает список и восстанавливает выбор.</summary>
+    public event EventHandler? Renamed;
+
+    /// <summary>Идёт встроенное переименование строки (TextBox вместо имени файла).</summary>
+    [ObservableProperty]
+    private bool _isRenaming;
+
+    /// <summary>Черновик нового имени на время встроенного переименования.</summary>
+    [ObservableProperty]
+    private string? _renameText;
+
+    /// <summary>Начинает встроенное переименование: в поле подставляется текущее имя.</summary>
+    public void BeginRename()
+    {
+        if (IsLocked)
+            return;
+
+        RenameText = _file.FileName;
+        IsRenaming = true;
+    }
+
+    /// <summary>Отменяет встроенное переименование без обращения к диску.</summary>
+    public void CancelRename()
+    {
+        IsRenaming = false;
+        RenameText = null;
+    }
+
+    /// <summary>
+    /// Завершает встроенное переименование: проверки и запись — через <see cref="IAddinStore.Rename"/>.
+    /// Ошибка показывается в строке, как у неудачного toggle; успех поднимает <see cref="Renamed"/>.
+    /// </summary>
+    public void CommitRename()
+    {
+        if (!IsRenaming)
+            return;
+
+        IsRenaming = false;
+        try
+        {
+            _file = _store.Rename(_file, RenameText ?? string.Empty);
+            ErrorMessage = null;
+            Renamed?.Invoke(this, EventArgs.Empty);
+        }
+        catch (IOException ex)
+        {
+            ErrorMessage = ex.Message;
+        }
+        catch (RevitRunningException ex)
+        {
+            ErrorMessage = ex.Message;
+        }
+        finally
+        {
+            RenameText = null;
+        }
+    }
+
+
     /// <summary>Крестик строки: просит список удалить файл.</summary>
     [RelayCommand(CanExecute = nameof(CanDelete))]
     public void Delete() => DeleteRequested?.Invoke(this, EventArgs.Empty);
@@ -103,7 +162,12 @@ public sealed partial class AddinFileRowViewModel : ObservableObject
     [ObservableProperty]
     private string? _errorMessage;
 
-    partial void OnIsLockedChanged(bool value) => DeleteCommand.NotifyCanExecuteChanged();
+    partial void OnIsLockedChanged(bool value)
+    {
+        DeleteCommand.NotifyCanExecuteChanged();
+        if (value)
+            CancelRename();
+    }
 
     partial void OnIsEnabledChanged(bool value)
     {
