@@ -89,10 +89,11 @@ See the [development policy](policies/development.md#test-execution).
 
 ## Continuous integration
 
-The CI workflow builds Debug and Release on push to `main` and on pull requests, then runs
-each headless test executable. The repository-policy workflow validates documents, links
-and Solution Items. The publish-release workflow (manual dispatch) verifies the stable
-tag, then delegates the whole release to the `build/` pipeline.
+The CI workflow builds Debug and Release on push to `main` and on pull requests with
+`-warnaserror`, so compiler/analyzer warnings fail the build, then runs each headless test
+executable. The repository-policy workflow validates documents, links, Solution Items, tracked
+generated files and neutral/Russian resource-key parity. The publish-release workflow (manual
+dispatch) verifies the stable tag, then delegates the whole release to the `build/` pipeline.
 
 ## Wiki publication
 

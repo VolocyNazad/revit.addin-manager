@@ -10,7 +10,7 @@ explain the reason, and wait for confirmation.
 
 If a change affects the folder structure or the technology stack (a new/removed project, a new dependency, a version bump worth recording, a new convention) — update the relevant policy and [repository guide](../repository.md) as part of the same change, not as a separate follow-up later.
 
-Before changing existing tests or writing new ones, ask the user first — clarify what and how it should be covered (or that the change is trivial enough that no clarification is needed), rather than deciding this on your own.
+Tests for behavior changes and bug fixes are expected by default. Ask the user first when existing test expectations change, when a test needs real disk/OS side effects (integration), or when coverage scope is genuinely ambiguous.
 
 Commit messages follow Conventional Commits (`<type>(<scope>): <description>`, e.g. `feat(manifest): ...`, `fix(...): ...`, `docs(agents): ...`, `test(...): ...`, `chore(...): ...`, `refactor(...): ...`) — the scope is optional but preferred when it clarifies what exactly changed.
 
@@ -18,9 +18,11 @@ Do not `git push` — commit locally and leave the push to the user, unless they
 
 Keep `CHANGELOG.md` up to date, in [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) format — add an entry under `## [Unreleased]` (in the appropriate category: Added/Changed/Fixed/Removed/...) as part of the same change, not as a separate follow-up later.
 
-All services live behind abstractions owned by Core: consumers depend only on interfaces, implementations are resolved through DI and are swappable without touching consumers. `new` on an implementation is allowed only in the composition root and in tests.
+All services live behind abstractions: domain and headless contracts are owned by Core (`AddinManager.Core.Abstractions`); UI-specific contracts (dialogs, clipboard, folder opener, editor dirty state) live in the owning UI project's `Abstractions/` tree (`AddinManager.Launcher.Abstractions.Services`) and may use Core types. Core must not reference WPF or Windows-only UI APIs. Consumers depend only on interfaces, implementations are resolved through DI and are swappable without touching consumers. `new` on an implementation is allowed only in the composition root and in tests.
 
 Abstractions live in a top-level `Abstractions/` folder mirroring the implementation layout (`Abstractions/Storage/IAddinStore.cs` for `Storage/FileSystemAddinStore.cs`, namespaces follow folders) — the same mirroring as localized resources follow their owning types. Folder and namespace both carry the `Abstractions` segment a separate `*.Abstractions` project would use (`AddinManager.Core.Abstractions`, ...), so extracting them later is a pure file move with no renames, no using churn, and no doc-`cref` churn.
+
+Optional dependencies are a test seam, not a production policy: the composition root must always supply the real implementation. A fallback that silently changes user-visible safety (for example, permanent delete instead of the Recycle Bin) is forbidden; if a fallback is unavoidable, it must be explicit, documented and logged.
 
 Avoid code-behind in WPF views: prefer bindings, converters and DynamicResource over C# in `.xaml.cs`. Code-behind is for view mechanics with no declarative equivalent (window chrome, splitter drag, reading `ActualWidth`, and similar) — never for state. If it's unclear whether a declarative way exists, ask the user before writing code-behind instead of defaulting to it.
 
@@ -64,7 +66,7 @@ Keep the root `.editorconfig` in the solution and apply its repository-wide enco
 
 ## Warnings
 
-Treat compiler and analyzer warnings as errors-in-waiting: do not leave new warnings in code you touch. Fix them as part of the same change; when a warning is a deliberate false positive, suppress it explicitly with a nearby comment explaining why rather than letting it accumulate silently.
+Treat compiler and analyzer warnings as errors-in-waiting: do not leave new warnings in code you touch. Fix them as part of the same change; when a warning is a deliberate false positive, suppress it explicitly with a nearby comment explaining why rather than letting it accumulate silently. CI builds with `-warnaserror`, so a new warning blocks the build; treat a local warning the same way.
 
 ## Test execution
 
@@ -86,3 +88,10 @@ Log significant lifecycle steps and every caught exception, exactly once:
   corrupt-settings → default, per-process read failures, designer fallbacks, and
   cancellation-as-control-flow.
 - Structured logging with named placeholders, never interpolation into the template.
+- Adapters, decorators and wrappers do not log an exception they rethrow; log once where the failure is first understood and handled, then surface only the message.
+- User cancellation is control flow, not a failure: log it at Debug or stay silent, never Warning/Error.
+- Every user-visible exception message comes from `IStringLocalizer` resources; the technical `InnerException` may stay in its original language and is never shown as the primary message.
+
+## Manual UI checks
+
+XAML compiling is not evidence that a UI change works. A UI change must be smoke-checked manually before it is reported done: open the affected menu/dialog, check focus and keyboard paths (`Enter`, `Esc`, `F2`, `Ctrl+Z`), switch theme and language, and confirm the empty/disabled/conflict states. Automatic startup update checks must not block local checks: Debug builds skip the startup update dialog, while the manual `Ctrl+U` check still works.

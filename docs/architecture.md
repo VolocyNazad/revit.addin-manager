@@ -19,7 +19,8 @@ This document records stable architectural rules. Implementation details belong 
 - View and view-model registration is convention-based through `AddModule<TView>()`; `ViewModelLocator` resolves composed views from the container.
 - Runtime views may expose parameterless design-time constructors. Design-time data lives in `AddinManager.Launcher.Design`.
 - Rows and option view models are created through DI factories because their data is runtime-specific.
-- Dialogs are transient and created through `IDialogService`; shared window behaviors are declared in XAML.
+- UI-specific contracts (dialogs, clipboard, folder opener, editor dirty state) live in the launcher's `Abstractions/Services` tree and may use Core types; Core stays WPF- and Windows-UI-free.
+- Dialogs are transient and created through `IDialogService`; composition registers a transient view model plus a `Func<View>` factory, and views use `DialogResultBehavior` and bindings instead of code-behind state.
 
 ## Themes
 
@@ -45,6 +46,7 @@ This document records stable architectural rules. Implementation details belong 
 - `IAddinChangeWatcher` debounces file-system notifications and triggers a refresh. Refreshes preserve selection by file identity.
 - Disk operations go through `IAddinStore`. Writes are atomic and keep a `.bak` copy where applicable. `Delete` delegates to `IFileRecycler` in the launcher (Windows Recycle Bin); without a recycler it falls back to a permanent delete (tests). `ListViewModel` keeps the last move/copy/rename/delete as an undo record for `Ctrl+Z`.
 - `Move`/`Copy` in `IAddinStore` create missing target folders, validate collisions and optionally replace the target via the recycler. `MoveCopyDialogViewModel` shows the target path and compatibility warnings; `IEditorDirtyState` lets the list save or explicitly discard unsaved editor changes before moving.
+- File-safety rules: deleting and replacing target files goes through `IFileRecycler` (Windows Recycle Bin); an overwritten target stays recoverable; undo is single-level and restores file content and replaced targets; all disk mutations stay blocked while Revit runs.
 
 ## Editor
 
