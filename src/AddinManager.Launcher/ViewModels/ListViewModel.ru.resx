@@ -118,4 +118,19 @@
   <data name="ShowInFolderLabel" xml:space="preserve">
     <value>Показать в папке</value>
   </data>
+  <data name="RefreshMenuLabel" xml:space="preserve">
+    <value>Обновить</value>
+  </data>
+  <data name="AddFileMenuLabel" xml:space="preserve">
+    <value>Новый файл</value>
+  </data>
+  <data name="CopyPathsMenuLabel" xml:space="preserve">
+    <value>Копировать путь</value>
+  </data>
+  <data name="CopyFileNamesMenuLabel" xml:space="preserve">
+    <value>Копировать имя файла</value>
+  </data>
+  <data name="CopyDoneMessage" xml:space="preserve">
+    <value>Скопировано</value>
+  </data>
 </root>

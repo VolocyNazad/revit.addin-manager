@@ -207,7 +207,7 @@ public sealed class RowWarningTests : IDisposable
             new FakeToastService(),
             new FakeRevitProcessGuard(),
             new FakeDialogService(),
-            new FakeFolderOpener());
+            new FakeFolderOpener(), new FakeClipboardService());
         var entries = new EntriesViewModel(
             list, list,
             new FakeLocalizationService(),
@@ -217,7 +217,7 @@ public sealed class RowWarningTests : IDisposable
             new FileAddinMarkupService(_parser, NullLogger<FileAddinMarkupService>.Instance, new FakeRevitProcessGuard(), TestLocalization.For<FileAddinMarkupService>()),
             new FakeDialogService(),
             new RecordingUiDispatcher(),
-            new FakeRevitProcessGuard());
+            new FakeRevitProcessGuard(), new FakeClipboardService(), new FakeToastService());
         var markup = new MarkupViewModel(
             list,
             TestMarkupSearch.Create(),
@@ -259,7 +259,7 @@ public sealed class RowWarningTests : IDisposable
             new FakeToastService(),
             new FakeRevitProcessGuard(),
             new FakeDialogService(),
-            new FakeFolderOpener());
+            new FakeFolderOpener(), new FakeClipboardService());
 
     private EntriesViewModel NewEntries(ListViewModel list) =>
         new(list, list,
@@ -270,7 +270,7 @@ public sealed class RowWarningTests : IDisposable
             new FileAddinMarkupService(_parser, NullLogger<FileAddinMarkupService>.Instance, new FakeRevitProcessGuard(), TestLocalization.For<FileAddinMarkupService>()),
             new FakeDialogService(),
             new RecordingUiDispatcher(),
-            new FakeRevitProcessGuard());
+            new FakeRevitProcessGuard(), new FakeClipboardService(), new FakeToastService());
 
     private string NewRoot()
     {

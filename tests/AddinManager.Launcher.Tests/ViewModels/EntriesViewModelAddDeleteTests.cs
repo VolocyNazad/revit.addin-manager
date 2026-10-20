@@ -187,7 +187,7 @@ public sealed class EntriesViewModelAddDeleteTests : IDisposable
             new FakeToastService(),
             stoppedGuard,
             new FakeDialogService(),
-            new FakeFolderOpener());
+            new FakeFolderOpener(), new FakeClipboardService());
         var dialog = new FakeDialogService();
         var entries = new EntriesViewModel(
             list, list,
@@ -198,7 +198,7 @@ public sealed class EntriesViewModelAddDeleteTests : IDisposable
             markupService ?? new FileAddinMarkupService(_parser, NullLogger<FileAddinMarkupService>.Instance, stoppedGuard, TestLocalization.For<FileAddinMarkupService>()),
             dialog,
             new RecordingUiDispatcher(),
-            entriesGuard ?? stoppedGuard);
+            entriesGuard ?? stoppedGuard, new FakeClipboardService(), new FakeToastService());
 
         return (list, entries, dialog, path);
     }

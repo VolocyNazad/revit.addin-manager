@@ -97,4 +97,16 @@
   <data name="ClearSelectionLabel" xml:space="preserve">
     <value>Снять выбор</value>
   </data>
+  <data name="CopyAddInIdMenuLabel" xml:space="preserve">
+    <value>Копировать AddInId</value>
+  </data>
+  <data name="CopyFullClassNameMenuLabel" xml:space="preserve">
+    <value>Копировать FullClassName</value>
+  </data>
+  <data name="AddEntryMenuLabel" xml:space="preserve">
+    <value>Новая запись</value>
+  </data>
+  <data name="CopyDoneMessage" xml:space="preserve">
+    <value>Скопировано</value>
+  </data>
 </root>

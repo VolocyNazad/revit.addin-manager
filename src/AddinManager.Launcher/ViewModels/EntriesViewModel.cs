@@ -42,6 +42,8 @@ public sealed partial class EntriesViewModel : ObservableObject, IEntrySelection
     private readonly IDialogService _dialogService;
     private readonly IUiDispatcher _dispatcher;
     private readonly IRevitProcessGuard _guard;
+    private readonly IClipboardService _clipboard;
+    private readonly IToastService _toastService;
     private readonly ICollectionView _entriesView;
 
     /// <summary>Создает подпанель и сразу строит список по тому, что уже выбрано в списке.</summary>
@@ -55,6 +57,8 @@ public sealed partial class EntriesViewModel : ObservableObject, IEntrySelection
     /// <param name="dialogService">Подтверждение удаления.</param>
     /// <param name="dispatcher">Маршалинг событий сторожа в поток UI.</param>
     /// <param name="guard">Сторож запущенного Revit — удаление запрещено, пока он жив.</param>
+    /// <param name="clipboard">Буфер обмена для пунктов «Копировать AddInId/FullClassName».</param>
+    /// <param name="toastService">Тост-подтверждение после копирования.</param>
     public EntriesViewModel(
         IFileSelection fileSelection,
         IAddinFileCatalog fileCatalog,
@@ -65,7 +69,9 @@ public sealed partial class EntriesViewModel : ObservableObject, IEntrySelection
         IAddinMarkupService markupService,
         IDialogService dialogService,
         IUiDispatcher dispatcher,
-        IRevitProcessGuard guard)
+        IRevitProcessGuard guard,
+        IClipboardService clipboard,
+        IToastService toastService)
     {
         _fileSelection = fileSelection;
         _fileCatalog = fileCatalog;
@@ -77,6 +83,8 @@ public sealed partial class EntriesViewModel : ObservableObject, IEntrySelection
         _dialogService = dialogService;
         _dispatcher = dispatcher;
         _guard = guard;
+        _clipboard = clipboard;
+        _toastService = toastService;
         _entriesView = CollectionViewSource.GetDefaultView(Entries);
         _entriesView.Filter = MatchesSearch;
         _fileSelection.PropertyChanged += OnFileSelectionChanged;
@@ -374,6 +382,30 @@ public sealed partial class EntriesViewModel : ObservableObject, IEntrySelection
 
     /// <summary>Кнопка bulk-панели "Удалить".</summary>
     public string DeleteSelectedLabel => _localizer["DeleteSelectedLabel"];
+
+    /// <summary>Пункт контекстного меню строки "Копировать AddInId".</summary>
+    public string CopyAddInIdMenuLabel => _localizer["CopyAddInIdMenuLabel"];
+
+    /// <summary>Пункт контекстного меню строки "Копировать FullClassName".</summary>
+    public string CopyFullClassNameMenuLabel => _localizer["CopyFullClassNameMenuLabel"];
+
+    /// <summary>Пункт контекстного меню пустого места "Новая запись".</summary>
+    public string AddEntryMenuLabel => _localizer["AddEntryMenuLabel"];
+
+    /// <summary>Копирует AddInId выделенных записей построчно.</summary>
+    [RelayCommand]
+    public void CopyAddInIds() => CopySelected(row => row.Entry.AddInId.ToString());
+
+    /// <summary>Копирует FullClassName выделенных записей построчно.</summary>
+    [RelayCommand]
+    public void CopyFullClassNames() => CopySelected(row => row.Entry.FullClassName ?? string.Empty);
+
+    private void CopySelected(Func<AddinEntryRowViewModel, string> selector)
+    {
+        var text = string.Join(Environment.NewLine, Entries.Where(entry => entry.IsSelected).Select(selector));
+        if (_clipboard.TrySetText(text))
+            _toastService.Show(_localizer["CopyDoneMessage"]);
+    }
 
     private void OnRowPropertyChanged(object? sender, PropertyChangedEventArgs e)
     {

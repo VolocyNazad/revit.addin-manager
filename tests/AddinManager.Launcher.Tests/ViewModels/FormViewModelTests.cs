@@ -180,7 +180,7 @@ public sealed class FormViewModelTests : IDisposable
             new FakeToastService(),
             new FakeRevitProcessGuard(),
             new FakeDialogService(),
-            new FakeFolderOpener());
+            new FakeFolderOpener(), new FakeClipboardService());
         var entries = new EntriesViewModel(
             list, list,
             new FakeLocalizationService(),
@@ -190,7 +190,7 @@ public sealed class FormViewModelTests : IDisposable
             NewMarkupService(),
             new FakeDialogService(),
             new RecordingUiDispatcher(),
-            new FakeRevitProcessGuard());
+            new FakeRevitProcessGuard(), new FakeClipboardService(), new FakeToastService());
         var factory = new FakeOptionFactory();
 
         var form = new FormViewModel(
@@ -269,7 +269,7 @@ public sealed class FormViewModelTests : IDisposable
             new FakeToastService(),
             new FakeRevitProcessGuard(),
             new FakeDialogService(),
-            new FakeFolderOpener());
+            new FakeFolderOpener(), new FakeClipboardService());
         var entries = new EntriesViewModel(
             list, list,
             new FakeLocalizationService(),
@@ -279,7 +279,7 @@ public sealed class FormViewModelTests : IDisposable
             NewMarkupService(),
             new FakeDialogService(),
             new RecordingUiDispatcher(),
-            new FakeRevitProcessGuard());
+            new FakeRevitProcessGuard(), new FakeClipboardService(), new FakeToastService());
 
         return (list, entries);
     }

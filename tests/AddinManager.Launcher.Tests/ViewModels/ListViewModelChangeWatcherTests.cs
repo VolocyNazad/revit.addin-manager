@@ -99,7 +99,7 @@ public sealed class ListViewModelChangeWatcherTests
             new FakeToastService(),
             new FakeRevitProcessGuard(),
             new FakeDialogService(),
-            new FakeFolderOpener());
+            new FakeFolderOpener(), new FakeClipboardService());
         Assert.Equal("Gone.addin", list.SelectedFile?.FileName);
 
         store.SetFiles("2025");
@@ -125,7 +125,7 @@ public sealed class ListViewModelChangeWatcherTests
             new FakeToastService(),
             new FakeRevitProcessGuard(),
             new FakeDialogService(),
-            new FakeFolderOpener());
+            new FakeFolderOpener(), new FakeClipboardService());
 
         Assert.True(
             logger.HasEntry(LogLevel.Debug, "2025"),
@@ -189,7 +189,7 @@ public sealed class ListViewModelChangeWatcherTests
             new FakeToastService(),
             new FakeRevitProcessGuard(),
             new FakeDialogService(),
-            new FakeFolderOpener());
+            new FakeFolderOpener(), new FakeClipboardService());
 
         Assert.Equal(2, factory.CreatedFiles.Count);
         Assert.Equal(2, list.Files.Count);
@@ -215,7 +215,7 @@ public sealed class ListViewModelChangeWatcherTests
             toast,
             new FakeRevitProcessGuard(),
             new FakeDialogService(),
-            new FakeFolderOpener());
+            new FakeFolderOpener(), new FakeClipboardService());
         Assert.Empty(toast.ShownMessages);
 
         TestCulture.RunIn("ru", () =>
@@ -251,7 +251,7 @@ public sealed class ListViewModelChangeWatcherTests
             new FakeToastService(),
             guard,
             new FakeDialogService(),
-            new FakeFolderOpener());
+            new FakeFolderOpener(), new FakeClipboardService());
         var row = Assert.Single(list.Files);
         Assert.False(row.IsLocked);
 
@@ -360,7 +360,7 @@ public sealed class ListViewModelChangeWatcherTests
             new FakeToastService(),
             guard,
             dialog,
-            new FakeFolderOpener());
+            new FakeFolderOpener(), new FakeClipboardService());
     }
 
     private static AddinFile NewFile(string fileName, string version) =>

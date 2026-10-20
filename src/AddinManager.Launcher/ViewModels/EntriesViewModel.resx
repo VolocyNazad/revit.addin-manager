@@ -97,4 +97,16 @@
   <data name="ClearSelectionLabel" xml:space="preserve">
     <value>Clear</value>
   </data>
+  <data name="CopyAddInIdMenuLabel" xml:space="preserve">
+    <value>Copy AddInId</value>
+  </data>
+  <data name="CopyFullClassNameMenuLabel" xml:space="preserve">
+    <value>Copy FullClassName</value>
+  </data>
+  <data name="AddEntryMenuLabel" xml:space="preserve">
+    <value>New entry</value>
+  </data>
+  <data name="CopyDoneMessage" xml:space="preserve">
+    <value>Copied</value>
+  </data>
 </root>

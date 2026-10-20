@@ -33,7 +33,7 @@ public sealed class EntriesViewModelFactoryTests
             new FakeToastService(),
             new FakeRevitProcessGuard(),
             new FakeDialogService(),
-            new FakeFolderOpener());
+            new FakeFolderOpener(), new FakeClipboardService());
         var factory = new FakeEntryRowFactory();
 
         var entries = new EntriesViewModel(
@@ -45,7 +45,7 @@ public sealed class EntriesViewModelFactoryTests
             new FileAddinMarkupService(Parser, NullLogger<FileAddinMarkupService>.Instance, new FakeRevitProcessGuard(), TestLocalization.For<FileAddinMarkupService>()),
             new FakeDialogService(),
             new RecordingUiDispatcher(),
-            new FakeRevitProcessGuard());
+            new FakeRevitProcessGuard(), new FakeClipboardService(), new FakeToastService());
 
         Assert.Equal(2, factory.CreatedEntries.Count);
         Assert.Equal([1, 2], factory.CreatedEntries.Select(e => e.Index));

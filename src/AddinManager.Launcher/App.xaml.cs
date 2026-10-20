@@ -114,6 +114,7 @@ public partial class App
                 services.AddSingleton<IUiDispatcher, WpfDispatcher>();
                 services.AddSingleton<IDialogService, WpfDialogService>();
                 services.AddSingleton<IToastService, ToastService>();
+                services.AddSingleton<IClipboardService, WpfClipboardService>();
                 services.AddSingleton<IUrlOpener, UrlOpener>();
                 services.AddSingleton<IFolderOpener, ExplorerFolderOpener>();
                 services.AddSingleton(_ =>

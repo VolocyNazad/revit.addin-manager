@@ -8,6 +8,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Added
 
+- Context menus for the plugin list and the manifest entries: right-click selects an unselected row like Explorer and keeps a multi-selection, then offers show in folder, enable/disable, copy path/file name and delete for files, and copy `AddInId`/`FullClassName`, delete and new entry for entries; right-click on empty space offers refresh/new file or new entry. Copying confirms with a toast.
 - Search in the raw XML markup editor: a persistent find bar above the editor (`Ctrl+F`, `F3`/`Shift+F3`, `Esc` to clear) with match case, whole words and regular expressions, a live match counter, and highlighted matches (the current one stronger). The headless engine lives in `AddinManager.Core.Search`; search keeps working while Revit locks editing.
 - Single-instance guard: a second launch signals the running copy to bring its window forward and exits, instead of opening a duplicate manager (`ISingleInstanceGuard`/`SingleInstanceGuard` over a named mutex plus activation event).
 

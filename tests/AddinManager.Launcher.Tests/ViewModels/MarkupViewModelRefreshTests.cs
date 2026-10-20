@@ -44,7 +44,7 @@ public sealed class MarkupViewModelRefreshTests : IDisposable
             new FakeToastService(),
             new FakeRevitProcessGuard(),
             new FakeDialogService(),
-            new FakeFolderOpener());
+            new FakeFolderOpener(), new FakeClipboardService());
 
         // Список уже прочитал файл при старте — с именем записи "Original".
         Assert.Equal("Original", list.Files.Single().File.Manifest.Entries.Single().Name);
@@ -91,7 +91,7 @@ public sealed class MarkupViewModelRefreshTests : IDisposable
             new FakeToastService(),
             new FakeRevitProcessGuard(),
             new FakeDialogService(),
-            new FakeFolderOpener());
+            new FakeFolderOpener(), new FakeClipboardService());
 
         var markupService = new FileAddinMarkupService(_parser, NullLogger<FileAddinMarkupService>.Instance, new FakeRevitProcessGuard(), TestLocalization.For<FileAddinMarkupService>());
         var markup = new MarkupViewModel(
@@ -139,7 +139,7 @@ public sealed class MarkupViewModelRefreshTests : IDisposable
             new FakeToastService(),
             new FakeRevitProcessGuard(),
             new FakeDialogService(),
-            new FakeFolderOpener());
+            new FakeFolderOpener(), new FakeClipboardService());
 
         var markupService = new FileAddinMarkupService(_parser, NullLogger<FileAddinMarkupService>.Instance, new FakeRevitProcessGuard(), TestLocalization.For<FileAddinMarkupService>());
         var logger = new RecordingLogger<MarkupViewModel>();
@@ -173,7 +173,7 @@ public sealed class MarkupViewModelRefreshTests : IDisposable
             TestLocalization.For<FileAddinMarkupService>()),
         new FakeDialogService(),
         new RecordingUiDispatcher(),
-        new FakeRevitProcessGuard());
+        new FakeRevitProcessGuard(), new FakeClipboardService(), new FakeToastService());
 
     /// <summary>
     /// Выбор записи в списке подсвечивает её <c>&lt;AddIn&gt;</c>-блок в разметке: срез
@@ -228,7 +228,7 @@ public sealed class MarkupViewModelRefreshTests : IDisposable
             new FakeToastService(),
             new FakeRevitProcessGuard(),
             new FakeDialogService(),
-            new FakeFolderOpener());
+            new FakeFolderOpener(), new FakeClipboardService());
         var entries = NewEntries(list);
         var markup = new MarkupViewModel(
             list,

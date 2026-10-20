@@ -62,7 +62,7 @@ public sealed class ListViewModelShowInFolderTests
             new FakeToastService(),
             new FakeRevitProcessGuard(),
             new FakeDialogService(),
-            opener);
+            opener, new FakeClipboardService());
 
     private static AddinFile NewFile(string fileName, AddinScope scope, string version, bool enabled) =>
         new(fileName, scope, version, enabled,

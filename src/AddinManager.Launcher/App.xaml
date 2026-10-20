@@ -12,6 +12,7 @@
                 <ResourceDictionary Source="Styles/Toggles.xaml" />
                 <ResourceDictionary Source="Styles/Inputs.xaml" />
                 <ResourceDictionary Source="Styles/Tooltips.xaml" />
+                <ResourceDictionary Source="Styles/Menus.xaml" />
             </ResourceDictionary.MergedDictionaries>
             <DrawingImage x:Key="ApplicationIcon">
                 <DrawingImage.Drawing>

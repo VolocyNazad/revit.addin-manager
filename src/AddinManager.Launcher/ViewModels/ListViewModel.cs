@@ -32,6 +32,7 @@ public sealed partial class ListViewModel : ObservableObject, IFileSelection, IA
     private readonly IStringLocalizer<ListViewModel> _localizer;
     private readonly IAddinFileRowViewModelFactory _rowFactory;
     private readonly IToastService _toastService;
+    private readonly IClipboardService _clipboard;
     private readonly IRevitProcessGuard _guard;
     private readonly IDialogService _dialogService;
     private readonly IFolderOpener _folderOpener;
@@ -110,6 +111,7 @@ public sealed partial class ListViewModel : ObservableObject, IFileSelection, IA
     /// <param name="guard">Сторож запущенного Revit — тогглы строк гаснут, пока он жив.</param>
     /// <param name="dialogService">Подтверждение удаления.</param>
     /// <param name="folderOpener">Показ файла в проводнике (контекстное меню строки).</param>
+    /// <param name="clipboard">Буфер обмена для пунктов «Копировать путь/имя файла».</param>
     public ListViewModel(
         IAddinStore store,
         IAddinChangeWatcher changeWatcher,
@@ -121,7 +123,8 @@ public sealed partial class ListViewModel : ObservableObject, IFileSelection, IA
         IToastService toastService,
         IRevitProcessGuard guard,
         IDialogService dialogService,
-        IFolderOpener folderOpener)
+        IFolderOpener folderOpener,
+        IClipboardService clipboard)
     {
         _store = store;
         _changeWatcher = changeWatcher;
@@ -131,6 +134,7 @@ public sealed partial class ListViewModel : ObservableObject, IFileSelection, IA
         _localizer = localizer;
         _rowFactory = rowFactory;
         _toastService = toastService;
+        _clipboard = clipboard;
         _guard = guard;
         _dialogService = dialogService;
         _folderOpener = folderOpener;
@@ -493,6 +497,33 @@ public sealed partial class ListViewModel : ObservableObject, IFileSelection, IA
 
     /// <summary>Пункт контекстного меню строки "Показать в папке" (хоткей: Ctrl+O).</summary>
     public string ShowInFolderLabel => $"{_localizer["ShowInFolderLabel"]} (Ctrl+O)";
+
+    /// <summary>Пункт контекстного меню пустого места "Обновить".</summary>
+    public string RefreshMenuLabel => _localizer["RefreshMenuLabel"];
+
+    /// <summary>Пункт контекстного меню пустого места "Новый файл".</summary>
+    public string AddFileMenuLabel => _localizer["AddFileMenuLabel"];
+
+    /// <summary>Пункт контекстного меню строки "Копировать путь".</summary>
+    public string CopyPathsMenuLabel => _localizer["CopyPathsMenuLabel"];
+
+    /// <summary>Пункт контекстного меню строки "Копировать имя файла".</summary>
+    public string CopyFileNamesMenuLabel => _localizer["CopyFileNamesMenuLabel"];
+
+    /// <summary>Копирует полные пути выделенных файлов (каждый в кавычках, как «Копировать как путь» в Проводнике).</summary>
+    [RelayCommand]
+    public void CopyPaths() => CopySelected(row => $"\"{row.FullPath}\"");
+
+    /// <summary>Копирует имена выделенных файлов построчно.</summary>
+    [RelayCommand]
+    public void CopyFileNames() => CopySelected(row => row.FileName);
+
+    private void CopySelected(Func<AddinFileRowViewModel, string> selector)
+    {
+        var text = string.Join(Environment.NewLine, Files.Where(file => file.IsSelected).Select(selector));
+        if (_clipboard.TrySetText(text))
+            _toastService.Show(_localizer["CopyDoneMessage"]);
+    }
 
     /// <summary>Плейсхолдер поиска. "User"/"Machine"/"Scope"/годы/типы записей — технические токены данных, не переводятся.</summary>
     public string SearchPlaceholder => _localizer["ListSearchPlaceholder"];

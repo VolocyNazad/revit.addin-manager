@@ -30,7 +30,7 @@ This document records stable architectural rules. Implementation details belong 
 
 ## Styles
 
-- Shared control styles live in `Styles/` (`Buttons.xaml`, `Toggles.xaml`, `Inputs.xaml`, `Tooltips.xaml`) and merge once in `App.xaml`; views must not duplicate them. View-specific behavior goes into a small local `BasedOn` style (`OptionToggleStyle`, `OptionButtonStyle`), never into a full copy.
+- Shared control styles live in `Styles/` (`Buttons.xaml`, `Toggles.xaml`, `Inputs.xaml`, `Tooltips.xaml`, `Menus.xaml`) and merge once in `App.xaml`; views must not duplicate them. View-specific behavior goes into a small local `BasedOn` style (`OptionToggleStyle`, `OptionButtonStyle`), never into a full copy.
 
 ## Localization
 

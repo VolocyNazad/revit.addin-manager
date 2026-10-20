@@ -115,7 +115,7 @@ public sealed class EntriesViewModelBulkSelectionTests : IDisposable
             new FakeToastService(),
             stoppedGuard,
             new FakeDialogService(),
-            new FakeFolderOpener());
+            new FakeFolderOpener(), new FakeClipboardService());
         var dialog = new FakeDialogService();
         var entries = new EntriesViewModel(
             list, list,
@@ -126,7 +126,7 @@ public sealed class EntriesViewModelBulkSelectionTests : IDisposable
             new FileAddinMarkupService(_parser, NullLogger<FileAddinMarkupService>.Instance, stoppedGuard, TestLocalization.For<FileAddinMarkupService>()),
             dialog,
             new RecordingUiDispatcher(),
-            entriesGuard ?? stoppedGuard);
+            entriesGuard ?? stoppedGuard, new FakeClipboardService(), new FakeToastService());
 
         return (entries, dialog, path);
     }

@@ -2,6 +2,7 @@
     x:Class="AddinManager.Launcher.Views.EntriesView"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:behaviors="clr-namespace:AddinManager.Launcher.Behaviors"
     xmlns:converters="clr-namespace:AddinManager.Launcher.Converters"
     xmlns:controls="clr-namespace:AddinManager.Launcher.Controls"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
@@ -41,7 +42,22 @@
                 Padding="10,8"
                 d:DataContext="{d:DesignInstance Type=design:DesignEntryRow,
                                                  IsDesignTimeCreatable=True}"
-                CornerRadius="10">
+                CornerRadius="10"
+                Tag="{Binding DataContext, RelativeSource={RelativeSource AncestorType=ListBox}}">
+                <Border.ContextMenu>
+                    <ContextMenu DataContext="{Binding PlacementTarget.Tag, RelativeSource={RelativeSource Self}}">
+                        <MenuItem
+                            Command="{Binding CopyAddInIdsCommand}"
+                            Header="{Binding CopyAddInIdMenuLabel}" />
+                        <MenuItem
+                            Command="{Binding CopyFullClassNamesCommand}"
+                            Header="{Binding CopyFullClassNameMenuLabel}" />
+                        <Separator />
+                        <MenuItem
+                            Command="{Binding DeleteSelectedCommand}"
+                            Header="{Binding DeleteSelectedLabel}" />
+                    </ContextMenu>
+                </Border.ContextMenu>
                 <Border.ToolTip>
                     <ToolTip Style="{StaticResource CardToolTipStyle}">
                         <StackPanel MaxWidth="320">
@@ -365,7 +381,15 @@
                 ScrollViewer.HorizontalScrollBarVisibility="Disabled"
                 ScrollViewer.VerticalScrollBarVisibility="Auto"
                 SelectedItem="{Binding SelectedEntry, Mode=TwoWay}"
-                SelectionMode="Extended">
+                SelectionMode="Extended"
+                behaviors:RightClickSelectionBehavior.Enabled="True">
+                <ListBox.ContextMenu>
+                    <ContextMenu DataContext="{Binding PlacementTarget.DataContext, RelativeSource={RelativeSource Self}}">
+                        <MenuItem
+                            Command="{Binding AddEntryCommand}"
+                            Header="{Binding AddEntryMenuLabel}" />
+                    </ContextMenu>
+                </ListBox.ContextMenu>
                 <!--  Контекстные хоткеи записей: тот же приём, что у списка (см. ListView).  -->
                 <ListBox.InputBindings>
                     <KeyBinding Key="Delete" Command="{Binding DeleteSelectedCommand}" />

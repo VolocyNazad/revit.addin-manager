@@ -98,7 +98,7 @@ public sealed class EntriesViewModelSearchTests : IDisposable
             new FakeToastService(),
             stoppedGuard,
             new FakeDialogService(),
-            new FakeFolderOpener());
+            new FakeFolderOpener(), new FakeClipboardService());
 
         return new EntriesViewModel(
             list, list,
@@ -109,7 +109,7 @@ public sealed class EntriesViewModelSearchTests : IDisposable
             new FileAddinMarkupService(_parser, NullLogger<FileAddinMarkupService>.Instance, stoppedGuard, TestLocalization.For<FileAddinMarkupService>()),
             new FakeDialogService(),
             new RecordingUiDispatcher(),
-            stoppedGuard);
+            stoppedGuard, new FakeClipboardService(), new FakeToastService());
     }
 
     private static string TwoEntryXml() => """

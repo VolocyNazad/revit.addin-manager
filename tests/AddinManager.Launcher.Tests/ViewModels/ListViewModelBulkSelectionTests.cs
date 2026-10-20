@@ -164,7 +164,7 @@ public sealed class ListViewModelBulkSelectionTests
             new FakeToastService(),
             guard ?? new FakeRevitProcessGuard(),
             dialog ?? new FakeDialogService(),
-            new FakeFolderOpener());
+            new FakeFolderOpener(), new FakeClipboardService());
 
     private static AddinFile NewFile(string fileName, AddinScope scope, string version, bool enabled) =>
         new(fileName, scope, version, enabled,

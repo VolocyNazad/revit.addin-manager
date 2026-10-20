@@ -88,7 +88,7 @@ public sealed class ManifestSettingsViewModelTests : IDisposable
             new FakeToastService(),
             new FakeRevitProcessGuard(),
             new FakeDialogService(),
-            new FakeFolderOpener());
+            new FakeFolderOpener(), new FakeClipboardService());
 
         return (list, path);
     }

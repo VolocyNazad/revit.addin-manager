@@ -86,5 +86,5 @@ public sealed class ListViewModelAddFileTests
             new FakeToastService(),
             guard ?? new FakeRevitProcessGuard(),
             dialog,
-            new FakeFolderOpener());
+            new FakeFolderOpener(), new FakeClipboardService());
 }
