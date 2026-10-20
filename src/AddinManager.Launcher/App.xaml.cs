@@ -116,8 +116,7 @@ public partial class App
                 services.AddSingleton<IDialogService, WpfDialogService>();
                 services.AddSingleton<IToastService, ToastService>();
                 services.AddSingleton<IClipboardService, WpfClipboardService>();
-                services.AddSingleton<EditorDirtyState>();
-                services.AddSingleton<IEditorDirtyState>(provider => provider.GetRequiredService<EditorDirtyState>());
+                services.AddSingleton<IEditorDirtyState, EditorDirtyState>();
                 services.AddSingleton<IUrlOpener, UrlOpener>();
                 services.AddSingleton<IFolderOpener, ExplorerFolderOpener>();
                 services.AddSingleton(_ =>

@@ -1,5 +1,3 @@
-using AddinManager.Core.Storage;
-
 namespace AddinManager.Core.Storage;
 
 /// <summary>

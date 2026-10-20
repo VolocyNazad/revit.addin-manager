@@ -11,4 +11,9 @@ public interface IEditorDirtyState
 
     /// <summary>Сохраняет видимую панель; <see langword="false"/>, если сохранить не удалось.</summary>
     bool TrySave();
+
+    /// <summary>Обновляет состояние и функцию сохранения видимой панели (вызывает редактор).</summary>
+    /// <param name="isDirty">Есть ли несохранённые правки.</param>
+    /// <param name="save">Сохранение; возвращает <see langword="true"/> при успехе.</param>
+    void Update(bool isDirty, Func<bool> save);
 }

@@ -73,4 +73,10 @@
   <data name="SameFolder" xml:space="preserve">
     <value>The file is already in this folder.</value>
   </data>
+  <data name="MoveFailed" xml:space="preserve">
+    <value>Could not move '{0}'.</value>
+  </data>
+  <data name="CopyFailed" xml:space="preserve">
+    <value>Could not copy '{0}'.</value>
+  </data>
 </root>

@@ -21,7 +21,7 @@ public sealed partial class EditorViewModel : ObservableObject
     private readonly IStringLocalizer<EditorViewModel> _localizer;
     private readonly IFileSelection _fileSelection;
     private readonly Func<EditorMode, ISavablePane?> _activePane;
-    private readonly EditorDirtyState? _dirtyState;
+    private readonly IEditorDirtyState? _dirtyState;
     private ISavablePane? _subscribedPane;
 
     [ObservableProperty]
@@ -41,7 +41,7 @@ public sealed partial class EditorViewModel : ObservableObject
         IStringLocalizer<EditorViewModel> localizer,
         IFileSelection fileSelection,
         Func<EditorMode, ISavablePane?> activePane,
-        EditorDirtyState? dirtyState = null)
+        IEditorDirtyState? dirtyState = null)
     {
         _localizationService = localizationService;
         _localizer = localizer;

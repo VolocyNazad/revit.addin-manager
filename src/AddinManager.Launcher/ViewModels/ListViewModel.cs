@@ -123,6 +123,7 @@ public sealed partial class ListViewModel : ObservableObject, IFileSelection, IA
     /// <param name="dialogService">Подтверждение удаления.</param>
     /// <param name="folderOpener">Показ файла в проводнике (контекстное меню строки).</param>
     /// <param name="clipboard">Буфер обмена для пунктов «Копировать путь/имя файла».</param>
+    /// <param name="dirtyState">Состояние несохранённых правок редактора для проверки перед переносом.</param>
     public ListViewModel(
         IAddinStore store,
         IAddinChangeWatcher changeWatcher,

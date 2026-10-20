@@ -325,7 +325,9 @@ public sealed class FileSystemAddinStore : IAddinStore
                 ex,
                 "{Operation}({FileName}, {Scope}, {Version}): не удалось {From} -> {To}",
                 copy ? "Copy" : "Move", file.FileName, file.Scope, file.Version, file.FullPath, targetPath);
-            throw new IOException($"Не удалось {(copy ? "скопировать" : "переместить")} '{file.FullPath}'.", ex);
+            throw new IOException(
+                _localizer[copy ? "CopyFailed" : "MoveFailed", file.FullPath],
+                ex);
         }
     }
 

@@ -73,4 +73,10 @@
   <data name="SameFolder" xml:space="preserve">
     <value>Файл уже находится в этой папке.</value>
   </data>
+  <data name="MoveFailed" xml:space="preserve">
+    <value>Не удалось переместить '{0}'.</value>
+  </data>
+  <data name="CopyFailed" xml:space="preserve">
+    <value>Не удалось скопировать '{0}'.</value>
+  </data>
 </root>

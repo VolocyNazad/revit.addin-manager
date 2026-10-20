@@ -105,21 +105,21 @@ public sealed partial class MoveCopyDialogViewModel : ObservableObject
     public bool ShowConflict => TargetExists && !IsSameFolder;
 
     /// <summary>Текст предупреждения о занятой цели.</summary>
-    public string? ConflictWarning => ShowConflict ? _localizer["ConflictWarning"] : null;
+    public string? ConflictWarning => ShowConflict ? _localizer["ConflictWarning"].Value : null;
 
     /// <summary>Текст ошибки, если выбрана та же папка.</summary>
-    public string? SameFolderError => IsSameFolder ? _localizer["SameFolderError"] : null;
+    public string? SameFolderError => IsSameFolder ? _localizer["SameFolderError"].Value : null;
 
     /// <summary>Предупреждение о переносе между версиями.</summary>
     public string? CrossVersionWarning => _file is not null && !string.Equals(Version, _file.Version, StringComparison.Ordinal)
-        ? _localizer["CrossVersionWarning"]
+        ? _localizer["CrossVersionWarning"].Value
         : null;
 
     /// <summary>Предупреждение о ManifestSettings, которые не поддерживает целевая версия.</summary>
     public string? SettingsWarning => _file is not null
         && _file.Manifest.Settings is not null
         && !_schema.SupportsManifestSettings(Version)
-            ? _localizer["SettingsWarning"]
+            ? _localizer["SettingsWarning"].Value
             : null;
 
     /// <summary>Есть ли предупреждения для блока над кнопками.</summary>

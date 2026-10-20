@@ -77,8 +77,8 @@ public sealed class RowWarningTests : IDisposable
         var fileRow = Assert.Single(list.Files);
         Assert.True(fileRow.HasWarning);
         Assert.True(
-            fileRow.WarningMessage.Contains("within the file", StringComparison.OrdinalIgnoreCase)
-                || fileRow.WarningMessage.Contains("внутри файла", StringComparison.OrdinalIgnoreCase));
+            (fileRow.WarningMessage ?? string.Empty).Contains("within the file", StringComparison.OrdinalIgnoreCase)
+                || (fileRow.WarningMessage ?? string.Empty).Contains("внутри файла", StringComparison.OrdinalIgnoreCase));
 
         Assert.Equal(2, entries.Entries.Count);
         Assert.All(entries.Entries, row => Assert.True(row.HasWarning));
