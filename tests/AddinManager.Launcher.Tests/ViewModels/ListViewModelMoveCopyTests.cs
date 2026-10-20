@@ -97,7 +97,92 @@ public sealed class ListViewModelMoveCopyTests
         Assert.Equal("2025", Assert.Single(list.Files).Version);
     }
 
-    private static ListViewModel NewList(FakeAddinStore store, FakeDialogService dialog, FakeToastService? toast = null) =>
+    [Fact]
+    public void MoveTo_SavesDirtyEditorBeforeMoving()
+    {
+        var store = new FakeAddinStore();
+        store.SetFiles("2025", NewFile("A.addin"));
+        var dialog = new FakeDialogService
+        {
+            MoveCopyResult = new MoveCopyOptions("2026", AddinScope.User, EnableAfter: true, Overwrite: false),
+        };
+        var dirty = new EditorDirtyState();
+        var saved = false;
+        dirty.Update(isDirty: true, save: () =>
+        {
+            saved = true;
+            return true;
+        });
+        var list = NewList(store, dialog, dirty: dirty);
+
+        list.MoveToCommand.Execute(list.Files.Single());
+
+        Assert.True(saved);
+        Assert.Equal(1, store.MoveCallCount);
+    }
+
+    [Fact]
+    public void MoveTo_DirtyEditorCancel_DoesNotMove()
+    {
+        var store = new FakeAddinStore();
+        store.SetFiles("2025", NewFile("A.addin"));
+        var dialog = new FakeDialogService
+        {
+            MoveCopyResult = new MoveCopyOptions("2026", AddinScope.User, EnableAfter: true, Overwrite: false),
+        };
+        dialog.ConfirmResults.Enqueue(false);
+        dialog.ConfirmResults.Enqueue(false);
+        var dirty = new EditorDirtyState();
+        dirty.Update(isDirty: true, save: () => true);
+        var list = NewList(store, dialog, dirty: dirty);
+
+        list.MoveToCommand.Execute(list.Files.Single());
+
+        Assert.Equal(0, store.MoveCallCount);
+        Assert.Equal(2, dialog.ShownMessages.Count);
+    }
+
+    [Fact]
+    public void MoveTo_RevealsTargetThroughFilters()
+    {
+        var store = new FakeAddinStore();
+        store.SetFiles("2025", NewFile("A.addin"));
+        var dialog = new FakeDialogService
+        {
+            MoveCopyResult = new MoveCopyOptions("2026", AddinScope.Machine, EnableAfter: true, Overwrite: false),
+        };
+        var list = NewList(store, dialog);
+        list.ScopeFilter = ScopeFilter.User;
+        list.VersionFilter = "2025";
+
+        list.MoveToCommand.Execute(list.Files.Single());
+
+        Assert.Equal(ScopeFilter.Machine, list.ScopeFilter);
+        Assert.Equal("2026", list.VersionFilter);
+        Assert.Equal("2026", list.SelectedFile?.Version);
+    }
+
+    [Fact]
+    public void MoveTo_WhenRevitIsRunning_CannotExecute()
+    {
+        var store = new FakeAddinStore();
+        store.SetFiles("2025", NewFile("A.addin"));
+        var guard = new FakeRevitProcessGuard
+        {
+            RunningVersions = new HashSet<string>(["2024"], StringComparer.Ordinal),
+        };
+        var list = NewList(store, new FakeDialogService(), guard: guard);
+
+        Assert.False(list.MoveToCommand.CanExecute(list.Files.Single()));
+        Assert.False(list.CopyToCommand.CanExecute(list.Files.Single()));
+    }
+
+    private static ListViewModel NewList(
+        FakeAddinStore store,
+        FakeDialogService dialog,
+        FakeToastService? toast = null,
+        EditorDirtyState? dirty = null,
+        FakeRevitProcessGuard? guard = null) =>
         new(
             store,
             new FakeAddinChangeWatcher(),
@@ -107,10 +192,11 @@ public sealed class ListViewModelMoveCopyTests
             TestLocalization.For<ListViewModel>(),
             new AddinFileRowViewModelFactory(store, NullLoggerFactory.Instance, TestLocalization.For<AddinFileRowViewModel>()),
             toast ?? new FakeToastService(),
-            new FakeRevitProcessGuard(),
+            guard ?? new FakeRevitProcessGuard(),
             dialog,
             new FakeFolderOpener(),
-            new FakeClipboardService());
+            new FakeClipboardService(),
+            dirty);
 
     private static AddinFile NewFile(string fileName) =>
         new(fileName, AddinScope.User, "2025", Enabled: true,

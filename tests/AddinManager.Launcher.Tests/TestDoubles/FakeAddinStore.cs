@@ -56,6 +56,12 @@ public sealed class FakeAddinStore : IAddinStore
     /// <summary>Когда задано, следующий вызов <see cref="Copy"/> бросает это исключение.</summary>
     public Exception? ThrowOnNextCopy { get; set; }
 
+    /// <summary>Когда задано, следующий вызов <see cref="Rename"/> бросает это исключение.</summary>
+    public Exception? ThrowOnNextRename { get; set; }
+
+    /// <summary>Удалять реальный файл по пути из записи (для теста отмены удаления).</summary>
+    public bool DeleteFromDisk { get; set; }
+
     /// <summary>Сколько раз вызывали <see cref="Move"/>.</summary>
     public int MoveCallCount { get; private set; }
 
@@ -176,10 +182,17 @@ public sealed class FakeAddinStore : IAddinStore
             throw exception;
         }
 
+        var content = Array.Empty<byte>();
+        if (DeleteFromDisk && File.Exists(file.FullPath))
+        {
+            content = File.ReadAllBytes(file.FullPath);
+            File.Delete(file.FullPath);
+        }
+
         foreach (var files in _byVersion.Values)
             files.RemoveAll(f => f.FileName == file.FileName && f.Scope == file.Scope && f.Version == file.Version);
 
-        return [];
+        return content;
     }
 
     /// <inheritdoc />
@@ -209,9 +222,6 @@ public sealed class FakeAddinStore : IAddinStore
 
         return renamed;
     }
-
-    /// <summary>Когда задано, следующий вызов <see cref="Rename"/> бросает это исключение.</summary>
-    public Exception? ThrowOnNextRename { get; set; }
 
     /// <summary>Сколько раз вызывали <see cref="Rename"/>.</summary>
     public int RenameCallCount { get; private set; }

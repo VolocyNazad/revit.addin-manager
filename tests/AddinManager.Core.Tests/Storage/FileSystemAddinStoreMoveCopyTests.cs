@@ -1,3 +1,4 @@
+using AddinManager.Core.Abstractions.Guard;
 using AddinManager.Core.Abstractions.Parsing;
 using AddinManager.Core.Abstractions.Storage;
 using AddinManager.Core.Guard;
@@ -88,11 +89,72 @@ public sealed class FileSystemAddinStoreMoveCopyTests : IDisposable
         Assert.True(File.Exists(source.FullPath));
     }
 
-    private FileSystemAddinStore NewStore() =>
+    [Fact]
+    public void Copy_Overwrite_ReturnsReplacedContentAndKeepsSource()
+    {
+        var store = NewStore();
+        var source = WriteFile(store, _userRoot, "2025", "A.addin", "A");
+        var targetPath = store.GetTargetPath("A.addin", "2026", AddinScope.User, enabled: true);
+        Directory.CreateDirectory(Path.GetDirectoryName(targetPath) ?? string.Empty);
+        File.WriteAllText(targetPath, ValidAddinXml("Old"));
+
+        var result = store.Copy(source, "2026", AddinScope.User, enabled: true, overwrite: true);
+
+        Assert.Equal(targetPath, result.ReplacedPath);
+        Assert.NotNull(result.ReplacedContent);
+        Assert.True(File.Exists(source.FullPath));
+        Assert.True(File.Exists(result.File.FullPath));
+    }
+
+    [Fact]
+    public void Copy_SameFolder_Throws()
+    {
+        var store = NewStore();
+        var source = WriteFile(store, _userRoot, "2025", "A.addin", "A");
+
+        Assert.Throws<IOException>(() => store.Copy(source, "2025", AddinScope.User, enabled: true, overwrite: false));
+    }
+
+    [Fact]
+    public void Move_ToDisabledTarget_UsesDisabledFolder()
+    {
+        var store = NewStore();
+        var source = WriteFile(store, _userRoot, "2025", "A.addin", "A");
+
+        var result = store.Move(source, "2026", AddinScope.User, enabled: false, overwrite: false);
+
+        Assert.False(result.File.Enabled);
+        Assert.Contains("disabled", result.File.FullPath);
+        Assert.True(File.Exists(result.File.FullPath));
+    }
+
+    [Fact]
+    public void Move_RevitRunning_Throws()
+    {
+        using var guard = new PollingRevitProcessGuard(static () => new HashSet<string>(["2024"], StringComparer.Ordinal));
+        guard.Start();
+        var store = NewStore(guard);
+        var source = WriteFile(store, _userRoot, "2025", "A.addin", "A");
+
+        Assert.Throws<RevitRunningException>(() => store.Move(source, "2026", AddinScope.User, enabled: true, overwrite: false));
+        Assert.True(File.Exists(source.FullPath));
+    }
+
+    [Fact]
+    public void TargetExists_ReflectsFileOnDisk()
+    {
+        var store = NewStore();
+        WriteFile(store, _userRoot, "2025", "A.addin", "A");
+
+        Assert.True(store.TargetExists("A.addin", "2025", AddinScope.User, enabled: true));
+        Assert.False(store.TargetExists("A.addin", "2026", AddinScope.User, enabled: true));
+    }
+
+    private FileSystemAddinStore NewStore(IRevitProcessGuard? guard = null) =>
         new(
             _parser,
             NullLogger<FileSystemAddinStore>.Instance,
-            StoppedRevitProcessGuard.Instance,
+            guard ?? StoppedRevitProcessGuard.Instance,
             TestLocalization.For<FileSystemAddinStore>(),
             _userRoot,
             _machineRoot);

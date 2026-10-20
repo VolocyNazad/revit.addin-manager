@@ -15,6 +15,9 @@ public sealed class FakeDialogService : IDialogService
     /// <summary>Ответ на следующий вопрос. По умолчанию — согласие.</summary>
     public bool Result { get; set; } = true;
 
+    /// <summary>Очередь ответов на <see cref="Confirm"/>; опустошившись, используется <see cref="Result"/>.</summary>
+    public Queue<bool> ConfirmResults { get; } = new();
+
     /// <summary>Ответ на следующий диалог файла (<see langword="null"/> — отмена).</summary>
     public NewFileOptions? NewFileResult { get; set; }
 
@@ -28,7 +31,7 @@ public sealed class FakeDialogService : IDialogService
     public bool Confirm(string message)
     {
         ShownMessages.Add(message);
-        return Result;
+        return ConfirmResults.Count > 0 ? ConfirmResults.Dequeue() : Result;
     }
 
     /// <inheritdoc />

@@ -1,3 +1,4 @@
+using System.IO;
 using AddinManager.Core.Manifests;
 using AddinManager.Core.Storage;
 using AddinManager.Launcher.Composition;
@@ -79,6 +80,53 @@ public sealed class ListViewModelUndoTests
         var restored = Assert.Single(list.Files);
         Assert.Equal("A.addin", restored.FileName);
         Assert.Same(restored, list.SelectedFile);
+        Assert.False(list.HasUndo);
+    }
+
+    [Fact]
+    public void Delete_ThenUndo_RestoresFileContent()
+    {
+        var path = Path.Combine(Path.GetTempPath(), $"AddinManagerUndo-{Guid.NewGuid():N}.addin");
+        File.WriteAllText(path, "<RevitAddIns />");
+        try
+        {
+            var store = new FakeAddinStore { DeleteFromDisk = true };
+            store.SetFiles("2025", NewFile("A.addin", enabled: true) with { FullPath = path });
+            var list = NewList(store);
+
+            list.Files.Single().DeleteCommand.Execute(null);
+
+            Assert.False(File.Exists(path));
+            Assert.True(list.HasUndo);
+
+            list.UndoLastActionCommand.Execute(null);
+
+            Assert.True(File.Exists(path));
+            Assert.Equal("<RevitAddIns />", File.ReadAllText(path));
+        }
+        finally
+        {
+            if (File.Exists(path))
+                File.Delete(path);
+        }
+    }
+
+    [Fact]
+    public void RenameUndo_WhenOldNameIsOccupied_ShowsErrorAndKeepsName()
+    {
+        var store = new FakeAddinStore();
+        store.SetFiles("2025", NewFile("A.addin", enabled: true));
+        var list = NewList(store);
+        var row = Assert.Single(list.Files);
+        row.BeginRename();
+        row.RenameText = "B";
+        row.CommitRename();
+        store.ThrowOnNextRename = new IOException("Имя занято");
+
+        list.UndoLastActionCommand.Execute(null);
+
+        Assert.Equal("B.addin", Assert.Single(list.Files).FileName);
+        Assert.Equal("Имя занято", list.ErrorMessage);
         Assert.False(list.HasUndo);
     }
 
