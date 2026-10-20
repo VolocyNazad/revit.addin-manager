@@ -46,6 +46,10 @@ files and edit their manifests — everything happens before Revit starts.
 - `F2` renames the selected file in place, like Explorer: Enter saves, Esc cancels, losing
   focus saves. The `.addin` extension is enforced, invalid names and existing files are
   rejected in the row; the file keeps its scope/version and enabled/disabled folder.
+- Sorting chips behave like Explorer columns: clicking the active field once more flips
+  ascending/descending, and the arrow button next to them flips it explicitly. A state row
+  filters all/enabled/disabled files, and the scope, version and state chips show counts
+  (the search box narrows what they count).
 - Keyboard shortcuts: `Ctrl+N` new file, `F5`/`Ctrl+R` refresh, `Ctrl+E` enable/disable
   marked files, `Ctrl+O` show in folder; `F2` rename, `Delete` deletes marked files and
   `Ctrl+A` toggles select-all/clear — both scoped to the focused list (files or entries), so

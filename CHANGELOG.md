@@ -8,6 +8,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Added
 
+- Sort direction, state filter and chip counts in the plugin list: clicking the active sort field (or the arrow button) flips ascending/descending, a new state row filters all/enabled/disabled files, and scope/version/state chips show how many files they cover; the search box narrows those counts.
 - Inline `F2` rename in the plugin list (menu item too): Enter saves, Esc cancels, losing focus saves; the file keeps its scope/version and enabled/disabled folder. Empty or invalid names and existing-file collisions are rejected in the row, and the `.addin` extension is enforced.
 - Context menus for the plugin list and the manifest entries: right-click selects an unselected row like Explorer and keeps a multi-selection, then offers show in folder, rename, enable/disable, copy path/file name and delete for files, and copy `AddInId`/`FullClassName`, delete and new entry for entries; right-click on empty space offers refresh/new file or new entry. Copying confirms with a toast.
 - Search in the raw XML markup editor: a persistent find bar above the editor (`Ctrl+F`, `F3`/`Shift+F3`, `Esc` to clear) with match case, whole words and regular expressions, a live match counter, and highlighted matches (the current one stronger). The headless engine lives in `AddinManager.Core.Search`; search keeps working while Revit locks editing.

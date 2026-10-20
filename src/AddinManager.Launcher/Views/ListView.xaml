@@ -373,19 +373,19 @@
                 <Button
                     Command="{Binding SetScopeFilterCommand}"
                     CommandParameter="{x:Static viewmodels:ScopeFilter.All}"
-                    Content="{Binding ScopeAllLabel}"
+                    Content="{Binding ScopeAllChipLabel}"
                     Opacity="{Binding ScopeFilter, Converter={StaticResource ActiveOpacity}, ConverterParameter={x:Static viewmodels:ScopeFilter.All}}"
                     Style="{StaticResource ChipButtonStyle}" />
                 <Button
                     Command="{Binding SetScopeFilterCommand}"
                     CommandParameter="{x:Static viewmodels:ScopeFilter.User}"
-                    Content="User"
+                    Content="{Binding ScopeUserChipLabel}"
                     Opacity="{Binding ScopeFilter, Converter={StaticResource ActiveOpacity}, ConverterParameter={x:Static viewmodels:ScopeFilter.User}}"
                     Style="{StaticResource ChipButtonStyle}" />
                 <Button
                     Command="{Binding SetScopeFilterCommand}"
                     CommandParameter="{x:Static viewmodels:ScopeFilter.Machine}"
-                    Content="Machine"
+                    Content="{Binding ScopeMachineChipLabel}"
                     Opacity="{Binding ScopeFilter, Converter={StaticResource ActiveOpacity}, ConverterParameter={x:Static viewmodels:ScopeFilter.Machine}}"
                     Style="{StaticResource ChipButtonStyle}" />
             </StackPanel>
@@ -394,52 +394,79 @@
                 <Button
                     Command="{Binding SetVersionFilterCommand}"
                     CommandParameter="{x:Null}"
-                    Content="{Binding VersionAllLabel}"
+                    Content="{Binding VersionAllChipLabel}"
                     Opacity="{Binding VersionFilter, Converter={StaticResource ActiveOpacity}, ConverterParameter={x:Null}}"
                     Style="{StaticResource VersionChipButtonStyle}" />
                 <Button
                     Command="{Binding SetVersionFilterCommand}"
                     CommandParameter="2021"
-                    Content="2021"
+                    Content="{Binding Version2021ChipLabel}"
                     Opacity="{Binding VersionFilter, Converter={StaticResource ActiveOpacity}, ConverterParameter=2021}"
                     Style="{StaticResource VersionChipButtonStyle}" />
                 <Button
                     Command="{Binding SetVersionFilterCommand}"
                     CommandParameter="2022"
-                    Content="2022"
+                    Content="{Binding Version2022ChipLabel}"
                     Opacity="{Binding VersionFilter, Converter={StaticResource ActiveOpacity}, ConverterParameter=2022}"
                     Style="{StaticResource VersionChipButtonStyle}" />
                 <Button
                     Command="{Binding SetVersionFilterCommand}"
                     CommandParameter="2023"
-                    Content="2023"
+                    Content="{Binding Version2023ChipLabel}"
                     Opacity="{Binding VersionFilter, Converter={StaticResource ActiveOpacity}, ConverterParameter=2023}"
                     Style="{StaticResource VersionChipButtonStyle}" />
                 <Button
                     Command="{Binding SetVersionFilterCommand}"
                     CommandParameter="2024"
-                    Content="2024"
+                    Content="{Binding Version2024ChipLabel}"
                     Opacity="{Binding VersionFilter, Converter={StaticResource ActiveOpacity}, ConverterParameter=2024}"
                     Style="{StaticResource VersionChipButtonStyle}" />
                 <Button
                     Command="{Binding SetVersionFilterCommand}"
                     CommandParameter="2025"
-                    Content="2025"
+                    Content="{Binding Version2025ChipLabel}"
                     Opacity="{Binding VersionFilter, Converter={StaticResource ActiveOpacity}, ConverterParameter=2025}"
                     Style="{StaticResource VersionChipButtonStyle}" />
                 <Button
                     Command="{Binding SetVersionFilterCommand}"
                     CommandParameter="2026"
-                    Content="2026"
+                    Content="{Binding Version2026ChipLabel}"
                     Opacity="{Binding VersionFilter, Converter={StaticResource ActiveOpacity}, ConverterParameter=2026}"
                     Style="{StaticResource VersionChipButtonStyle}" />
                 <Button
                     Command="{Binding SetVersionFilterCommand}"
                     CommandParameter="2027"
-                    Content="2027"
+                    Content="{Binding Version2027ChipLabel}"
                     Opacity="{Binding VersionFilter, Converter={StaticResource ActiveOpacity}, ConverterParameter=2027}"
                     Style="{StaticResource VersionChipButtonStyle}" />
             </WrapPanel>
+
+            <StackPanel Margin="0,0,0,6" Orientation="Horizontal">
+                <TextBlock
+                    Margin="0,0,6,0"
+                    VerticalAlignment="Center"
+                    FontSize="11"
+                    Opacity="0.5"
+                    Text="{Binding EnabledFilterLabel}" />
+                <Button
+                    Command="{Binding SetEnabledFilterCommand}"
+                    CommandParameter="{x:Static viewmodels:EnabledFilter.All}"
+                    Content="{Binding EnabledAllChipLabel}"
+                    Opacity="{Binding EnabledFilter, Converter={StaticResource ActiveOpacity}, ConverterParameter={x:Static viewmodels:EnabledFilter.All}}"
+                    Style="{StaticResource ChipButtonStyle}" />
+                <Button
+                    Command="{Binding SetEnabledFilterCommand}"
+                    CommandParameter="{x:Static viewmodels:EnabledFilter.Enabled}"
+                    Content="{Binding EnabledOnChipLabel}"
+                    Opacity="{Binding EnabledFilter, Converter={StaticResource ActiveOpacity}, ConverterParameter={x:Static viewmodels:EnabledFilter.Enabled}}"
+                    Style="{StaticResource ChipButtonStyle}" />
+                <Button
+                    Command="{Binding SetEnabledFilterCommand}"
+                    CommandParameter="{x:Static viewmodels:EnabledFilter.Disabled}"
+                    Content="{Binding EnabledOffChipLabel}"
+                    Opacity="{Binding EnabledFilter, Converter={StaticResource ActiveOpacity}, ConverterParameter={x:Static viewmodels:EnabledFilter.Disabled}}"
+                    Style="{StaticResource ChipButtonStyle}" />
+            </StackPanel>
 
             <StackPanel Margin="0,0,0,6" Orientation="Horizontal">
                 <TextBlock
@@ -466,6 +493,12 @@
                     Content="{Binding SortVersionLabel}"
                     Opacity="{Binding SortOrder, Converter={StaticResource ActiveOpacity}, ConverterParameter={x:Static viewmodels:ListSortOrder.Version}}"
                     Style="{StaticResource ChipButtonStyle}" />
+                <Button
+                    Margin="4,0,0,0"
+                    Command="{Binding ToggleSortDirectionCommand}"
+                    Content="{Binding SortDirectionGlyph}"
+                    Style="{StaticResource ChipButtonStyle}"
+                    ToolTip="{Binding SortDirectionTooltip}" />
             </StackPanel>
 
             <StackPanel Orientation="Horizontal">

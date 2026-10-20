@@ -34,10 +34,27 @@ public sealed class DesignListViewModel
     public string SearchPlaceholder { get; set; } = "Поиск по имени";
     public string RefreshTooltip { get; set; } = "Обновить (перечитать файлы с диска)";
     public ScopeFilter ScopeFilter { get; set; } = ScopeFilter.All;
-    public string ScopeAllLabel { get; set; } = "Все";
+    public string ScopeAllChipLabel { get; set; } = "Все · 2";
+    public string ScopeUserChipLabel { get; set; } = "User · 1";
+    public string ScopeMachineChipLabel { get; set; } = "Machine · 1";
     public string? VersionFilter { get; set; }
-    public string VersionAllLabel { get; set; } = "Все версии";
+    public string VersionAllChipLabel { get; set; } = "Все версии · 2";
+    public string Version2021ChipLabel { get; set; } = "2021 · 0";
+    public string Version2022ChipLabel { get; set; } = "2022 · 0";
+    public string Version2023ChipLabel { get; set; } = "2023 · 0";
+    public string Version2024ChipLabel { get; set; } = "2024 · 0";
+    public string Version2025ChipLabel { get; set; } = "2025 · 2";
+    public string Version2026ChipLabel { get; set; } = "2026 · 0";
+    public string Version2027ChipLabel { get; set; } = "2027 · 0";
+    public EnabledFilter EnabledFilter { get; set; } = EnabledFilter.All;
+    public string EnabledFilterLabel { get; set; } = "Состояние:";
+    public string EnabledAllChipLabel { get; set; } = "Все · 2";
+    public string EnabledOnChipLabel { get; set; } = "Включённые · 2";
+    public string EnabledOffChipLabel { get; set; } = "Выключенные · 0";
     public ListSortOrder SortOrder { get; set; } = ListSortOrder.Name;
+    public bool SortDescending { get; set; }
+    public string SortDirectionGlyph { get; set; } = "↑";
+    public string SortDirectionTooltip { get; set; } = "Изменить направление сортировки";
     public string SortLabel { get; set; } = "Сортировка:";
     public string SortNameLabel { get; set; } = "Name";
     public string SortVersionLabel { get; set; } = "Version";
@@ -58,7 +75,9 @@ public sealed class DesignListViewModel
     public ICommand? RefreshManualCommand { get; set; }
     public ICommand? SetScopeFilterCommand { get; set; }
     public ICommand? SetVersionFilterCommand { get; set; }
+    public ICommand? SetEnabledFilterCommand { get; set; }
     public ICommand? SetSortOrderCommand { get; set; }
+    public ICommand? ToggleSortDirectionCommand { get; set; }
     public ICommand? ToggleSelectedCommand { get; set; }
     public ICommand? ShowInFolderCommand { get; set; }
     public ICommand? BeginRenameCommand { get; set; }

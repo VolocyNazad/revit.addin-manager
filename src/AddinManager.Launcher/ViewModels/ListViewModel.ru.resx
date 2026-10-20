@@ -136,4 +136,19 @@
   <data name="RenameMenuLabel" xml:space="preserve">
     <value>Переименовать</value>
   </data>
+  <data name="EnabledFilterLabel" xml:space="preserve">
+    <value>Состояние:</value>
+  </data>
+  <data name="EnabledFilter_AllOption" xml:space="preserve">
+    <value>Все</value>
+  </data>
+  <data name="EnabledFilter_EnabledOption" xml:space="preserve">
+    <value>Включённые</value>
+  </data>
+  <data name="EnabledFilter_DisabledOption" xml:space="preserve">
+    <value>Выключенные</value>
+  </data>
+  <data name="SortDirectionTooltip" xml:space="preserve">
+    <value>Изменить направление сортировки</value>
+  </data>
 </root>

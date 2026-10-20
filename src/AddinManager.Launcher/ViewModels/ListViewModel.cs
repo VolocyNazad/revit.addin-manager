@@ -79,6 +79,15 @@ public sealed partial class ListViewModel : ObservableObject, IFileSelection, IA
     [ObservableProperty]
     private ListSortOrder _sortOrder = ListSortOrder.Name;
 
+    /// <summary>Сортировать по убыванию; переключается повторным кликом по активному чипсу.</summary>
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(SortDirectionGlyph))]
+    private bool _sortDescending;
+
+    /// <summary>Фильтр по состоянию enabled/disabled.</summary>
+    [ObservableProperty]
+    private EnabledFilter _enabledFilter = EnabledFilter.All;
+
     /// <summary>Группировать по scope; взаимоисключающе с <see cref="GroupByVersion"/> — включение одного гасит другой.</summary>
     [ObservableProperty]
     private bool _groupByScope;
@@ -202,6 +211,7 @@ public sealed partial class ListViewModel : ObservableObject, IFileSelection, IA
 
         FileCount = Files.Count;
         UpdateRowWarnings();
+        RefreshChipLabels();
         _filesView.Refresh();
 
         // Восстановленного по идентичности файла нет — ни прежнего выбора не было (запуск
@@ -230,13 +240,34 @@ public sealed partial class ListViewModel : ObservableObject, IFileSelection, IA
     [RelayCommand]
     public void SetScopeFilter(ScopeFilter filter) => ScopeFilter = filter;
 
+    /// <summary>Устанавливает фильтр по состоянию enabled/disabled (кнопки-чипсы в тулбаре списка).</summary>
+    [RelayCommand]
+    public void SetEnabledFilter(EnabledFilter filter) => EnabledFilter = filter;
+
     /// <summary>Устанавливает фильтр по версии; <see langword="null"/> — все версии.</summary>
     [RelayCommand]
     public void SetVersionFilter(string? version) => VersionFilter = version;
 
-    /// <summary>Устанавливает порядок сортировки (кнопки-чипсы в тулбаре списка).</summary>
+    /// <summary>
+    /// Устанавливает порядок сортировки (кнопки-чипсы в тулбаре списка). Повторный клик по уже
+    /// активному чипсу переключает направление, как в Проводнике; новый чипс начинает с возрастания.
+    /// </summary>
     [RelayCommand]
-    public void SetSortOrder(ListSortOrder order) => SortOrder = order;
+    public void SetSortOrder(ListSortOrder order)
+    {
+        if (SortOrder == order)
+        {
+            SortDescending = !SortDescending;
+            return;
+        }
+
+        SortOrder = order;
+        SortDescending = false;
+    }
+
+    /// <summary>Переключает направление сортировки отдельной кнопкой-стрелкой.</summary>
+    [RelayCommand]
+    public void ToggleSortDirection() => SortDescending = !SortDescending;
 
     /// <summary>Снимает отметку со всех строк.</summary>
     [RelayCommand]
@@ -323,10 +354,55 @@ public sealed partial class ListViewModel : ObservableObject, IFileSelection, IA
     private void OnRowPropertyChanged(object? sender, PropertyChangedEventArgs e)
     {
         // IsSelected двигает счётчик и доступность команд; IsEnabled — подпись
-        // переключателя "Включить/Выключить" (зависит от состояния отмеченных).
-        if (e.PropertyName is nameof(AddinFileRowViewModel.IsSelected) or nameof(AddinFileRowViewModel.IsEnabled))
+        // переключателя "Включить/Выключить" и фильтр состояния.
+        if (e.PropertyName == nameof(AddinFileRowViewModel.IsEnabled))
+        {
+            _filesView.Refresh();
+            RefreshChipLabels();
             RefreshSelectionSnapshot();
+        }
+        else if (e.PropertyName == nameof(AddinFileRowViewModel.IsSelected))
+        {
+            RefreshSelectionSnapshot();
+        }
     }
+
+    /// <summary>
+    /// Пересчитывает подписи чипсов со счётчиками: база — все файлы, прошедшие только поиск по
+    /// имени; каждый чип считает свою ось (scope/версия/состояние), не сужаясь чужими фильтрами.
+    /// </summary>
+    private void RefreshChipLabels()
+    {
+        OnPropertyChanged(nameof(ScopeAllChipLabel));
+        OnPropertyChanged(nameof(ScopeUserChipLabel));
+        OnPropertyChanged(nameof(ScopeMachineChipLabel));
+        OnPropertyChanged(nameof(VersionAllChipLabel));
+        OnPropertyChanged(nameof(Version2021ChipLabel));
+        OnPropertyChanged(nameof(Version2022ChipLabel));
+        OnPropertyChanged(nameof(Version2023ChipLabel));
+        OnPropertyChanged(nameof(Version2024ChipLabel));
+        OnPropertyChanged(nameof(Version2025ChipLabel));
+        OnPropertyChanged(nameof(Version2026ChipLabel));
+        OnPropertyChanged(nameof(Version2027ChipLabel));
+        OnPropertyChanged(nameof(EnabledAllChipLabel));
+        OnPropertyChanged(nameof(EnabledOnChipLabel));
+        OnPropertyChanged(nameof(EnabledOffChipLabel));
+    }
+
+    private IEnumerable<AddinFileRowViewModel> SearchMatchedRows =>
+        string.IsNullOrWhiteSpace(SearchText)
+            ? Files
+            : Files.Where(row => row.FileName.Contains(SearchText, StringComparison.OrdinalIgnoreCase));
+
+    private int SearchMatchedCount => SearchMatchedRows.Count();
+
+    private int CountScope(AddinScope scope) => SearchMatchedRows.Count(row => row.Scope == scope);
+
+    private int CountVersion(string version) => SearchMatchedRows.Count(row => row.Version == version);
+
+    private int CountEnabled(bool enabled) => SearchMatchedRows.Count(row => row.IsEnabled == enabled);
+
+    private static string WithCount(string label, int count) => $"{label} · {count}";
 
     /// <summary>
     /// Возвращается после успешного переименования строки: перечитывает список (файл на диске уже
@@ -569,11 +645,56 @@ public sealed partial class ListViewModel : ObservableObject, IFileSelection, IA
     /// <summary>Тултип кнопки обновления (хоткей: F5).</summary>
     public string RefreshTooltip => $"{_localizer["RefreshButtonTooltip"]} (F5)";
 
-    /// <summary>Чипс scope "все".</summary>
-    public string ScopeAllLabel => _localizer["ScopeFilter_AllOption"];
+    /// <summary>Чипс scope "все" со счётчиком файлов, подходящих под поиск.</summary>
+    public string ScopeAllChipLabel => WithCount(_localizer["ScopeFilter_AllOption"], SearchMatchedCount);
 
-    /// <summary>Чипс версий "все".</summary>
-    public string VersionAllLabel => _localizer["VersionFilter_AllVersionsOption"];
+    /// <summary>Чипс scope "User" со счётчиком.</summary>
+    public string ScopeUserChipLabel => WithCount("User", CountScope(AddinScope.User));
+
+    /// <summary>Чипс scope "Machine" со счётчиком.</summary>
+    public string ScopeMachineChipLabel => WithCount("Machine", CountScope(AddinScope.Machine));
+
+    /// <summary>Чипс версий "все" со счётчиком.</summary>
+    public string VersionAllChipLabel => WithCount(_localizer["VersionFilter_AllVersionsOption"], SearchMatchedCount);
+
+    /// <summary>Чипс версии 2021 со счётчиком.</summary>
+    public string Version2021ChipLabel => WithCount("2021", CountVersion("2021"));
+
+    /// <summary>Чипс версии 2022 со счётчиком.</summary>
+    public string Version2022ChipLabel => WithCount("2022", CountVersion("2022"));
+
+    /// <summary>Чипс версии 2023 со счётчиком.</summary>
+    public string Version2023ChipLabel => WithCount("2023", CountVersion("2023"));
+
+    /// <summary>Чипс версии 2024 со счётчиком.</summary>
+    public string Version2024ChipLabel => WithCount("2024", CountVersion("2024"));
+
+    /// <summary>Чипс версии 2025 со счётчиком.</summary>
+    public string Version2025ChipLabel => WithCount("2025", CountVersion("2025"));
+
+    /// <summary>Чипс версии 2026 со счётчиком.</summary>
+    public string Version2026ChipLabel => WithCount("2026", CountVersion("2026"));
+
+    /// <summary>Чипс версии 2027 со счётчиком.</summary>
+    public string Version2027ChipLabel => WithCount("2027", CountVersion("2027"));
+
+    /// <summary>Подпись "Состояние:" перед чипсами enabled/disabled.</summary>
+    public string EnabledFilterLabel => _localizer["EnabledFilterLabel"];
+
+    /// <summary>Чипс "все" по состоянию со счётчиком.</summary>
+    public string EnabledAllChipLabel => WithCount(_localizer["EnabledFilter_AllOption"], SearchMatchedCount);
+
+    /// <summary>Чипс "включённые" со счётчиком.</summary>
+    public string EnabledOnChipLabel => WithCount(_localizer["EnabledFilter_EnabledOption"], CountEnabled(true));
+
+    /// <summary>Чипс "выключенные" со счётчиком.</summary>
+    public string EnabledOffChipLabel => WithCount(_localizer["EnabledFilter_DisabledOption"], CountEnabled(false));
+
+    /// <summary>Стрелка текущего направления сортировки.</summary>
+    public string SortDirectionGlyph => SortDescending ? "↓" : "↑";
+
+    /// <summary>Тултип кнопки направления сортировки.</summary>
+    public string SortDirectionTooltip => _localizer["SortDirectionTooltip"];
 
     /// <summary>Подпись "Сортировка:".</summary>
     public string SortLabel => _localizer["SortLabel"];
@@ -624,6 +745,7 @@ public sealed partial class ListViewModel : ObservableObject, IFileSelection, IA
     partial void OnSearchTextChanged(string? value)
     {
         _filesView.Refresh();
+        RefreshChipLabels();
         RefreshSelectionSnapshot();
     }
 
@@ -638,9 +760,17 @@ public sealed partial class ListViewModel : ObservableObject, IFileSelection, IA
         _filesView.Refresh();
         RefreshSelectionSnapshot();
     }
+
+    partial void OnEnabledFilterChanged(EnabledFilter value)
+    {
+        _filesView.Refresh();
+        RefreshSelectionSnapshot();
+    }
 #pragma warning restore S4144
 
     partial void OnSortOrderChanged(ListSortOrder value) => _filesView.Refresh();
+
+    partial void OnSortDescendingChanged(bool value) => _filesView.Refresh();
 
     partial void OnGroupByScopeChanged(bool value)
     {
@@ -675,6 +805,15 @@ public sealed partial class ListViewModel : ObservableObject, IFileSelection, IA
         if (VersionFilter is not null && row.Version != VersionFilter)
             return false;
 
+        var enabled = EnabledFilter switch
+        {
+            EnabledFilter.Enabled => true,
+            EnabledFilter.Disabled => false,
+            _ => (bool?)null,
+        };
+        if (enabled is { } requiredEnabled && row.IsEnabled != requiredEnabled)
+            return false;
+
         if (!string.IsNullOrWhiteSpace(SearchText) && !row.FileName.Contains(SearchText, StringComparison.OrdinalIgnoreCase))
             return false;
 
@@ -689,7 +828,12 @@ public sealed partial class ListViewModel : ObservableObject, IFileSelection, IA
     {
         var left = (AddinFileRowViewModel)x!;
         var right = (AddinFileRowViewModel)y!;
+        var result = CompareRowsAscending(left, right);
+        return SortDescending ? -result : result;
+    }
 
+    private int CompareRowsAscending(AddinFileRowViewModel left, AddinFileRowViewModel right)
+    {
         switch (SortOrder)
         {
             case ListSortOrder.Scope:
