@@ -201,8 +201,28 @@ public sealed class DesignMarkupViewModel
     public string SaveButtonLabel { get; set; } = "Сохранить";
     public string? ErrorMessage { get; set; }
     public bool IsLocked { get; set; }
+    public DesignMarkupSearchViewModel Search { get; } = new();
     public ICommand? DiscardCommand { get; set; }
     public ICommand? SaveCommand { get; set; }
+}
+
+public sealed class DesignMarkupSearchViewModel
+{
+    public string Query { get; set; } = "Assembly";
+    public bool MatchCase { get; set; }
+    public bool WholeWords { get; set; }
+    public bool UseRegex { get; set; }
+    public string Placeholder { get; set; } = "Найти в разметке";
+    public string StatusText { get; set; } = "1 из 3";
+    public bool HasStatus { get; set; } = true;
+    public bool IsQueryEmpty { get; set; }
+    public string NextTooltip { get; set; } = "Следующее совпадение";
+    public string PreviousTooltip { get; set; } = "Предыдущее совпадение";
+    public string MatchCaseTooltip { get; set; } = "Учитывать регистр";
+    public string WholeWordsTooltip { get; set; } = "Только целые слова";
+    public string UseRegexTooltip { get; set; } = "Использовать регулярное выражение";
+    public ICommand? NextCommand { get; set; }
+    public ICommand? PreviousCommand { get; set; }
 }
 
 public sealed class DesignSettingsViewModel

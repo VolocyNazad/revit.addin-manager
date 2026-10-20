@@ -51,7 +51,7 @@ public sealed class MarkupViewModelRefreshTests : IDisposable
 
         var markupService = new FileAddinMarkupService(_parser, NullLogger<FileAddinMarkupService>.Instance, new FakeRevitProcessGuard(), TestLocalization.For<FileAddinMarkupService>());
         var markup = new MarkupViewModel(
-            list, markupService, NullLogger<MarkupViewModel>.Instance,
+            list, TestMarkupSearch.Create(), markupService, NullLogger<MarkupViewModel>.Instance,
             new FakeLocalizationService(), TestLocalization.For<MarkupViewModel>(),
             new RecordingUiDispatcher(),
             new FakeRevitProcessGuard(),
@@ -95,7 +95,7 @@ public sealed class MarkupViewModelRefreshTests : IDisposable
 
         var markupService = new FileAddinMarkupService(_parser, NullLogger<FileAddinMarkupService>.Instance, new FakeRevitProcessGuard(), TestLocalization.For<FileAddinMarkupService>());
         var markup = new MarkupViewModel(
-            list, markupService, NullLogger<MarkupViewModel>.Instance,
+            list, TestMarkupSearch.Create(), markupService, NullLogger<MarkupViewModel>.Instance,
             new FakeLocalizationService(), TestLocalization.For<MarkupViewModel>(),
             new RecordingUiDispatcher(),
             new FakeRevitProcessGuard(),
@@ -144,7 +144,7 @@ public sealed class MarkupViewModelRefreshTests : IDisposable
         var markupService = new FileAddinMarkupService(_parser, NullLogger<FileAddinMarkupService>.Instance, new FakeRevitProcessGuard(), TestLocalization.For<FileAddinMarkupService>());
         var logger = new RecordingLogger<MarkupViewModel>();
         var markup = new MarkupViewModel(
-            list, markupService, logger,
+            list, TestMarkupSearch.Create(), markupService, logger,
             new FakeLocalizationService(), TestLocalization.For<MarkupViewModel>(),
             new RecordingUiDispatcher(),
             new FakeRevitProcessGuard(),
@@ -232,6 +232,7 @@ public sealed class MarkupViewModelRefreshTests : IDisposable
         var entries = NewEntries(list);
         var markup = new MarkupViewModel(
             list,
+            TestMarkupSearch.Create(),
             new FileAddinMarkupService(_parser, NullLogger<FileAddinMarkupService>.Instance, new FakeRevitProcessGuard(), TestLocalization.For<FileAddinMarkupService>()),
             NullLogger<MarkupViewModel>.Instance,
             new FakeLocalizationService(),

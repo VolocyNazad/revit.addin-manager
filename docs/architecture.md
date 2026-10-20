@@ -49,6 +49,7 @@ This document records stable architectural rules. Implementation details belong 
 
 - `EditorView` exposes independent Form, Markup and Settings modes.
 - The Markup mode uses AvalonEdit and reparses text for diagnostics. Saves go through the same parser and atomic markup service as structured editing.
+- The Markup mode's persistent find bar searches the whole file through the headless `TextSearchEngine` (`AddinManager.Core.Search`). `MarkupSearchViewModel` owns the query, options, match list and current position; the view only selects and highlights the matches and never changes the document or the save path.
 - The Form mode edits one entry. The Settings mode edits file-level `ManifestSettings` and is available only for supported Revit versions.
 - Entry creation and deletion are whole-manifest saves; cancelled dialogs leave the file unchanged.
 

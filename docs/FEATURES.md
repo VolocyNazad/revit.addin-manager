@@ -90,6 +90,13 @@ files and edit their manifests — everything happens before Revit starts.
   what blocks the save (structural errors, bad GUIDs, duplicate `AddInId` values).
   Empty required fields and duplicate `AddInId` values are additionally underlined red
   right in the text, as you type.
+- A persistent find bar above the editor searches the whole file: `Ctrl+F` focuses it
+  (the current selection becomes the query), `Enter`/`Shift+Enter` in the field and
+  `F3`/`Shift+F3` move to the next/previous match, `Esc` clears the search. Match case,
+  whole words and regular expressions are toggled with chips; a live counter reports the
+  current position and the number of matches (or "no matches"/an invalid pattern), and
+  every match is highlighted, with the current one highlighted stronger. Search keeps
+  working while Revit runs and editing is locked.
 - Unsaved changes are badged; Discard restores the last saved text. Saving uses the same
   atomic-write-plus-`.bak` path as the form.
 

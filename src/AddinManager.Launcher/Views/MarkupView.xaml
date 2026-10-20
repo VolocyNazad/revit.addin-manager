@@ -84,6 +84,89 @@
             </StackPanel>
 
             <!--
+                Постоянная строка поиска над редактором, одной строкой как в Revit Linter Editor:
+                она занимает собственную строку и никогда не перекрывает код. Поле тянется,
+                справа — счётчик, параметры и навигация; на очень узкой панели приоритет у поля.
+            -->
+            <Grid
+                Margin="10,0,10,6"
+                DockPanel.Dock="Top">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+
+                <Grid Grid.Column="0" Margin="0,0,4,0">
+                    <TextBox
+                        x:Name="SearchQueryBox"
+                        KeyDown="OnSearchKeyDown"
+                        Style="{StaticResource SearchBoxStyle}"
+                        Text="{Binding Search.Query, UpdateSourceTrigger=PropertyChanged}">
+                        <TextBox.InputBindings>
+                            <KeyBinding Key="Enter" Command="{Binding Search.NextCommand}" />
+                            <KeyBinding
+                                Key="Enter"
+                                Command="{Binding Search.PreviousCommand}"
+                                Modifiers="Shift" />
+                        </TextBox.InputBindings>
+                    </TextBox>
+                    <TextBlock
+                        Margin="12,0,0,0"
+                        VerticalAlignment="Center"
+                        FontSize="12"
+                        IsHitTestVisible="False"
+                        Opacity="0.4"
+                        Text="{Binding Search.Placeholder}"
+                        Visibility="{Binding Search.IsQueryEmpty, Converter={StaticResource BoolToVisibility}}" />
+                </Grid>
+
+                <TextBlock
+                    Grid.Column="1"
+                    MinWidth="46"
+                    Margin="4,0"
+                    HorizontalAlignment="Right"
+                    VerticalAlignment="Center"
+                    FontSize="11"
+                    Opacity="0.55"
+                    Text="{Binding Search.StatusText}"
+                    Visibility="{Binding Search.HasStatus, Converter={StaticResource BoolToVisibility}}" />
+
+                <StackPanel
+                    Grid.Column="2"
+                    Margin="4,0,0,0"
+                    VerticalAlignment="Center"
+                    Orientation="Horizontal">
+                    <ToggleButton
+                        Content="Aa"
+                        IsChecked="{Binding Search.MatchCase}"
+                        Style="{StaticResource ChipToggleStyle}"
+                        ToolTip="{Binding Search.MatchCaseTooltip}" />
+                    <ToggleButton
+                        Content="ab"
+                        IsChecked="{Binding Search.WholeWords}"
+                        Style="{StaticResource ChipToggleStyle}"
+                        ToolTip="{Binding Search.WholeWordsTooltip}" />
+                    <ToggleButton
+                        Content=".*"
+                        IsChecked="{Binding Search.UseRegex}"
+                        Style="{StaticResource ChipToggleStyle}"
+                        ToolTip="{Binding Search.UseRegexTooltip}" />
+                    <Button
+                        Margin="4,0,0,0"
+                        Command="{Binding Search.PreviousCommand}"
+                        Content="↑"
+                        Style="{StaticResource LayoutIconButton}"
+                        ToolTip="{Binding Search.PreviousTooltip}" />
+                    <Button
+                        Command="{Binding Search.NextCommand}"
+                        Content="↓"
+                        Style="{StaticResource LayoutIconButton}"
+                        ToolTip="{Binding Search.NextTooltip}" />
+                </StackPanel>
+            </Grid>
+
+            <!--
                 TextEditor.Padding (22 = 12 + 10 скроллбара) уходит во внутренний ScrollViewer
                 AvalonEdit и держит текст от нахлёста; Padding внешнего Border — только зазор
                 до скругления. Механизм — см. architecture.md, Themes.

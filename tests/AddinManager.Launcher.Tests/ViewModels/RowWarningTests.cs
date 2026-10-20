@@ -220,6 +220,7 @@ public sealed class RowWarningTests : IDisposable
             new FakeRevitProcessGuard());
         var markup = new MarkupViewModel(
             list,
+            TestMarkupSearch.Create(),
             new FileAddinMarkupService(_parser, NullLogger<FileAddinMarkupService>.Instance, new FakeRevitProcessGuard(), TestLocalization.For<FileAddinMarkupService>()),
             NullLogger<MarkupViewModel>.Instance,
             new FakeLocalizationService(),

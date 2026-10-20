@@ -127,6 +127,7 @@ public partial class App
                 services.AddSingleton<IAddinFileRowViewModelFactory, AddinFileRowViewModelFactory>();
                 services.AddSingleton<IAddinEntryRowViewModelFactory, AddinEntryRowViewModelFactory>();
                 services.AddSingleton<ISelectableOptionViewModelFactory, SelectableOptionViewModelFactory>();
+                services.AddSingleton<MarkupSearchViewModel>();
                 services.AddModule<ToolbarView>();
                 services.AddModule<ListView>();
                 services.AddModule<EntriesView>();

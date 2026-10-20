@@ -54,6 +54,9 @@ public sealed partial class MarkupViewModel : ObservableObject, ISavablePane
     [ObservableProperty]
     private bool _isDirty;
 
+    /// <summary>Состояние поиска по тексту разметки (строка поиска над редактором).</summary>
+    public MarkupSearchViewModel Search { get; }
+
     /// <summary>Revit запущен — редактор только для чтения, сохранение запрещено.</summary>
     [ObservableProperty]
     private bool _isLocked;
@@ -80,6 +83,7 @@ public sealed partial class MarkupViewModel : ObservableObject, ISavablePane
     /// Выбор файла — источник разметки. Прямая зависимость только на узкий контракт,
     /// а не на зону целиком (docs/architecture.md, раздел MVVM).
     /// </param>
+    /// <param name="search">Состояние поиска по тексту разметки (строка поиска над редактором).</param>
     /// <param name="markupService">Чтение/валидация/сохранение сырого XML.</param>
     /// <param name="logger">Логгер подпанели.</param>
     /// <param name="localizationService">Сервис языка — смена языка перечитывает подписи через <see cref="RefreshSnapshot"/>.</param>
@@ -93,6 +97,7 @@ public sealed partial class MarkupViewModel : ObservableObject, ISavablePane
     /// <param name="fileCatalog">Каталог файлов — обновление после сохранений и кросс-файловые дубли.</param>
     public MarkupViewModel(
         IFileSelection fileSelection,
+        MarkupSearchViewModel search,
         IAddinMarkupService markupService,
         ILogger<MarkupViewModel> logger,
         ILocalizationService localizationService,
@@ -103,6 +108,7 @@ public sealed partial class MarkupViewModel : ObservableObject, ISavablePane
         IAddinFileCatalog fileCatalog)
     {
         _fileSelection = fileSelection;
+        Search = search;
         _markupService = markupService;
         _logger = logger;
         _localizationService = localizationService;
@@ -113,7 +119,11 @@ public sealed partial class MarkupViewModel : ObservableObject, ISavablePane
         _fileCatalog = fileCatalog;
         _fileSelection.PropertyChanged += OnFileSelectionChanged;
         _fileCatalog.Files.CollectionChanged += (_, _) => UpdateDiagnosticSpans();
-        _localizationService.LanguageChanged += (_, _) => RefreshSnapshot();
+        _localizationService.LanguageChanged += (_, _) =>
+        {
+            RefreshSnapshot();
+            Search.RefreshLocalizedText();
+        };
         _guard.Changed += (_, _) => _dispatcher.Invoke(SyncEditLock);
         _entrySelection.PropertyChanged += OnEntrySelectionChanged;
         LoadFrom(_fileSelection.SelectedFile);
@@ -171,6 +181,10 @@ public sealed partial class MarkupViewModel : ObservableObject, ISavablePane
 
     partial void OnRawXmlChanged(string? value)
     {
+        // Поиск пересчитывается и при программной подстановке текста (смена файла/Discard):
+        // совпадения должны описывать тот текст, который сейчас в редакторе.
+        Search.SetDocumentText(value);
+
         if (_loading)
             return;
 
