@@ -18,6 +18,7 @@ public sealed class FileSystemAddinStore : IAddinStore
     private readonly ILogger<FileSystemAddinStore> _logger;
     private readonly IRevitProcessGuard _guard;
     private readonly IStringLocalizer<FileSystemAddinStore> _localizer;
+    private readonly IFileRecycler? _recycler;
     private readonly string _userBaseDirectory;
     private readonly string _machineBaseDirectory;
 
@@ -32,13 +33,15 @@ public sealed class FileSystemAddinStore : IAddinStore
     /// (другая сборка, отсюда без <c>cref</c>).
     /// </param>
     /// <param name="machineBaseDirectory">Корень машинной области (обычно %PROGRAMDATA%); переопределяется в тестах.</param>
+    /// <param name="recycler">Корзина для удаления; без неё файл удаляется безвозвратно (тесты ядра).</param>
     public FileSystemAddinStore(
         IAddinManifestParser parser,
         ILogger<FileSystemAddinStore> logger,
         IRevitProcessGuard guard,
         IStringLocalizer<FileSystemAddinStore> localizer,
         string? userBaseDirectory = null,
-        string? machineBaseDirectory = null)
+        string? machineBaseDirectory = null,
+        IFileRecycler? recycler = null)
     {
         _parser = parser;
         _logger = logger;
@@ -46,6 +49,7 @@ public sealed class FileSystemAddinStore : IAddinStore
         _localizer = localizer;
         _userBaseDirectory = userBaseDirectory ?? Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
         _machineBaseDirectory = machineBaseDirectory ?? Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData);
+        _recycler = recycler;
     }
 
     /// <inheritdoc />
@@ -194,7 +198,7 @@ public sealed class FileSystemAddinStore : IAddinStore
     }
 
     /// <inheritdoc />
-    public void Delete(AddinFile file)
+    public byte[] Delete(AddinFile file)
     {
         if (_guard.IsRunning)
         {
@@ -208,9 +212,14 @@ public sealed class FileSystemAddinStore : IAddinStore
             "Delete({FileName}, {Scope}, {Version}): удаление {Path}",
             file.FileName, file.Scope, file.Version, file.FullPath);
 
+        byte[] content;
         try
         {
-            File.Delete(file.FullPath);
+            content = File.ReadAllBytes(file.FullPath);
+            if (_recycler is not null)
+                _recycler.Recycle(file.FullPath);
+            else
+                File.Delete(file.FullPath);
         }
         catch (Exception ex)
         {
@@ -226,6 +235,8 @@ public sealed class FileSystemAddinStore : IAddinStore
         _logger.LogInformation(
             "Delete({FileName}, {Scope}, {Version}): удалён",
             file.FileName, file.Scope, file.Version);
+
+        return content;
     }
 
     /// <inheritdoc />

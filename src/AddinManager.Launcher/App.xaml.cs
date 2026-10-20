@@ -100,6 +100,7 @@ public partial class App
                 // Темы
                 services.AddSingleton<IThemeService>(_ => new ThemeService(ThemeHelper.IsSystemDark));
                 services.AddSingleton<IAddinManifestParser, LinqToXmlAddinManifestParser>();
+                services.AddSingleton<IFileRecycler, ShellFileRecycler>();
                 services.AddSingleton<IAddinStore, FileSystemAddinStore>();
                 services.AddSingleton<IAddinMarkupService, FileAddinMarkupService>();
                 services.AddSingleton<IManifestSchema, RevitManifestSchema>();

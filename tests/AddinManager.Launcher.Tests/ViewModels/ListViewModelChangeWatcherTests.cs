@@ -285,7 +285,7 @@ public sealed class ListViewModelChangeWatcherTests
         {
             row.DeleteCommand.Execute(null);
 
-            Assert.Equal(["Удалить 'Gone.addin' навсегда?"], dialog.ShownMessages);
+            Assert.Equal(["Переместить 'Gone.addin' в Корзину?"], dialog.ShownMessages);
         });
 
         Assert.Equal(0, list.FileCount);

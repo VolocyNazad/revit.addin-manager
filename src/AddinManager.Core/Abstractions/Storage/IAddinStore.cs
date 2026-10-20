@@ -26,11 +26,14 @@ public interface IAddinStore
     AddinFile SetEnabled(AddinFile file, bool enabled);
 
     /// <summary>
-    /// Удаляет файл с диска безвозвратно. Подтверждение — за вызывающей стороной.
+    /// Удаляет файл с диска. Реализация по умолчанию перемещает его в Корзину (если передан
+    /// <see cref="IFileRecycler"/>), а без неё удаляет безвозвратно. Подтверждение — за вызывающей стороной.
     /// </summary>
+    /// <param name="file">Удаляемый файл.</param>
+    /// <returns>Содержимое файла до удаления — для отмены через <c>Ctrl+Z</c>.</returns>
     /// <exception cref="RevitRunningException">Revit запущен — удаление запрещено.</exception>
     /// <exception cref="IOException">Файл не удалился (нет прав, занят).</exception>
-    void Delete(AddinFile file);
+    byte[] Delete(AddinFile file);
 
     /// <summary>
     /// Переименовывает файл на месте, сохраняя папку (корень версии или <c>disabled/</c>), scope и

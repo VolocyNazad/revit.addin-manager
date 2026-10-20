@@ -78,6 +78,8 @@ public sealed class DesignListViewModel
     public ICommand? SetEnabledFilterCommand { get; set; }
     public ICommand? SetSortOrderCommand { get; set; }
     public ICommand? ToggleSortDirectionCommand { get; set; }
+    public bool HasUndo { get; set; }
+    public ICommand? UndoLastActionCommand { get; set; }
     public ICommand? ToggleSelectedCommand { get; set; }
     public ICommand? ShowInFolderCommand { get; set; }
     public ICommand? BeginRenameCommand { get; set; }

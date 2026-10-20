@@ -68,7 +68,7 @@
     <value>Add file</value>
   </data>
   <data name="DeleteConfirm" xml:space="preserve">
-    <value>Delete '{0}' permanently?</value>
+    <value>Move '{0}' to the Recycle Bin?</value>
   </data>
   <data name="ListRefreshed" xml:space="preserve">
     <value>Plugin list refreshed</value>
@@ -113,7 +113,7 @@
     <value>Clear</value>
   </data>
   <data name="DeleteMultipleConfirm" xml:space="preserve">
-    <value>Delete {0} files permanently?</value>
+    <value>Move {0} files to the Recycle Bin?</value>
   </data>
   <data name="ShowInFolderLabel" xml:space="preserve">
     <value>Show in folder</value>
@@ -150,5 +150,17 @@
   </data>
   <data name="SortDirectionTooltip" xml:space="preserve">
     <value>Change sort direction</value>
+  </data>
+  <data name="UndoDoneMessage" xml:space="preserve">
+    <value>Undone</value>
+  </data>
+  <data name="UndoFailedMessage" xml:space="preserve">
+    <value>Could not undo the last action</value>
+  </data>
+  <data name="UndoFileMissing" xml:space="preserve">
+    <value>The file to undo no longer exists.</value>
+  </data>
+  <data name="UndoFileExists" xml:space="preserve">
+    <value>Cannot undo: '{0}' already exists.</value>
   </data>
 </root>

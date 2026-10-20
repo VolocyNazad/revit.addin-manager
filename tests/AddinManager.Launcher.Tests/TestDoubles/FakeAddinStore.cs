@@ -68,11 +68,19 @@ public sealed class FakeAddinStore : IAddinStore
             throw exception;
         }
 
-        return file with { Enabled = enabled };
+        var updated = file with { Enabled = enabled };
+        foreach (var files in _byVersion.Values)
+        {
+            var index = files.FindIndex(f => f.FileName == file.FileName && f.Scope == file.Scope && f.Version == file.Version);
+            if (index >= 0)
+                files[index] = updated;
+        }
+
+        return updated;
     }
 
     /// <inheritdoc />
-    public void Delete(AddinFile file)
+    public byte[] Delete(AddinFile file)
     {
         DeleteCallCount++;
 
@@ -84,6 +92,8 @@ public sealed class FakeAddinStore : IAddinStore
 
         foreach (var files in _byVersion.Values)
             files.RemoveAll(f => f.FileName == file.FileName && f.Scope == file.Scope && f.Version == file.Version);
+
+        return [];
     }
 
     /// <inheritdoc />
@@ -101,7 +111,7 @@ public sealed class FakeAddinStore : IAddinStore
         if (!name.EndsWith(".addin", StringComparison.OrdinalIgnoreCase))
             name += ".addin";
 
-        var targetPath = Path.Combine(Path.GetDirectoryName(file.FullPath), name);
+        var targetPath = Path.Combine(Path.GetDirectoryName(file.FullPath) ?? string.Empty, name);
         var renamed = file with { FileName = name, FullPath = targetPath };
 
         foreach (var files in _byVersion.Values)

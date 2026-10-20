@@ -68,7 +68,7 @@
     <value>Добавить файл</value>
   </data>
   <data name="DeleteConfirm" xml:space="preserve">
-    <value>Удалить '{0}' навсегда?</value>
+    <value>Переместить '{0}' в Корзину?</value>
   </data>
   <data name="ListRefreshed" xml:space="preserve">
     <value>Список обновлён</value>
@@ -113,7 +113,7 @@
     <value>Снять выбор</value>
   </data>
   <data name="DeleteMultipleConfirm" xml:space="preserve">
-    <value>Удалить {0} файлов навсегда?</value>
+    <value>Переместить {0} файлов в Корзину?</value>
   </data>
   <data name="ShowInFolderLabel" xml:space="preserve">
     <value>Показать в папке</value>
@@ -150,5 +150,17 @@
   </data>
   <data name="SortDirectionTooltip" xml:space="preserve">
     <value>Изменить направление сортировки</value>
+  </data>
+  <data name="UndoDoneMessage" xml:space="preserve">
+    <value>Отменено</value>
+  </data>
+  <data name="UndoFailedMessage" xml:space="preserve">
+    <value>Не удалось отменить последнее действие</value>
+  </data>
+  <data name="UndoFileMissing" xml:space="preserve">
+    <value>Файл для отмены больше не существует.</value>
+  </data>
+  <data name="UndoFileExists" xml:space="preserve">
+    <value>Не удалось отменить: '{0}' уже существует.</value>
   </data>
 </root>

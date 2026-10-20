@@ -589,6 +589,10 @@
             <ListBox.InputBindings>
                 <KeyBinding Key="Delete" Command="{Binding DeleteSelectedCommand}" />
                 <KeyBinding
+                    Key="Z"
+                    Command="{Binding UndoLastActionCommand}"
+                    Modifiers="Control" />
+                <KeyBinding
                     Key="A"
                     Command="{Binding ToggleSelectAllCommand}"
                     Modifiers="Control" />

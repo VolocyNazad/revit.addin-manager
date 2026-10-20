@@ -35,8 +35,10 @@ files and edit their manifests — everything happens before Revit starts.
   duplicate `AddInId` within the file or in other files of the same Revit version.
   The same duplicates are underlined red in the raw XML editor even when the other
   occurrence lives in a different file.
-- The × button on each row deletes its file from disk for good (after confirmation).
-  Like moves and saves, deletion is refused while Revit runs.
+- The × button on each row moves its file to the Windows Recycle Bin (after confirmation), so
+  Explorer can restore it. Like moves and saves, deletion is refused while Revit runs.
+  `Ctrl+Z` then undoes the last move (enable/disable) or deletion: a move returns to its previous
+  folder/state, a deletion writes the saved manifest back to its original path.
 - The + button creates a new `.addin` file: name, scope (`User`/`Machine`), version and
   the `disabled` flag are asked in a dialog; the file starts as an empty manifest.
 - Right-click a row for the Explorer-style context menu: show in folder, rename, enable/disable

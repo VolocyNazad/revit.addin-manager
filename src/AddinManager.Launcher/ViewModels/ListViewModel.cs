@@ -28,6 +28,7 @@ public sealed partial class ListViewModel : ObservableObject, IFileSelection, IA
     private readonly IAddinStore _store;
     private readonly IAddinChangeWatcher _changeWatcher;
     private readonly IUiDispatcher _dispatcher;
+    private IUndoRecord? _lastUndo;
     private readonly ILocalizationService _localizationService;
     private readonly IStringLocalizer<ListViewModel> _localizer;
     private readonly IAddinFileRowViewModelFactory _rowFactory;
@@ -203,6 +204,7 @@ public sealed partial class ListViewModel : ObservableObject, IFileSelection, IA
                 var row = _rowFactory.Create(file);
                 row.DeleteRequested += OnRowDeleteRequested;
                 row.Renamed += OnRowRenamed;
+                row.Toggled += OnRowToggled;
                 row.PropertyChanged += OnRowPropertyChanged;
                 row.IsSelected = previousBulkSelection.Contains((row.FileName, row.Scope, row.Version));
                 Files.Add(row);
@@ -310,8 +312,18 @@ public sealed partial class ListViewModel : ObservableObject, IFileSelection, IA
         var targets = Files.Where(f => f.IsSelected).ToList();
         var enable = targets.Any(f => !f.IsEnabled);
         _logger.LogInformation("BulkToggle: {Count} файлов -> IsEnabled={Value}", targets.Count, enable);
+        var toggles = new List<UndoToggle>();
         foreach (var row in targets)
+        {
+            var before = row.File;
             row.IsEnabled = enable;
+            if (row.File.Enabled != before.Enabled)
+                toggles.Add(new UndoToggle(row.File, before.Enabled));
+        }
+
+        if (toggles.Count > 0)
+            SetUndo(new UndoToggleGroup(toggles));
+
         RefreshSelectionSnapshot();
     }
 
@@ -331,13 +343,15 @@ public sealed partial class ListViewModel : ObservableObject, IFileSelection, IA
 
         _logger.LogInformation("BulkDelete: подтверждено удаление {Count} файлов", targets.Count);
         string? firstError = null;
+        var backups = new List<DeletedFile>();
         foreach (var row in targets)
         {
             try
             {
-                _store.Delete(row.File);
+                var content = _store.Delete(row.File);
+                backups.Add(new DeletedFile(row.File, content));
             }
-            catch (Exception ex) when (ex is IOException or RevitRunningException)
+            catch (Exception ex) when (ex is IOException or RevitRunningException or UnauthorizedAccessException)
             {
                 _logger.LogWarning(
                     ex,
@@ -346,6 +360,9 @@ public sealed partial class ListViewModel : ObservableObject, IFileSelection, IA
                 firstError ??= ex.Message;
             }
         }
+
+        if (backups.Count > 0)
+            SetUndo(new UndoDelete(backups));
 
         ErrorMessage = firstError;
         Refresh();
@@ -403,6 +420,110 @@ public sealed partial class ListViewModel : ObservableObject, IFileSelection, IA
     private int CountEnabled(bool enabled) => SearchMatchedRows.Count(row => row.IsEnabled == enabled);
 
     private static string WithCount(string label, int count) => $"{label} · {count}";
+
+    /// <summary>
+    /// Запоминает успешное переключение enabled/disabled как последнее действие для <c>Ctrl+Z</c>.
+    /// </summary>
+    private void OnRowToggled(object? sender, FileToggledEventArgs e) =>
+        SetUndo(new UndoToggle(e.After, e.Before.Enabled));
+
+    /// <summary>Можно ли отменить последнее действие (есть запись и не мешает живой Revit).</summary>
+    public bool HasUndo => _lastUndo is not null;
+
+    private bool CanUndo() => _lastUndo is not null && !IsLocked;
+
+    /// <summary>
+    /// Отменяет последнее перемещение enabled/disabled или удаление файла: перенос возвращает
+    /// прежнее состояние, удаление — записывает сохранённые байты обратно на прежний путь.
+    /// </summary>
+    [RelayCommand(CanExecute = nameof(CanUndo))]
+    public void UndoLastAction()
+    {
+        if (_lastUndo is not { } undo)
+            return;
+
+        SetUndo(null);
+        try
+        {
+            switch (undo)
+            {
+                case UndoToggle toggle:
+                    var current = Files.FirstOrDefault(file =>
+                        file.FileName == toggle.After.FileName
+                        && file.Scope == toggle.After.Scope
+                        && file.Version == toggle.After.Version);
+                    if (current is null)
+                        throw new IOException(_localizer["UndoFileMissing"]);
+
+                    _store.SetEnabled(current.File, toggle.PreviousEnabled);
+                    Refresh();
+                    SelectByIdentity(toggle.After.FileName, toggle.After.Scope, toggle.After.Version);
+                    break;
+
+                case UndoToggleGroup group:
+                    foreach (var item in group.Toggles)
+                    {
+                        var currentFile = Files.FirstOrDefault(file =>
+                            file.FileName == item.After.FileName
+                            && file.Scope == item.After.Scope
+                            && file.Version == item.After.Version);
+                        if (currentFile is null)
+                            throw new IOException(_localizer["UndoFileMissing"]);
+
+                        _store.SetEnabled(currentFile.File, item.PreviousEnabled);
+                    }
+
+                    Refresh();
+                    var firstToggle = group.Toggles[0].After;
+                    SelectByIdentity(firstToggle.FileName, firstToggle.Scope, firstToggle.Version);
+                    break;
+
+                case UndoDelete delete:
+                    foreach (var item in delete.Files)
+                    {
+                        if (File.Exists(item.File.FullPath))
+                            throw new IOException(_localizer["UndoFileExists", item.File.FileName]);
+
+                        var directory = Path.GetDirectoryName(item.File.FullPath);
+                        if (!string.IsNullOrEmpty(directory))
+                            Directory.CreateDirectory(directory);
+                        File.WriteAllBytes(item.File.FullPath, item.Content);
+                    }
+
+                    Refresh();
+                    var first = delete.Files[0].File;
+                    SelectByIdentity(first.FileName, first.Scope, first.Version);
+                    break;
+            }
+
+            _toastService.Show(_localizer["UndoDoneMessage"]);
+        }
+        catch (Exception ex) when (ex is IOException or RevitRunningException or UnauthorizedAccessException)
+        {
+            _logger.LogWarning(ex, "Undo: последнее действие не удалось отменить");
+            ErrorMessage = ex.Message;
+            _toastService.Show(_localizer["UndoFailedMessage"]);
+        }
+    }
+
+    private void SetUndo(IUndoRecord? undo)
+    {
+        _lastUndo = undo;
+        UndoLastActionCommand.NotifyCanExecuteChanged();
+        OnPropertyChanged(nameof(HasUndo));
+    }
+
+    private void SelectByIdentity(string fileName, AddinScope scope, string version)
+    {
+        var row = Files.FirstOrDefault(file =>
+            file.FileName == fileName && file.Scope == scope && file.Version == version);
+        if (row is null)
+            return;
+
+        SelectedFile = row;
+        row.IsSelected = true;
+        RefreshSelectionSnapshot();
+    }
 
     /// <summary>
     /// Возвращается после успешного переименования строки: перечитывает список (файл на диске уже
@@ -509,24 +630,28 @@ public sealed partial class ListViewModel : ObservableObject, IFileSelection, IA
     }
 
     /// <summary>
-    /// Удаляет файл строки с диска навсегда (после подтверждения). Ошибка (нет прав,
-    /// файл занят, живой Revit) — в сообщение под строкой, выбор не теряется.
+    /// Удаляет файл строки (после подтверждения) в Корзину. Ошибка (нет прав,
+    /// файл занят, живой Revit) — в сообщение под строкой, выбор не теряется. Байты файла
+    /// сохраняются для <c>Ctrl+Z</c>.
     /// </summary>
     private void DeleteRow(AddinFileRowViewModel row)
     {
         if (!_dialogService.Confirm(_localizer["DeleteConfirm", row.FileName]))
             return;
 
+        DeletedFile backup;
         try
         {
-            _store.Delete(row.File);
+            var content = _store.Delete(row.File);
+            backup = new DeletedFile(row.File, content);
         }
-        catch (Exception ex) when (ex is IOException or RevitRunningException)
+        catch (Exception ex) when (ex is IOException or RevitRunningException or UnauthorizedAccessException)
         {
             row.ErrorMessage = ex.Message;
             return;
         }
 
+        SetUndo(new UndoDelete([backup]));
         Refresh();
     }
 
@@ -564,6 +689,7 @@ public sealed partial class ListViewModel : ObservableObject, IFileSelection, IA
         AddFileCommand.NotifyCanExecuteChanged();
         ToggleSelectedCommand.NotifyCanExecuteChanged();
         DeleteSelectedCommand.NotifyCanExecuteChanged();
+        UndoLastActionCommand.NotifyCanExecuteChanged();
     }
 
     /// <summary>
@@ -878,6 +1004,18 @@ public sealed partial class ListViewModel : ObservableObject, IFileSelection, IA
     }
 
     private void RefreshSnapshot() => OnPropertyChanged((string?)null);
+
+    private interface IUndoRecord
+    {
+    }
+
+    private sealed record UndoToggle(AddinFile After, bool PreviousEnabled) : IUndoRecord;
+
+    private sealed record UndoToggleGroup(IReadOnlyList<UndoToggle> Toggles) : IUndoRecord;
+
+    private sealed record UndoDelete(IReadOnlyList<DeletedFile> Files) : IUndoRecord;
+
+    private sealed record DeletedFile(AddinFile File, byte[] Content);
 
     /// <inheritdoc />
     public override string ToString() => $"List(Files={FileCount}, Selected={SelectedFile?.FileName ?? "-"}, Bulk={SelectedCount})";

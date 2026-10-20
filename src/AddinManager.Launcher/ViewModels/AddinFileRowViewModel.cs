@@ -86,6 +86,9 @@ public sealed partial class AddinFileRowViewModel : ObservableObject
     /// <summary>Файл переименован — <see cref="ListViewModel"/> перечитывает список и восстанавливает выбор.</summary>
     public event EventHandler? Renamed;
 
+    /// <summary>Файл успешно переключён enabled/disabled — действие запоминается для <c>Ctrl+Z</c>.</summary>
+    public event EventHandler<FileToggledEventArgs>? Toggled;
+
     /// <summary>Идёт встроенное переименование строки (TextBox вместо имени файла).</summary>
     [ObservableProperty]
     private bool _isRenaming;
@@ -185,11 +188,14 @@ public sealed partial class AddinFileRowViewModel : ObservableObject
 
         try
         {
+            var before = _file;
             _file = _store.SetEnabled(_file, value);
             ErrorMessage = null;
             _logger.LogInformation(
                 "Toggle {FileName} ({Scope}, {Version}): успешно, теперь IsEnabled={Value}",
                 _file.FileName, _file.Scope, _file.Version, value);
+            if (before.Enabled != _file.Enabled)
+                Toggled?.Invoke(this, new FileToggledEventArgs(before, _file));
         }
         catch (IOException ex)
         {
