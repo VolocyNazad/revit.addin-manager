@@ -40,6 +40,8 @@ Detailed behavior is defined in [FEATURES.md](FEATURES.md).
   14 files of up to 20 MB each
 - AvalonEdit for the Markup zone's raw-XML editor (line numbers, undo/redo, XML syntax
   highlighting)
+- Windows Recycle Bin deletion via the framework `Microsoft.VisualBasic.FileIO` API (no NuGet
+  package)
 - Tests: **xunit.v3** via Microsoft.Testing.Platform (test projects are executables)
 - `SonarAnalyzer.CSharp` wired globally; Central Package Management via `Directory.Packages.props`
   (`installer/` and `build/` manage their own package versions separately, mirroring `revit.linter`)
