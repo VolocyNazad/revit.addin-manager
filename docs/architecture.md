@@ -44,7 +44,7 @@ This document records stable architectural rules. Implementation details belong 
 
 - `ListViewModel` owns the scanned file list and its `ICollectionView`; rows expose display state and commands.
 - `IAddinChangeWatcher` debounces file-system notifications and triggers a refresh. Refreshes preserve selection by file identity.
-- Disk operations go through `IAddinStore`. Writes are atomic and keep a `.bak` copy where applicable. `Delete` delegates to `IFileRecycler` in the launcher (Windows Recycle Bin); without a recycler it falls back to a permanent delete (tests). `ListViewModel` keeps the last move/copy/rename/delete as an undo record for `Ctrl+Z`.
+- Disk operations go through `IAddinStore`. Writes are atomic and keep a `.bak` copy where applicable. `Delete` delegates to `IFileRecycler` in the launcher (Windows Recycle Bin); the permanent-delete branch exists only for Core tests, while production composition always supplies a recycler. `ListViewModel` keeps the last move/copy/rename/delete as an undo record for `Ctrl+Z`.
 - `Move`/`Copy` in `IAddinStore` create missing target folders, validate collisions and optionally replace the target via the recycler. `MoveCopyDialogViewModel` shows the target path and compatibility warnings; `IEditorDirtyState` lets the list save or explicitly discard unsaved editor changes before moving.
 - File-safety rules: deleting and replacing target files goes through `IFileRecycler` (Windows Recycle Bin); an overwritten target stays recoverable; undo is single-level and restores file content and replaced targets; all disk mutations stay blocked while Revit runs.
 
