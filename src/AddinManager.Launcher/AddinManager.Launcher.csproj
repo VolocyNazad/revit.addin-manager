@@ -12,6 +12,12 @@
 
   <ItemGroup>
     <Resource Include="Resources\Icon.ico" />
+    <!--
+      Icon.png — 256-пиксельный кадр Icon.ico для шапки окна: Image грузит из ICO
+      только 16×16 и растягивает его, поэтому в шапке иконка была бы мыльной.
+      Обновлять вместе с Icon.ico.
+    -->
+    <Resource Include="Resources\Icon.png" />
   </ItemGroup>
 
   <ItemGroup>

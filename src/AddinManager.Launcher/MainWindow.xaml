@@ -20,7 +20,6 @@
     WindowStyle="None"
     mc:Ignorable="d">
     <Window.Resources>
-        <SolidColorBrush x:Key="AppIconMarkBrush" Color="#45CDFF" />
         <BooleanToVisibilityConverter x:Key="BoolToVisibility" />
         <Style x:Key="CaptionButton" TargetType="Button">
             <Setter Property="Background" Value="Transparent" />
@@ -163,15 +162,12 @@
                 Margin="12,0,0,0"
                 VerticalAlignment="Center"
                 Orientation="Horizontal">
-                <Viewbox
+                <Image
                     Width="38"
                     Height="38"
-                    Margin="0,0,8,0"
-                    Stretch="Uniform">
-                    <Canvas Width="32" Height="32">
-                        <Path Data="M19 7C23.971 7 28 11.029 28 16C28 20.971 23.971 25 19 25C15.286 25 12.106 22.754 10.722 19.52C9.98 20.43 8.86 21 7.6 21C6.58 21 5.64 20.66 4.9 20.09C6.04 19.39 6.8 18.15 6.8 16.73C6.8 15.31 6.04 14.07 4.9 13.37C5.64 12.8 6.58 12.46 7.6 12.46C8.77 12.46 9.82 12.95 10.56 13.74C11.53 9.84 14.88 7 19 7ZM19 11C16.239 11 14 13.239 14 16C14 18.761 16.239 21 19 21C21.761 21 24 18.761 24 16C24 13.239 21.761 11 19 11ZM21.5 12.5C22.881 12.5 24 13.619 24 15C24 16.381 22.881 17.5 21.5 17.5C20.119 17.5 19 16.381 19 15C19 13.619 20.119 12.5 21.5 12.5ZM22 13.5C21.448 13.5 21 13.948 21 14.5C21 15.052 21.448 15.5 22 15.5C22.552 15.5 23 15.052 23 14.5C23 13.948 22.552 13.5 22 13.5Z" Fill="{StaticResource AppIconMarkBrush}" />
-                    </Canvas>
-                </Viewbox>
+                    Margin="0,4,8,0"
+                    RenderOptions.BitmapScalingMode="HighQuality"
+                    Source="Resources/Icon.png" />
                 <TextBlock
                     VerticalAlignment="Center"
                     FontWeight="SemiBold"
