@@ -282,51 +282,21 @@
             Visibility="{Binding SelectedFile, Converter={StaticResource HasSelection}, ConverterParameter=Invert}" />
 
         <DockPanel LastChildFill="True" Visibility="{Binding SelectedFile, Converter={StaticResource HasSelection}}">
-            <StackPanel Margin="12,12,12,12" DockPanel.Dock="Top">
-                <!--  Скрытая пара кнопок резервирует высоту строки MarkupView — иначе подзаголовки панелей разъедутся.  -->
-                <Grid>
-                    <TextBlock
-                        VerticalAlignment="Center"
-                        FontSize="13"
-                        FontWeight="SemiBold"
-                        Text="{Binding SelectedFile.FileName}"
-                        TextTrimming="CharacterEllipsis" />
-                    <StackPanel
-                        HorizontalAlignment="Right"
-                        Orientation="Horizontal"
-                        Visibility="Hidden">
-                        <Button
-                            Content="{Binding DiscardButtonLabel}"
-                            Focusable="False"
-                            IsHitTestVisible="False"
-                            Style="{StaticResource EditorButtonStyle}" />
-                        <Button
-                            Content="{Binding SaveButtonLabel}"
-                            Focusable="False"
-                            IsHitTestVisible="False"
-                            Style="{StaticResource EditorButtonStyle}" />
-                    </StackPanel>
-                </Grid>
+            <!--  Ошибки самой панели записей (добавление/удаление) — локальный баннер, не общий заголовок.  -->
+            <Border
+                Margin="12,0,12,8"
+                Padding="10,6"
+                Background="{DynamicResource WarningBackgroundBrush}"
+                BorderBrush="{DynamicResource WarningBorderBrush}"
+                BorderThickness="1"
+                CornerRadius="8"
+                DockPanel.Dock="Top"
+                Visibility="{Binding ErrorMessage, Converter={StaticResource NullOrEmptyToVisibility}}">
                 <TextBlock
-                    Margin="0,2,0,0"
                     FontSize="11"
-                    Opacity="0.5"
-                    Text="{Binding SelectedFile.MetaLine}" />
-
-                <Border
-                    Margin="0,8,0,0"
-                    Padding="10,6"
-                    Background="{DynamicResource WarningBackgroundBrush}"
-                    BorderBrush="{DynamicResource WarningBorderBrush}"
-                    BorderThickness="1"
-                    CornerRadius="8"
-                    Visibility="{Binding ErrorMessage, Converter={StaticResource NullOrEmptyToVisibility}}">
-                    <TextBlock
-                        FontSize="11"
-                        Text="{Binding ErrorMessage}"
-                        TextWrapping="Wrap" />
-                </Border>
-            </StackPanel>
+                    Text="{Binding ErrorMessage}"
+                    TextWrapping="Wrap" />
+            </Border>
 
             <!--  Поиск + добавить запись (иконка; тип спрашивает диалог).  -->
             <Grid Margin="0,0,0,8" DockPanel.Dock="Bottom">

@@ -48,6 +48,7 @@ This document records stable architectural rules. Implementation details belong 
 ## Editor
 
 - `EditorView` exposes independent Form, Markup and Settings modes.
+- The editor zone renders one shared header for every mode, including the combined entries+form and entries+markup modes: file name, meta line, unsaved badge, Save/Discard routed to the visible pane and that pane's error. Sub-panes do not repeat the header; `EditorViewModel` receives the pane state through `ISavablePane` and the file through `IFileSelection`.
 - The Markup mode uses AvalonEdit and reparses text for diagnostics. Saves go through the same parser and atomic markup service as structured editing.
 - The Markup mode's persistent find bar searches the whole file through the headless `TextSearchEngine` (`AddinManager.Core.Search`). `MarkupSearchViewModel` owns the query, options, match list and current position; the view only selects and highlights the matches and never changes the document or the save path.
 - The Form mode edits one entry. The Settings mode edits file-level `ManifestSettings` and is available only for supported Revit versions.

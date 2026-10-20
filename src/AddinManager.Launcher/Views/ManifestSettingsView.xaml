@@ -19,7 +19,6 @@
     </UserControl.InputBindings>
     <UserControl.Resources>
         <converters:NullToVisibilityConverter x:Key="HasSelection" />
-        <converters:NullOrEmptyToVisibilityConverter x:Key="NullOrEmptyToVisibility" />
         <converters:NullableBoolStateToOpacityConverter x:Key="UseRevitContextOpacity" />
         <converters:BoolToVisibilityConverter x:Key="BoolToVisibility" />
 
@@ -52,48 +51,6 @@
             Visibility="{Binding SelectedFile, Converter={StaticResource HasSelection}, ConverterParameter=Invert}" />
 
         <DockPanel LastChildFill="True" Visibility="{Binding SelectedFile, Converter={StaticResource HasSelection}}">
-            <!--  Высота и левый край заголовка — как у соседних подпанелей (см. architecture.md, Themes).  -->
-            <StackPanel Margin="12,12,12,10" DockPanel.Dock="Top">
-                <Grid>
-                    <TextBlock
-                        VerticalAlignment="Center"
-                        FontSize="13"
-                        FontWeight="SemiBold"
-                        Text="{Binding SelectedFile.FileName}"
-                        TextTrimming="CharacterEllipsis" />
-                    <StackPanel HorizontalAlignment="Right" Orientation="Horizontal">
-                        <Button
-                            Command="{Binding DiscardCommand}"
-                            Content="{Binding DiscardButtonLabel}"
-                            Style="{StaticResource EditorButtonStyle}" />
-                        <Button
-                            Command="{Binding SaveCommand}"
-                            Content="{Binding SaveButtonLabel}"
-                            Style="{StaticResource EditorButtonStyle}" />
-                    </StackPanel>
-                </Grid>
-
-                <TextBlock
-                    Margin="0,2,0,0"
-                    FontSize="11"
-                    Opacity="0.5"
-                    Text="{Binding SelectedFile.MetaLine}" />
-
-                <Border
-                    Margin="0,8,0,0"
-                    Padding="10,6"
-                    Background="{DynamicResource WarningBackgroundBrush}"
-                    BorderBrush="{DynamicResource WarningBorderBrush}"
-                    BorderThickness="1"
-                    CornerRadius="8"
-                    Visibility="{Binding ErrorMessage, Converter={StaticResource NullOrEmptyToVisibility}}">
-                    <TextBlock
-                        FontSize="11"
-                        Text="{Binding ErrorMessage}"
-                        TextWrapping="Wrap" />
-                </Border>
-            </StackPanel>
-
             <!--  Без карточки (как форма); 26 справа = 16 + 10 скроллбара (см. architecture.md, Themes).  -->
             <Border Background="Transparent">
                 <ScrollViewer Padding="16,16,26,16" VerticalScrollBarVisibility="Auto">

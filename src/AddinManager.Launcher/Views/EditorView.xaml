@@ -18,6 +18,8 @@
     <UserControl.Resources>
         <converters:EnumEqualsToOpacityConverter x:Key="ActiveModeOpacityConverter" />
         <converters:EditorModeToVisibilityConverter x:Key="EditorModeVisibilityConverter" />
+        <converters:NullToVisibilityConverter x:Key="HasSelectedFile" />
+        <BooleanToVisibilityConverter x:Key="BoolToVisibility" />
     </UserControl.Resources>
     <Grid>
         <Border
@@ -114,39 +116,114 @@
                 </Button>
             </StackPanel>
             <Grid Grid.Row="1" Margin="8,0,8,8">
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition x:Name="EditorEntriesColumn" Width="*" />
-                    <ColumnDefinition x:Name="EditorComboSplitterColumn" Width="0" />
-                    <ColumnDefinition x:Name="EditorDetailColumn" Width="0" />
-                </Grid.ColumnDefinitions>
-                <Grid x:Name="EntriesPanel" Grid.Column="0">
-                    <ContentControl Content="{composition:ViewModelLocator {x:Type viewmodels:EntriesViewModel}}" />
-                </Grid>
-                <GridSplitter
-                    x:Name="EditorComboSplitter"
-                    Grid.Column="1"
-                    Width="9"
-                    Margin="0,4,0,4"
-                    HorizontalAlignment="Center"
-                    VerticalAlignment="Stretch"
-                    DragCompleted="OnEditorSplitterDragCompleted">
-                    <GridSplitter.Template>
-                        <ControlTemplate TargetType="GridSplitter">
-                            <Border Background="Transparent">
-                                <Border
-                                    Width="1"
-                                    Margin="0,4,0,4"
-                                    HorizontalAlignment="Center"
-                                    Background="Gray"
-                                    Opacity="0.5" />
-                            </Border>
-                        </ControlTemplate>
-                    </GridSplitter.Template>
-                </GridSplitter>
-                <Grid x:Name="DetailPanel" Grid.Column="2">
-                    <ContentControl Content="{composition:ViewModelLocator {x:Type viewmodels:FormViewModel}}" Visibility="{Binding Mode, Converter={StaticResource EditorModeVisibilityConverter}, ConverterParameter='Form,EntriesForm'}" />
-                    <ContentControl Content="{composition:ViewModelLocator {x:Type viewmodels:MarkupViewModel}}" Visibility="{Binding Mode, Converter={StaticResource EditorModeVisibilityConverter}, ConverterParameter='Markup,EntriesMarkup'}" />
-                    <ContentControl Content="{composition:ViewModelLocator {x:Type viewmodels:ManifestSettingsViewModel}}" Visibility="{Binding Mode, Converter={StaticResource EditorModeVisibilityConverter}, ConverterParameter='Settings'}" />
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="*" />
+                </Grid.RowDefinitions>
+
+                <!--
+                    Общий заголовок всех режимов: имя файла, мета-строка, бейдж несохранённых
+                    правок, кнопки Save/Discard активной панели и её ошибка. В комбинированных
+                    режимах подпанели заголовков не повторяют — см. docs/architecture.md, "Editor".
+                -->
+                <StackPanel
+                    Grid.Row="0"
+                    Margin="12,12,12,10"
+                    Visibility="{Binding SelectedFile, Converter={StaticResource HasSelectedFile}}">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition Width="Auto" />
+                        </Grid.ColumnDefinitions>
+                        <TextBlock
+                            Grid.Column="0"
+                            VerticalAlignment="Center"
+                            FontSize="13"
+                            FontWeight="SemiBold"
+                            Text="{Binding SelectedFile.FileName}"
+                            TextTrimming="CharacterEllipsis" />
+                        <TextBlock
+                            Grid.Column="1"
+                            Margin="8,0,0,0"
+                            VerticalAlignment="Center"
+                            FontSize="11"
+                            Opacity="0.55"
+                            Text="{Binding UnsavedBadge}"
+                            Visibility="{Binding IsDirty, Converter={StaticResource BoolToVisibility}}" />
+                        <StackPanel
+                            Grid.Column="2"
+                            Margin="8,0,0,0"
+                            HorizontalAlignment="Right"
+                            Orientation="Horizontal"
+                            Visibility="{Binding ShowHeaderActions, Converter={StaticResource BoolToVisibility}}">
+                            <Button
+                                Command="{Binding DiscardActiveCommand}"
+                                Content="{Binding DiscardLabel}"
+                                Style="{StaticResource EditorButtonStyle}" />
+                            <Button
+                                Command="{Binding SaveActiveCommand}"
+                                Content="{Binding SaveLabel}"
+                                Style="{StaticResource EditorButtonStyle}" />
+                        </StackPanel>
+                    </Grid>
+
+                    <TextBlock
+                        Margin="0,2,0,0"
+                        FontSize="11"
+                        Opacity="0.5"
+                        Text="{Binding SelectedFile.MetaLine}" />
+
+                    <Border
+                        Margin="0,8,0,0"
+                        Padding="10,6"
+                        Background="{DynamicResource WarningBackgroundBrush}"
+                        BorderBrush="{DynamicResource WarningBorderBrush}"
+                        BorderThickness="1"
+                        CornerRadius="8"
+                        Visibility="{Binding HasHeaderError, Converter={StaticResource BoolToVisibility}}">
+                        <TextBlock
+                            FontSize="11"
+                            Text="{Binding HeaderError}"
+                            TextWrapping="Wrap" />
+                    </Border>
+                </StackPanel>
+
+                <Grid Grid.Row="1">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition x:Name="EditorEntriesColumn" Width="*" />
+                        <ColumnDefinition x:Name="EditorComboSplitterColumn" Width="0" />
+                        <ColumnDefinition x:Name="EditorDetailColumn" Width="0" />
+                    </Grid.ColumnDefinitions>
+                    <Grid x:Name="EntriesPanel" Grid.Column="0">
+                        <ContentControl Content="{composition:ViewModelLocator {x:Type viewmodels:EntriesViewModel}}" />
+                    </Grid>
+                    <GridSplitter
+                        x:Name="EditorComboSplitter"
+                        Grid.Column="1"
+                        Width="9"
+                        Margin="0,4,0,4"
+                        HorizontalAlignment="Center"
+                        VerticalAlignment="Stretch"
+                        DragCompleted="OnEditorSplitterDragCompleted">
+                        <GridSplitter.Template>
+                            <ControlTemplate TargetType="GridSplitter">
+                                <Border Background="Transparent">
+                                    <Border
+                                        Width="1"
+                                        Margin="0,4,0,4"
+                                        HorizontalAlignment="Center"
+                                        Background="Gray"
+                                        Opacity="0.5" />
+                                </Border>
+                            </ControlTemplate>
+                        </GridSplitter.Template>
+                    </GridSplitter>
+                    <Grid x:Name="DetailPanel" Grid.Column="2">
+                        <ContentControl Content="{composition:ViewModelLocator {x:Type viewmodels:FormViewModel}}" Visibility="{Binding Mode, Converter={StaticResource EditorModeVisibilityConverter}, ConverterParameter='Form,EntriesForm'}" />
+                        <ContentControl Content="{composition:ViewModelLocator {x:Type viewmodels:MarkupViewModel}}" Visibility="{Binding Mode, Converter={StaticResource EditorModeVisibilityConverter}, ConverterParameter='Markup,EntriesMarkup'}" />
+                        <ContentControl Content="{composition:ViewModelLocator {x:Type viewmodels:ManifestSettingsViewModel}}" Visibility="{Binding Mode, Converter={StaticResource EditorModeVisibilityConverter}, ConverterParameter='Settings'}" />
+                    </Grid>
                 </Grid>
             </Grid>
         </Grid>

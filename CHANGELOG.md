@@ -13,6 +13,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Changed
 
+- The editor zone now has one shared header for all modes and both combined views (file name, meta line, unsaved badge, Save/Discard and the visible pane's error): the sub-panes no longer repeat the file title next to each other in entries+form and entries+markup.
 - The title-bar app mark now shows the same pufferfish artwork as the executable and the desktop shortcut: the monochrome outline is replaced by the application icon (`Resources/Icon.png`, a 256 px rendering of `Resources/Icon.ico`).
 - Launcher logs now use `%LOCALAPPDATA%`, roll daily and at 20 MB, retain the newest 14 files, and default to Information level in Release builds; startup and shutdown failures are captured before the process exits.
 

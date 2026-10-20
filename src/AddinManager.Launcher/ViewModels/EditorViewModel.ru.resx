@@ -76,4 +76,7 @@
   <data name="EditorMode_SettingsTooltip" xml:space="preserve">
     <value>Настройки файла (ManifestSettings)</value>
   </data>
+  <data name="Editor_UnsavedBadge" xml:space="preserve">
+    <value>не сохранено</value>
+  </data>
 </root>

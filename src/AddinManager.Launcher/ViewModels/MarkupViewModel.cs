@@ -428,9 +428,6 @@ public sealed partial class MarkupViewModel : ObservableObject, ISavablePane
     /// <summary>Кнопка "Сохранить" (хоткей: Ctrl+S).</summary>
     public string SaveButtonLabel => $"{_localizer["SaveButton"]} (Ctrl+S)";
 
-    /// <summary>Бейдж несохранённых изменений рядом с именем файла.</summary>
-    public string UnsavedBadge => _localizer["Markup_UnsavedBadge"];
-
     /// <inheritdoc />
     public override string ToString() =>
         $"Markup(File={SelectedFile?.FileName ?? "-"}, Dirty={IsDirty}, Error={ErrorMessage is not null})";

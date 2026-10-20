@@ -51,7 +51,9 @@ files and edit their manifests — everything happens before Revit starts.
   `Ctrl+2`), editor only (`Ctrl+3`).
 - Four editor modes with toolbar icons: manifest entries (`Alt+1`), structured form (`Alt+2`),
   raw XML markup (`Alt+3`), file settings (`ManifestSettings`, `Alt+4`); the combined
-  entries+form and entries+markup views stay mouse-only.
+  entries+form and entries+markup views stay mouse-only. Every mode shares one editor header
+  (file name, meta line, unsaved badge, Save/Discard and the error of the visible pane), so the
+  combined views never repeat it next to each other.
 
 ## Manifest entries
 

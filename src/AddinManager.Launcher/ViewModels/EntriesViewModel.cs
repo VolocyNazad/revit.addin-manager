@@ -349,12 +349,6 @@ public sealed partial class EntriesViewModel : ObservableObject, IEntrySelection
     /// <summary>Приглашение выбрать файл, когда ничего не выбрано.</summary>
     public string EmptySelectionPrompt => _localizer["EmptySelection_FilePrompt"];
 
-    /// <summary>Кнопка "Отменить" (и её скрытый placeholder для выравнивания заголовков).</summary>
-    public string DiscardButtonLabel => _localizer["DiscardButton"];
-
-    /// <summary>Кнопка "Сохранить" (и её скрытый placeholder для выравнивания заголовков).</summary>
-    public string SaveButtonLabel => _localizer["SaveButton"];
-
     /// <summary>Тултип иконки "Добавить запись" (хоткей: Insert).</summary>
     public string AddEntryTooltip => $"{_localizer["AddEntryTooltip"]} (Insert)";
 

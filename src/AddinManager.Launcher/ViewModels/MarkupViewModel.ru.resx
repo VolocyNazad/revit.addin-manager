@@ -67,9 +67,6 @@
   <data name="SaveButton" xml:space="preserve">
     <value>Сохранить</value>
   </data>
-  <data name="Markup_UnsavedBadge" xml:space="preserve">
-    <value>не сохранено</value>
-  </data>
   <data name="MarkupError_ReadFailed" xml:space="preserve">
     <value>Не удалось прочитать файл: {0}.</value>
   </data>

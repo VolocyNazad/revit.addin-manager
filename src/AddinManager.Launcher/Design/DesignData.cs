@@ -94,8 +94,6 @@ public sealed class DesignEntriesViewModel
     public DesignFileRow? SelectedFile { get; set; } = new();
     public List<DesignEntryRow> Entries { get; } = [new(), new() { DisplayName = "Открыть журнал" }];
     public DesignEntryRow? SelectedEntry { get; set; }
-    public string DiscardButtonLabel { get; set; } = "Отменить";
-    public string SaveButtonLabel { get; set; } = "Сохранить";
     public int SelectedCount { get; set; } = 1;
     public bool HasSelection { get; set; } = true;
     public string SelectionSummary { get; set; } = "Выбрано: 1";
@@ -137,7 +135,6 @@ public sealed class DesignFormViewModel
 {
     public string EmptySelectionPrompt { get; set; } = "Выберите запись в списке слева";
     public object? SelectedEntry { get; set; } = new();
-    public DesignFileRow? SelectedFile { get; set; } = new();
     public AddinEntryType EntryType { get; set; } = AddinEntryType.Command;
     public string EntryTypeLabel { get; set; } = "Type";
     public string NameLabel { get; set; } = "Name";
@@ -170,7 +167,6 @@ public sealed class DesignFormViewModel
     public bool ShowSmallImage { get; set; } = true;
     public bool ShowToolTipImage { get; set; } = true;
     public bool IsLocked { get; set; }
-    public string? ErrorMessage { get; set; }
     public string? AssemblyPathError { get; set; }
     public string? AddInIdError { get; set; }
     public string? FullClassNameError { get; set; }
@@ -186,8 +182,6 @@ public sealed class DesignFormViewModel
         new("Structure"),
         new("MEP"),
     ];
-    public ICommand? DiscardCommand { get; set; }
-    public ICommand? SaveCommand { get; set; }
     public ICommand? GenerateAddInIdCommand { get; set; }
 }
 
@@ -195,15 +189,8 @@ public sealed class DesignMarkupViewModel
 {
     public string EmptySelectionPrompt { get; set; } = "Выберите файл в списке слева";
     public DesignFileRow? SelectedFile { get; set; } = new();
-    public bool IsDirty { get; set; } = true;
-    public string UnsavedBadge { get; set; } = "не сохранено";
-    public string DiscardButtonLabel { get; set; } = "Отменить";
-    public string SaveButtonLabel { get; set; } = "Сохранить";
-    public string? ErrorMessage { get; set; }
     public bool IsLocked { get; set; }
     public DesignMarkupSearchViewModel Search { get; } = new();
-    public ICommand? DiscardCommand { get; set; }
-    public ICommand? SaveCommand { get; set; }
 }
 
 public sealed class DesignMarkupSearchViewModel
@@ -236,18 +223,21 @@ public sealed class DesignSettingsViewModel
     public string UnsetOptionLabel { get; set; } = "Не задано";
     public string YesOptionLabel { get; set; } = "Да";
     public string NoOptionLabel { get; set; } = "Нет";
-    public string DiscardButtonLabel { get; set; } = "Отменить";
-    public string SaveButtonLabel { get; set; } = "Сохранить";
-    public string? ErrorMessage { get; set; }
     public bool IsLocked { get; set; }
-    public ICommand? DiscardCommand { get; set; }
-    public ICommand? SaveCommand { get; set; }
     public ICommand? SetUseRevitContextCommand { get; set; }
 }
 
 public sealed class DesignEditorViewModel
 {
     public EditorMode Mode { get; set; } = EditorMode.EntriesForm;
+    public DesignFileRow? SelectedFile { get; set; } = new();
+    public bool IsDirty { get; set; } = true;
+    public string UnsavedBadge { get; set; } = "не сохранено";
+    public string SaveLabel { get; set; } = "Сохранить (Ctrl+S)";
+    public string DiscardLabel { get; set; } = "Отменить (Esc)";
+    public string? HeaderError { get; set; }
+    public bool HasHeaderError { get; set; }
+    public bool ShowHeaderActions { get; set; } = true;
     public string EntriesTooltip { get; set; } = "Записи манифеста";
     public string FormTooltip { get; set; } = "Форма";
     public string MarkupTooltip { get; set; } = "Разметка";
@@ -255,4 +245,6 @@ public sealed class DesignEditorViewModel
     public string EntriesMarkupTooltip { get; set; } = "Записи и разметка";
     public string SettingsTooltip { get; set; } = "Настройки файла (ManifestSettings)";
     public ICommand? SetEditorModeCommand { get; set; }
+    public ICommand? SaveActiveCommand { get; set; }
+    public ICommand? DiscardActiveCommand { get; set; }
 }

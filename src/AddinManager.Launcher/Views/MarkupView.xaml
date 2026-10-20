@@ -19,7 +19,6 @@
     </UserControl.InputBindings>
     <UserControl.Resources>
         <converters:NullToVisibilityConverter x:Key="HasSelection" />
-        <converters:NullOrEmptyToVisibilityConverter x:Key="NullOrEmptyToVisibility" />
         <BooleanToVisibilityConverter x:Key="BoolToVisibility" />
     </UserControl.Resources>
 
@@ -33,56 +32,6 @@
             Visibility="{Binding SelectedFile, Converter={StaticResource HasSelection}, ConverterParameter=Invert}" />
 
         <DockPanel LastChildFill="True" Visibility="{Binding SelectedFile, Converter={StaticResource HasSelection}}">
-            <!--  Высота и левый край заголовка — как у соседней подпанели (см. architecture.md, Themes).  -->
-            <StackPanel Margin="12,12,12,10" DockPanel.Dock="Top">
-                <!--  Строку не ужимать: высоту задают кнопки (см. скрытую пару в EntriesView).  -->
-                <Grid>
-                    <StackPanel VerticalAlignment="Center" Orientation="Horizontal">
-                        <TextBlock
-                            FontSize="13"
-                            FontWeight="SemiBold"
-                            Text="{Binding SelectedFile.FileName}" />
-                        <TextBlock
-                            Margin="8,0,0,0"
-                            VerticalAlignment="Center"
-                            FontSize="11"
-                            Opacity="0.55"
-                            Text="{Binding UnsavedBadge}"
-                            Visibility="{Binding IsDirty, Converter={StaticResource BoolToVisibility}}" />
-                    </StackPanel>
-                    <StackPanel HorizontalAlignment="Right" Orientation="Horizontal">
-                        <Button
-                            Command="{Binding DiscardCommand}"
-                            Content="{Binding DiscardButtonLabel}"
-                            Style="{StaticResource EditorButtonStyle}" />
-                        <Button
-                            Command="{Binding SaveCommand}"
-                            Content="{Binding SaveButtonLabel}"
-                            Style="{StaticResource EditorButtonStyle}" />
-                    </StackPanel>
-                </Grid>
-
-                <TextBlock
-                    Margin="0,2,0,0"
-                    FontSize="11"
-                    Opacity="0.5"
-                    Text="{Binding SelectedFile.MetaLine}" />
-
-                <Border
-                    Margin="0,8,0,0"
-                    Padding="10,6"
-                    Background="{DynamicResource WarningBackgroundBrush}"
-                    BorderBrush="{DynamicResource WarningBorderBrush}"
-                    BorderThickness="1"
-                    CornerRadius="8"
-                    Visibility="{Binding ErrorMessage, Converter={StaticResource NullOrEmptyToVisibility}}">
-                    <TextBlock
-                        FontSize="11"
-                        Text="{Binding ErrorMessage}"
-                        TextWrapping="Wrap" />
-                </Border>
-            </StackPanel>
-
             <!--
                 Постоянная строка поиска над редактором, одной строкой как в Revit Linter Editor:
                 она занимает собственную строку и никогда не перекрывает код. Поле тянется,
