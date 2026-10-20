@@ -266,8 +266,16 @@ public sealed partial class MainViewModel : ObservableObject
     /// что у кнопки; актуально или неполадки сети — молчим (тост на каждый запуск — спам,
     /// офлайн-старт — штатная ситуация). Исключения гасим: фоновая проверка не должна ронять запуск.
     /// </summary>
+#pragma warning disable S2325 // Debug-ветка намеренно делает метод no-op; анализ видит только её.
+#pragma warning disable S3626 // return после await в Debug-ветке намеренно завершает метод.
     public async Task CheckForUpdatesOnStartupAsync()
     {
+#if DEBUG
+        // Debug-сборка не показывает стартовый update-диалог: он мешает ручной UI-проверке.
+        // Ручная проверка (Ctrl+U) по-прежнему работает и показывает тот же диалог.
+        await Task.CompletedTask;
+        return;
+#else
         try
         {
             var result = await _updateChecker.CheckAsync(CancellationToken.None);
@@ -282,7 +290,10 @@ public sealed partial class MainViewModel : ObservableObject
         {
             // См. политику логирования: benign documented fallback — молча, с комментарием.
         }
+#endif
     }
+#pragma warning restore S3626
+#pragma warning restore S2325
 
     /// <summary>Открывает страницу issues репозитория (помощь и баги) в браузере.</summary>
     [RelayCommand]
