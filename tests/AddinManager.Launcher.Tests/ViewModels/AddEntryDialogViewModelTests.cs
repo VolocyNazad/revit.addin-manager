@@ -1,3 +1,4 @@
+using AddinManager.Launcher.ViewModels.Dialogs;
 using AddinManager.Core.Manifests;
 
 namespace AddinManager.Launcher.Tests.ViewModels;

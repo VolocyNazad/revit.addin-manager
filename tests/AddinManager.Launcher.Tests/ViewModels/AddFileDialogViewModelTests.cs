@@ -1,3 +1,5 @@
+using AddinManager.Launcher.ViewModels.Dialogs;
+using AddinManager.Core;
 using AddinManager.Core.Storage;
 
 namespace AddinManager.Launcher.Tests.ViewModels;
@@ -19,6 +21,20 @@ public sealed class AddFileDialogViewModelTests
         Assert.Equal("2027", model.Version);
         Assert.False(model.IsDisabled);
         Assert.Null(model.Result);
+    }
+
+    [Fact]
+    public void VersionChips_TrackSelectedVersion()
+    {
+        var model = NewModel();
+
+        Assert.Equal(RevitVersionCatalog.SupportedVersions.Count, model.VersionChips.Count);
+        Assert.True(model.VersionChips.Single(chip => chip.Value == "2027").IsActive);
+
+        model.SetVersionCommand.Execute("2024");
+
+        Assert.False(model.VersionChips.Single(chip => chip.Value == "2027").IsActive);
+        Assert.True(model.VersionChips.Single(chip => chip.Value == "2024").IsActive);
     }
 
     [Fact]

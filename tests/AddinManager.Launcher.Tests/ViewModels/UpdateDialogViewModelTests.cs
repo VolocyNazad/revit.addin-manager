@@ -1,3 +1,4 @@
+using AddinManager.Launcher.ViewModels.Dialogs;
 namespace AddinManager.Launcher.Tests.ViewModels;
 
 /// <summary>Диалог обновления: кнопки закрывают окно результатом, по умолчанию — без результата.</summary>

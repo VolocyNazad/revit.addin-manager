@@ -1,0 +1,96 @@
+<Window x:Class="AddinManager.Launcher.Views.Dialogs.AddFileDialogView"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:behaviors="clr-namespace:AddinManager.Launcher.Behaviors"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:design="clr-namespace:AddinManager.Launcher.Design"
+        xmlns:i="http://schemas.microsoft.com/xaml/behaviors"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:storage="clr-namespace:AddinManager.Core.Storage;assembly=AddinManager.Core"
+        d:DataContext="{d:DesignInstance Type=design:DesignAddFileDialogViewModel,
+                                       IsDesignTimeCreatable=True}"
+        d:DesignHeight="520"
+        d:DesignWidth="520"
+        mc:Ignorable="d"
+        Title=""
+        MinWidth="340"
+        MaxWidth="520"
+        Style="{StaticResource DialogWindowStyle}"
+        WindowStartupLocation="CenterScreen">
+    <i:Interaction.Behaviors>
+        <behaviors:DialogResultBehavior DialogResult="{Binding Result}" />
+    </i:Interaction.Behaviors>
+    <Border Style="{StaticResource DialogCardStyle}">
+        <i:Interaction.Behaviors>
+            <behaviors:WindowDragBehavior />
+        </i:Interaction.Behaviors>
+        <StackPanel>
+            <TextBlock Style="{StaticResource FieldLabelStyle}" Text="{Binding FileNameLabel}" />
+            <TextBox Style="{StaticResource FieldTextBoxStyle}" Text="{Binding FileName, UpdateSourceTrigger=PropertyChanged}" />
+
+            <TextBlock Margin="0,8,0,0" Style="{StaticResource FieldLabelStyle}" Text="{Binding ScopeLabel}" />
+            <StackPanel Margin="0,0,0,8" Orientation="Horizontal">
+                <Button
+                    Command="{Binding SetScopeCommand}"
+                    CommandParameter="{x:Static storage:AddinScope.User}"
+                    Content="User"
+                    Opacity="{Binding Scope, Converter={StaticResource ActiveOpacity}, ConverterParameter={x:Static storage:AddinScope.User}}"
+                    Style="{StaticResource ChipButtonStyle}" />
+                <Button
+                    Command="{Binding SetScopeCommand}"
+                    CommandParameter="{x:Static storage:AddinScope.Machine}"
+                    Content="Machine"
+                    Opacity="{Binding Scope, Converter={StaticResource ActiveOpacity}, ConverterParameter={x:Static storage:AddinScope.Machine}}"
+                    Style="{StaticResource ChipButtonStyle}" />
+            </StackPanel>
+
+            <TextBlock Style="{StaticResource FieldLabelStyle}" Text="{Binding VersionLabel}" />
+            <ItemsControl ItemsSource="{Binding VersionChips}">
+                <ItemsControl.ItemsPanel>
+                    <ItemsPanelTemplate>
+                        <WrapPanel Margin="0,0,0,8" />
+                    </ItemsPanelTemplate>
+                </ItemsControl.ItemsPanel>
+                <ItemsControl.ItemTemplate>
+                    <DataTemplate>
+                        <Button
+                            Command="{Binding DataContext.SetVersionCommand, RelativeSource={RelativeSource AncestorType=ItemsControl}}"
+                            CommandParameter="{Binding Value}"
+                            Content="{Binding Label}"
+                            Style="{StaticResource VersionChipButtonStyle}" />
+                    </DataTemplate>
+                </ItemsControl.ItemTemplate>
+            </ItemsControl>
+
+            <ToggleButton
+                Content="{Binding DisabledLabel}"
+                IsChecked="{Binding IsDisabled, Mode=TwoWay}"
+                Style="{StaticResource ChipToggleStyle}" />
+
+            <Border
+                Margin="0,8,0,0"
+                Style="{StaticResource WarningCardStyle}"
+                Visibility="{Binding ErrorMessage, Converter={StaticResource NullOrEmptyToVisibility}}">
+                <TextBlock
+                    FontSize="11"
+                    Text="{Binding ErrorMessage}"
+                    TextWrapping="Wrap" />
+            </Border>
+
+            <StackPanel Margin="0,10,0,0"
+                        HorizontalAlignment="Right"
+                        Orientation="Horizontal">
+                <Button Command="{Binding CancelCommand}"
+                        Content="{Binding CancelButtonLabel}"
+                        IsCancel="True"
+                        Style="{StaticResource EditorButtonStyle}" />
+                <Button Margin="4,0,0,0"
+                        Command="{Binding AddCommand}"
+                        Content="{Binding AddButtonLabel}"
+                        IsDefault="True"
+                        Style="{StaticResource EditorButtonStyle}" />
+            </StackPanel>
+        </StackPanel>
+    </Border>
+</Window>
+

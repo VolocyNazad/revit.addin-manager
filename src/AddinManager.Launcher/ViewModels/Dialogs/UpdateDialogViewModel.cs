@@ -2,20 +2,11 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Microsoft.Extensions.Localization;
 
-namespace AddinManager.Launcher.ViewModels;
+namespace AddinManager.Launcher.ViewModels.Dialogs;
 
 /// <summary>Модель диалога обновления: показывает, что вышла новая версия, и предлагает скачать.</summary>
-public sealed partial class UpdateDialogViewModel : ObservableObject
+public sealed partial class UpdateDialogViewModel(IStringLocalizer<UpdateDialogViewModel> localizer) : ObservableObject
 {
-    private readonly IStringLocalizer<UpdateDialogViewModel> _localizer;
-
-    /// <summary>Создает модель.</summary>
-    /// <param name="localizer">Подписи диалога.</param>
-    public UpdateDialogViewModel(IStringLocalizer<UpdateDialogViewModel> localizer)
-    {
-        _localizer = localizer;
-    }
-
     /// <summary>Текст новости (выставляет сервис перед показом).</summary>
     [ObservableProperty]
     private string _message = string.Empty;
@@ -25,13 +16,13 @@ public sealed partial class UpdateDialogViewModel : ObservableObject
     private bool? _result;
 
     /// <summary>Заголовок "Доступно обновление".</summary>
-    public string TitleLabel => _localizer["UpdateTitle"];
+    public string TitleLabel => localizer["UpdateTitle"];
 
     /// <summary>Кнопка "Скачать".</summary>
-    public string DownloadLabel => _localizer["DownloadButton"];
+    public string DownloadLabel => localizer["DownloadButton"];
 
     /// <summary>Кнопка "Позже".</summary>
-    public string LaterLabel => _localizer["LaterButton"];
+    public string LaterLabel => localizer["LaterButton"];
 
     /// <summary>Скачать и закрыть окно.</summary>
     [RelayCommand]

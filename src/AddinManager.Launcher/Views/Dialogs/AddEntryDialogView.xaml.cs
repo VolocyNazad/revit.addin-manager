@@ -1,4 +1,4 @@
-namespace AddinManager.Launcher.Views;
+namespace AddinManager.Launcher.Views.Dialogs;
 
 /// <summary>Вид диалога новой записи: выбор типа чипами.</summary>
 public partial class AddEntryDialogView

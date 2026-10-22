@@ -3,20 +3,11 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Microsoft.Extensions.Localization;
 
-namespace AddinManager.Launcher.ViewModels;
+namespace AddinManager.Launcher.ViewModels.Dialogs;
 
 /// <summary>Модель диалога новой записи: тип выбирается чипами, результат закрывает окно.</summary>
-public sealed partial class AddEntryDialogViewModel : ObservableObject
+public sealed partial class AddEntryDialogViewModel(IStringLocalizer<AddEntryDialogViewModel> localizer) : ObservableObject
 {
-    private readonly IStringLocalizer<AddEntryDialogViewModel> _localizer;
-
-    /// <summary>Создает модель.</summary>
-    /// <param name="localizer">Подписи диалога.</param>
-    public AddEntryDialogViewModel(IStringLocalizer<AddEntryDialogViewModel> localizer)
-    {
-        _localizer = localizer;
-    }
-
     /// <summary>Выбранный тип новой записи.</summary>
     [ObservableProperty]
     private AddinEntryType _entryType = AddinEntryType.Application;
@@ -26,13 +17,13 @@ public sealed partial class AddEntryDialogViewModel : ObservableObject
     private bool? _result;
 
     /// <summary>Подпись "Type".</summary>
-    public string TypeLabel => _localizer["TypeLabel"];
+    public string TypeLabel => localizer["TypeLabel"];
 
     /// <summary>Кнопка "Добавить".</summary>
-    public string AddButtonLabel => _localizer["AddButton"];
+    public string AddButtonLabel => localizer["AddButton"];
 
     /// <summary>Кнопка "Отмена".</summary>
-    public string CancelButtonLabel => _localizer["CancelButton"];
+    public string CancelButtonLabel => localizer["CancelButton"];
 
     /// <summary>Выбрать тип.</summary>
     [RelayCommand]

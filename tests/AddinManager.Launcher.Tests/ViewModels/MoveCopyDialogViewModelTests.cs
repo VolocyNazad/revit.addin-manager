@@ -1,3 +1,4 @@
+using AddinManager.Launcher.ViewModels.Dialogs;
 using AddinManager.Core.Manifests;
 using AddinManager.Core.Storage;
 using AddinManager.Launcher.Services;
@@ -25,6 +26,21 @@ public sealed class MoveCopyDialogViewModelTests
         Assert.NotNull(vm.SameFolderError);
         TestCulture.RunIn("ru", () => Assert.Equal("Переместить файл", vm.Title));
         TestCulture.RunIn("en", () => Assert.Equal("Move file", vm.Title));
+    }
+
+    [Fact]
+    public void VersionChips_TrackSelectedVersion()
+    {
+        var vm = NewDialog();
+        vm.Initialize(new MoveCopyRequest(NewFile("A.addin", "2025"), MoveCopyKind.Move));
+
+        Assert.True(vm.VersionChips.Single(chip => chip.Value == "2025").IsActive);
+        Assert.False(vm.VersionChips.Single(chip => chip.Value == "2026").IsActive);
+
+        vm.Version = "2026";
+
+        Assert.True(vm.VersionChips.Single(chip => chip.Value == "2026").IsActive);
+        Assert.False(vm.VersionChips.Single(chip => chip.Value == "2025").IsActive);
     }
 
     [Fact]

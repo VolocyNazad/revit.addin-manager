@@ -1,4 +1,4 @@
-namespace AddinManager.Launcher.Views;
+namespace AddinManager.Launcher.Views.Dialogs;
 
 /// <summary>Вид диалога нового файла: имя, scope, версия, Disabled.</summary>
 public partial class AddFileDialogView

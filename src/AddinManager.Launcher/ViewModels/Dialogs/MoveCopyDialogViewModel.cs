@@ -1,3 +1,4 @@
+using System.Collections.ObjectModel;
 using AddinManager.Core;
 using AddinManager.Core.Abstractions.Manifests;
 using AddinManager.Core.Abstractions.Storage;
@@ -7,7 +8,7 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Microsoft.Extensions.Localization;
 
-namespace AddinManager.Launcher.ViewModels;
+namespace AddinManager.Launcher.ViewModels.Dialogs;
 
 /// <summary>
 /// Диалог выбора цели перемещения/копирования: версия, scope, состояние enabled и замена
@@ -33,7 +34,13 @@ public sealed partial class MoveCopyDialogViewModel : ObservableObject
         _store = store;
         _schema = schema;
         _localizer = localizer;
+        foreach (var version in RevitVersionCatalog.SupportedVersions)
+            VersionChips.Add(new FilterChipViewModel(version, version));
+        RefreshVersionChips();
     }
+
+    /// <summary>Чипсы версий Revit — из каталога Core, без хардкода в XAML.</summary>
+    public ObservableCollection<FilterChipViewModel> VersionChips { get; } = [];
 
     /// <summary>Версия Revit, куда переносим/копируем.</summary>
     [ObservableProperty]
@@ -175,7 +182,11 @@ public sealed partial class MoveCopyDialogViewModel : ObservableObject
     [RelayCommand]
     private void Cancel() => Result = false;
 
-    partial void OnVersionChanged(string value) => RefreshTarget();
+    partial void OnVersionChanged(string value)
+    {
+        RefreshTarget();
+        RefreshVersionChips();
+    }
 
     partial void OnScopeChanged(AddinScope value) => RefreshTarget();
 
@@ -185,6 +196,12 @@ public sealed partial class MoveCopyDialogViewModel : ObservableObject
     {
         ErrorMessage = null;
         ConfirmCommand.NotifyCanExecuteChanged();
+    }
+
+    private void RefreshVersionChips()
+    {
+        foreach (var chip in VersionChips)
+            chip.IsActive = chip.Value == Version;
     }
 
     private void RefreshTarget()

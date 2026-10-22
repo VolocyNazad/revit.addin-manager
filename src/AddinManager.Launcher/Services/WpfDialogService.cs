@@ -1,8 +1,8 @@
 using System.Windows;
 using AddinManager.Core.Manifests;
 using AddinManager.Launcher.Abstractions.Services;
-using AddinManager.Launcher.ViewModels;
-using AddinManager.Launcher.Views;
+using AddinManager.Launcher.ViewModels.Dialogs;
+using AddinManager.Launcher.Views.Dialogs;
 
 namespace AddinManager.Launcher.Services;
 

@@ -1,4 +1,4 @@
-namespace AddinManager.Launcher.Views;
+namespace AddinManager.Launcher.Views.Dialogs;
 
 /// <summary>Вид диалога обновления: новость о версии и предложение скачать.</summary>
 public partial class UpdateDialogView

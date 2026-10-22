@@ -1,3 +1,4 @@
+using System.Collections.ObjectModel;
 using System.IO;
 using AddinManager.Core;
 using AddinManager.Core.Storage;
@@ -5,7 +6,7 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Microsoft.Extensions.Localization;
 
-namespace AddinManager.Launcher.ViewModels;
+namespace AddinManager.Launcher.ViewModels.Dialogs;
 
 /// <summary>Модель диалога нового файла: собирает параметры, проверяет имя, отдаёт результат.</summary>
 public sealed partial class AddFileDialogViewModel : ObservableObject
@@ -18,7 +19,13 @@ public sealed partial class AddFileDialogViewModel : ObservableObject
     {
         _localizer = localizer;
         FileName = _localizer["DefaultFileName"];
+        foreach (var version in RevitVersionCatalog.SupportedVersions)
+            VersionChips.Add(new FilterChipViewModel(version, version));
+        RefreshVersionChips();
     }
+
+    /// <summary>Чипсы версий Revit — из каталога Core, без хардкода в XAML.</summary>
+    public ObservableCollection<FilterChipViewModel> VersionChips { get; } = [];
 
     /// <summary>Имя файла (суффикс <c>.addin</c> допишет стор).</summary>
     [ObservableProperty]
@@ -72,6 +79,14 @@ public sealed partial class AddFileDialogViewModel : ObservableObject
     {
         if (version is not null)
             Version = version;
+    }
+
+    partial void OnVersionChanged(string value) => RefreshVersionChips();
+
+    private void RefreshVersionChips()
+    {
+        foreach (var chip in VersionChips)
+            chip.IsActive = chip.Value == Version;
     }
 
     /// <summary>Проверить имя и закрыть окно результатом.</summary>
