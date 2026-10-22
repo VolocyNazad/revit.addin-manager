@@ -15,12 +15,8 @@ namespace AddinManager.Launcher.Converters;
 public sealed class BoolToVisibilityConverter : IValueConverter
 {
     /// <inheritdoc />
-    public object Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
-    {
-        var flag = value is true;
-        var invert = string.Equals(parameter as string, "Invert", StringComparison.OrdinalIgnoreCase);
-        return flag != invert ? Visibility.Visible : Visibility.Collapsed;
-    }
+    public object Convert(object? value, Type targetType, object? parameter, CultureInfo culture) =>
+        VisibilityConversion.FromFlag(value is true, parameter);
 
     /// <inheritdoc />
     public object ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture) =>

@@ -2,4 +2,5 @@
 // Everything else stays a local using.
 global using AddinManager.Launcher.Tests.TestDoubles;
 global using AddinManager.Launcher.ViewModels;
+global using AddinManager.Testing;
 global using Xunit;

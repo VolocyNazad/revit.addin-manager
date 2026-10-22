@@ -92,14 +92,7 @@ public sealed class ListViewModelChangeWatcherTests
         store.SetFiles("2025", NewFile("Gone.addin", "2025"));
         var watcher = new FakeAddinChangeWatcher();
         var logger = new RecordingLogger<ListViewModel>();
-        var list = new ListViewModel(
-            store, watcher, new RecordingUiDispatcher(), logger,
-            new FakeLocalizationService(), TestLocalization.For<ListViewModel>(),
-            new AddinFileRowViewModelFactory(store, NullLoggerFactory.Instance, TestLocalization.For<AddinFileRowViewModel>()),
-            new FakeToastService(),
-            new FakeRevitProcessGuard(),
-            new FakeDialogService(),
-            new FakeFolderOpener(), new FakeClipboardService());
+        var list = ListViewModelFixture.Create(store, changeWatcher: watcher, logger: logger);
         Assert.Equal("Gone.addin", list.SelectedFile?.FileName);
 
         store.SetFiles("2025");
@@ -118,14 +111,7 @@ public sealed class ListViewModelChangeWatcherTests
         var watcher = new FakeAddinChangeWatcher();
         var logger = new RecordingLogger<ListViewModel>();
 
-        _ = new ListViewModel(
-            store, watcher, new RecordingUiDispatcher(), logger,
-            new FakeLocalizationService(), TestLocalization.For<ListViewModel>(),
-            new AddinFileRowViewModelFactory(store, NullLoggerFactory.Instance, TestLocalization.For<AddinFileRowViewModel>()),
-            new FakeToastService(),
-            new FakeRevitProcessGuard(),
-            new FakeDialogService(),
-            new FakeFolderOpener(), new FakeClipboardService());
+        _ = ListViewModelFixture.Create(store, changeWatcher: watcher, logger: logger);
 
         Assert.True(
             logger.HasEntry(LogLevel.Debug, "2025"),
@@ -178,18 +164,7 @@ public sealed class ListViewModelChangeWatcherTests
         var store = new FakeAddinStore();
         store.SetFiles("2025", NewFile("A.addin", "2025"), NewFile("B.addin", "2025"));
         var factory = new FakeFileRowFactory(store);
-        var list = new ListViewModel(
-            store,
-            new FakeAddinChangeWatcher(),
-            new RecordingUiDispatcher(),
-            NullLogger<ListViewModel>.Instance,
-            new FakeLocalizationService(),
-            TestLocalization.For<ListViewModel>(),
-            factory,
-            new FakeToastService(),
-            new FakeRevitProcessGuard(),
-            new FakeDialogService(),
-            new FakeFolderOpener(), new FakeClipboardService());
+        var list = ListViewModelFixture.Create(store, rowFactory: factory);
 
         Assert.Equal(2, factory.CreatedFiles.Count);
         Assert.Equal(2, list.Files.Count);
@@ -204,18 +179,7 @@ public sealed class ListViewModelChangeWatcherTests
     {
         var store = new FakeAddinStore();
         var toast = new FakeToastService();
-        var list = new ListViewModel(
-            store,
-            new FakeAddinChangeWatcher(),
-            new RecordingUiDispatcher(),
-            NullLogger<ListViewModel>.Instance,
-            new FakeLocalizationService(),
-            TestLocalization.For<ListViewModel>(),
-            new AddinFileRowViewModelFactory(store, NullLoggerFactory.Instance, TestLocalization.For<AddinFileRowViewModel>()),
-            toast,
-            new FakeRevitProcessGuard(),
-            new FakeDialogService(),
-            new FakeFolderOpener(), new FakeClipboardService());
+        var list = ListViewModelFixture.Create(store, toastService: toast);
         Assert.Empty(toast.ShownMessages);
 
         TestCulture.RunIn("ru", () =>
@@ -240,18 +204,7 @@ public sealed class ListViewModelChangeWatcherTests
         var store = new FakeAddinStore();
         store.SetFiles("2025", NewFile("A.addin", "2025"));
         var guard = new FakeRevitProcessGuard();
-        var list = new ListViewModel(
-            store,
-            new FakeAddinChangeWatcher(),
-            new RecordingUiDispatcher(),
-            NullLogger<ListViewModel>.Instance,
-            new FakeLocalizationService(),
-            TestLocalization.For<ListViewModel>(),
-            new AddinFileRowViewModelFactory(store, NullLoggerFactory.Instance, TestLocalization.For<AddinFileRowViewModel>()),
-            new FakeToastService(),
-            guard,
-            new FakeDialogService(),
-            new FakeFolderOpener(), new FakeClipboardService());
+        var list = ListViewModelFixture.Create(store, guard: guard);
         var row = Assert.Single(list.Files);
         Assert.False(row.IsLocked);
 
@@ -349,34 +302,15 @@ public sealed class ListViewModelChangeWatcherTests
         FakeRevitProcessGuard guard,
         FakeDialogService dialog)
     {
-        return new ListViewModel(
-            store,
-            watcher,
-            dispatcher,
-            NullLogger<ListViewModel>.Instance,
-            localization,
-            TestLocalization.For<ListViewModel>(),
-            new AddinFileRowViewModelFactory(store, NullLoggerFactory.Instance, TestLocalization.For<AddinFileRowViewModel>()),
-            new FakeToastService(),
-            guard,
-            dialog,
-            new FakeFolderOpener(), new FakeClipboardService());
+        return ListViewModelFixture.Create(
+            store, guard: guard, changeWatcher: watcher, dispatcher: dispatcher,
+            localizationService: localization, dialogService: dialog);
     }
 
     private static AddinFile NewFile(string fileName, string version) =>
         new(fileName, AddinScope.User, version, Enabled: true,
             FullPath: $@"C:\fake\{version}\{fileName}",
             VersionRootDirectory: $@"C:\fake\{version}",
-            Manifest: Parser.Parse(ValidAddinXml(fileName)));
+            Manifest: Parser.Parse(TestManifestXml.ValidAddin(fileName)));
 
-    private static string ValidAddinXml(string name) => $"""
-        <RevitAddIns>
-          <AddIn Type="Application">
-            <Name>{name}</Name>
-            <Assembly>a.dll</Assembly>
-            <AddInId>11111111-1111-1111-1111-111111111111</AddInId>
-            <FullClassName>A.App</FullClassName>
-          </AddIn>
-        </RevitAddIns>
-        """;
 }

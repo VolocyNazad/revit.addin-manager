@@ -15,13 +15,16 @@ Detailed behavior is defined in [FEATURES.md](FEATURES.md).
 - `Revit.AddinManager.slnx` — solution (`src/` + `tests/`; `sandbox/`, `installer/` and
   `build/` each keep their own solution, like the gallery does)
 - `src/` — projects (`AddinManager.Core`: manifest parsing, disk scanning, the headless text-search engine and Revit process guard, UI-framework-agnostic; `AddinManager.Localization`: interface language choice (`System`/`Russian`/`English`) persistence and culture application, UI-framework-agnostic; `AddinManager.Theming`: theme choice persistence, UI-framework-agnostic; `AddinManager.Theming.Wpf`: WPF theme resource dictionaries and the dictionary-switching helper; `AddinManager.Launcher`: WPF shell on the built-in Fluent theme, including the Markup editor and its find bar)
-- `tests/` — headless tests (`*.Tests`)
+- `tests/` — headless tests (`*.Tests`); `tests/Shared/` holds the helpers linked into both
+  test projects (`TestCulture`, `TestLocalization`, `RecordingLogger`, `TempDirectorySet`,
+  `TestManifestXml`), so a helper has one source
 - `installer/` — separate solution (`Revit.AddinManager.Installer.slnx`) with the
   WixSharp MSI generator: builds exactly one MSI for the launcher
 - `build/` — separate solution (`Revit.AddinManager.Build.slnx`) with the ModularPipelines
   release pipeline (compile the launcher, pack the MSI, publish the GitHub release)
 - `docs/` — contributor documentation, policies and the plan
-- `scripts/` — maintenance scripts
+- `scripts/` — maintenance scripts (`Validate-Repository.ps1` checks the repository policy,
+  `Clear-BuildOutput.ps1` removes `bin`/`obj` directories without touching sources)
 - `.github/` — CI workflows
 - `sandbox/` — отдельный solution (`AddinManager.Sandbox.slnx`) с песочницей разметки
   (`AddinManager.Playground`: вставка XAML-фрагмента и живой предпросмотр через

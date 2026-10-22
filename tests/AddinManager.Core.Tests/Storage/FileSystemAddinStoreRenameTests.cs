@@ -15,7 +15,7 @@ namespace AddinManager.Core.Tests.Storage;
 /// </summary>
 public sealed class FileSystemAddinStoreRenameTests : IDisposable
 {
-    private readonly List<string> _tempRoots = [];
+    private readonly TempDirectorySet _tempDirectories = new();
     private readonly IAddinManifestParser _parser =
         new LinqToXmlAddinManifestParser(TestLocalization.For<LinqToXmlAddinManifestParser>());
 
@@ -27,7 +27,7 @@ public sealed class FileSystemAddinStoreRenameTests : IDisposable
         var disabledDir = Path.Combine(versionDir, "disabled");
         Directory.CreateDirectory(versionDir);
         Directory.CreateDirectory(disabledDir);
-        File.WriteAllText(Path.Combine(disabledDir, "A.addin"), ValidAddinXml("A"));
+        File.WriteAllText(Path.Combine(disabledDir, "A.addin"), TestManifestXml.ValidAddin("A"));
         var store = NewStore(userRoot);
         var file = Assert.Single(store.ScanVersion("2025"));
 
@@ -46,8 +46,8 @@ public sealed class FileSystemAddinStoreRenameTests : IDisposable
         var userRoot = NewRoot();
         var versionDir = VersionDir(userRoot, "2025");
         Directory.CreateDirectory(versionDir);
-        File.WriteAllText(Path.Combine(versionDir, "A.addin"), ValidAddinXml("A"));
-        File.WriteAllText(Path.Combine(versionDir, "B.addin"), ValidAddinXml("B"));
+        File.WriteAllText(Path.Combine(versionDir, "A.addin"), TestManifestXml.ValidAddin("A"));
+        File.WriteAllText(Path.Combine(versionDir, "B.addin"), TestManifestXml.ValidAddin("B"));
         var store = NewStore(userRoot);
         var file = Assert.Single(store.ScanVersion("2025"), f => f.FileName == "A.addin");
 
@@ -63,7 +63,7 @@ public sealed class FileSystemAddinStoreRenameTests : IDisposable
         var userRoot = NewRoot();
         var versionDir = VersionDir(userRoot, "2025");
         Directory.CreateDirectory(versionDir);
-        File.WriteAllText(Path.Combine(versionDir, "A.addin"), ValidAddinXml("A"));
+        File.WriteAllText(Path.Combine(versionDir, "A.addin"), TestManifestXml.ValidAddin("A"));
         var store = NewStore(userRoot);
         var file = Assert.Single(store.ScanVersion("2025"));
 
@@ -78,7 +78,7 @@ public sealed class FileSystemAddinStoreRenameTests : IDisposable
         var userRoot = NewRoot();
         var versionDir = VersionDir(userRoot, "2025");
         Directory.CreateDirectory(versionDir);
-        File.WriteAllText(Path.Combine(versionDir, "A.addin"), ValidAddinXml("A"));
+        File.WriteAllText(Path.Combine(versionDir, "A.addin"), TestManifestXml.ValidAddin("A"));
         var store = NewStore(userRoot);
         var file = Assert.Single(store.ScanVersion("2025"));
 
@@ -93,7 +93,7 @@ public sealed class FileSystemAddinStoreRenameTests : IDisposable
         var userRoot = NewRoot();
         var versionDir = VersionDir(userRoot, "2025");
         Directory.CreateDirectory(versionDir);
-        File.WriteAllText(Path.Combine(versionDir, "A.addin"), ValidAddinXml("A"));
+        File.WriteAllText(Path.Combine(versionDir, "A.addin"), TestManifestXml.ValidAddin("A"));
         using var guard = new PollingRevitProcessGuard(static () => new HashSet<string>(["2024"], StringComparer.Ordinal));
         guard.Start();
         var store = NewStore(userRoot, guard);
@@ -114,41 +114,11 @@ public sealed class FileSystemAddinStoreRenameTests : IDisposable
     private static string VersionDir(string baseDirectory, string version) =>
         Path.Combine(baseDirectory, "Autodesk", "Revit", "Addins", version);
 
-    private string NewRoot()
-    {
-        var root = Path.Combine(Path.GetTempPath(), "AddinManagerTests-" + Guid.NewGuid());
-        _tempRoots.Add(root);
-        return root;
-    }
-
-    private static string ValidAddinXml(string name) => $"""
-        <RevitAddIns>
-          <AddIn Type="Application">
-            <Name>{name}</Name>
-            <Assembly>a.dll</Assembly>
-            <AddInId>11111111-1111-1111-1111-111111111111</AddInId>
-            <FullClassName>A.App</FullClassName>
-          </AddIn>
-        </RevitAddIns>
-        """;
+    private string NewRoot() => _tempDirectories.Create();
 
     /// <inheritdoc />
     public void Dispose()
     {
-        foreach (var root in _tempRoots)
-        {
-            try
-            {
-                Directory.Delete(root, recursive: true);
-            }
-            catch (IOException)
-            {
-                // Временная папка теста — не критично, если не удалилась.
-            }
-            catch (UnauthorizedAccessException)
-            {
-                // Временная папка теста — не критично, если не удалилась.
-            }
-        }
+        _tempDirectories.Dispose();
     }
 }

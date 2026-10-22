@@ -173,7 +173,7 @@ public sealed class LinqToXmlAddinManifestParserTests
     }
 
     [Fact]
-    public void Parse_DuplicateAddInId_ThrowsFormat()
+    public void Parse_DuplicateAddInId_KeepsBothEntries()
     {
         const string xml = """
             <RevitAddIns>
@@ -191,7 +191,11 @@ public sealed class LinqToXmlAddinManifestParserTests
             </RevitAddIns>
             """;
 
-        Assert.Throws<AddinManifestFormatException>(() => _sut.Parse(xml));
+        var entries = _sut.Parse(xml).Entries;
+
+        // A duplicate keeps the file readable and fixable; AddinManifestValidator reports it.
+        Assert.Equal(2, entries.Count);
+        Assert.All(entries, entry => Assert.Equal(Guid.Parse("77777777-7777-7777-7777-777777777777"), entry.AddInId));
     }
 
     [Fact]
@@ -238,5 +242,46 @@ public sealed class LinqToXmlAddinManifestParserTests
         };
 
         Assert.Contains("A&amp;B &lt;C&gt;", _sut.ToXml(edited));
+    }
+
+    [Fact]
+    public void ToXml_NewValuesFollowCanonicalOrder()
+    {
+        const string xml = """
+            <RevitAddIns>
+              <AddIn Type="Application">
+                <Assembly>a.dll</Assembly>
+                <AddInId>88888888-8888-8888-8888-888888888888</AddInId>
+                <FullClassName>A.App</FullClassName>
+              </AddIn>
+            </RevitAddIns>
+            """;
+        var manifest = _sut.Parse(xml);
+        var edited = manifest with
+        {
+            Entries =
+            [
+                manifest.Entries[0] with
+                {
+                    Name = "N",
+                    Text = "T",
+                    AvailabilityClassName = "A.Avail",
+                    VendorId = "V",
+                },
+            ],
+        };
+
+        string output = _sut.ToXml(edited);
+
+        // Values absent from the source order are appended in canonical order after the preserved tags.
+        int assembly = output.IndexOf("<Assembly>", StringComparison.Ordinal);
+        int name = output.IndexOf("<Name>", StringComparison.Ordinal);
+        int text = output.IndexOf("<Text>", StringComparison.Ordinal);
+        int availability = output.IndexOf("<AvailabilityClassName>", StringComparison.Ordinal);
+        int vendor = output.IndexOf("<VendorId>", StringComparison.Ordinal);
+        Assert.True(assembly >= 0 && assembly < name);
+        Assert.True(name < text);
+        Assert.True(text < availability);
+        Assert.True(availability < vendor);
     }
 }

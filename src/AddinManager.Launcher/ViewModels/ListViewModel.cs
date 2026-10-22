@@ -2,6 +2,7 @@ using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.IO;
 using System.Windows.Data;
+using AddinManager.Core;
 using AddinManager.Core.Abstractions.Guard;
 using AddinManager.Core.Abstractions.Storage;
 using AddinManager.Core.Guard;
@@ -23,7 +24,7 @@ namespace AddinManager.Launcher.ViewModels;
 public sealed partial class ListViewModel : ObservableObject, IFileSelection, IAddinFileCatalog
 {
     /// <summary>Все версии, которые сканируем (план, раздел 2 — "all seven").</summary>
-    public static readonly IReadOnlyList<string> RevitVersions = ["2021", "2022", "2023", "2024", "2025", "2026", "2027"];
+    public static readonly IReadOnlyList<string> RevitVersions = RevitVersionCatalog.SupportedVersions;
 
     private readonly IAddinStore _store;
     private readonly IAddinChangeWatcher _changeWatcher;
@@ -656,33 +657,8 @@ public sealed partial class ListViewModel : ObservableObject, IFileSelection, IA
     /// Дубль внутри одного файла без второго файла сюда не попадает (это не кросс-файловый).
     /// </summary>
     internal static Dictionary<string, HashSet<Guid>> FindCrossFileDuplicates(
-        IEnumerable<AddinFileRowViewModel> rows)
-    {
-        var filesById = new Dictionary<(string Version, Guid Id), HashSet<string>>( );
-        foreach (var row in rows)
-        {
-            var fileKey = $"{row.Scope}/{row.FileName}";
-            foreach (var id in row.File.Manifest.Entries.Select(e => e.AddInId).Distinct())
-            {
-                var key = (row.Version, id);
-                if (!filesById.TryGetValue(key, out var files))
-                    filesById[key] = files = [];
-                files.Add(fileKey);
-            }
-        }
-
-        var result = new Dictionary<string, HashSet<Guid>>(StringComparer.Ordinal);
-        foreach (var ((version, id), files) in filesById)
-        {
-            if (files.Count < 2)
-                continue;
-            if (!result.TryGetValue(version, out var set))
-                result[version] = set = [];
-            set.Add(id);
-        }
-
-        return result;
-    }
+        IEnumerable<AddinFileRowViewModel> rows) =>
+        AddinFileDuplicates.FindDuplicatedByVersion(rows.Select(row => row.File));
 
     private void OnRowDeleteRequested(object? sender, EventArgs e)
     {

@@ -15,7 +15,7 @@ namespace AddinManager.Launcher.Tests.ViewModels;
 /// </summary>
 public sealed class EntriesViewModelDeleteTests : IDisposable
 {
-    private readonly List<string> _tempRoots = [];
+    private readonly TempDirectorySet _tempDirectories = new();
     private readonly IAddinManifestParser _parser =
         new LinqToXmlAddinManifestParser(TestLocalization.For<LinqToXmlAddinManifestParser>());
 
@@ -97,18 +97,7 @@ public sealed class EntriesViewModelDeleteTests : IDisposable
 
         var stoppedGuard = new FakeRevitProcessGuard();
         var store = new FileSystemAddinStore(_parser, NullLogger<FileSystemAddinStore>.Instance, stoppedGuard, TestLocalization.For<FileSystemAddinStore>(), userRoot, NewRoot());
-        var list = new ListViewModel(
-            store,
-            new FakeAddinChangeWatcher(),
-            new RecordingUiDispatcher(),
-            NullLogger<ListViewModel>.Instance,
-            new FakeLocalizationService(),
-            TestLocalization.For<ListViewModel>(),
-            new AddinFileRowViewModelFactory(store, NullLoggerFactory.Instance, TestLocalization.For<AddinFileRowViewModel>()),
-            new FakeToastService(),
-            stoppedGuard,
-            new FakeDialogService(),
-            new FakeFolderOpener(), new FakeClipboardService());
+        var list = ListViewModelFixture.Create(store, guard: stoppedGuard);
         var dialog = new FakeDialogService();
         var entries = new EntriesViewModel(
             list, list,
@@ -141,30 +130,11 @@ public sealed class EntriesViewModelDeleteTests : IDisposable
         </RevitAddIns>
         """;
 
-    private string NewRoot()
-    {
-        var root = Path.Combine(Path.GetTempPath(), "AddinManagerTests-" + Guid.NewGuid());
-        _tempRoots.Add(root);
-        return root;
-    }
+    private string NewRoot() => _tempDirectories.Create();
 
     /// <inheritdoc />
     public void Dispose()
     {
-        foreach (var root in _tempRoots)
-        {
-            try
-            {
-                Directory.Delete(root, recursive: true);
-            }
-            catch (IOException)
-            {
-                // Временная папка теста — не критично, если не удалилась.
-            }
-            catch (UnauthorizedAccessException)
-            {
-                // Временная папка теста — не критично, если не удалилась.
-            }
-        }
+        _tempDirectories.Dispose();
     }
 }

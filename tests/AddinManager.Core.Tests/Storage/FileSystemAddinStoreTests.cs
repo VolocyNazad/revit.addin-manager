@@ -10,7 +10,7 @@ namespace AddinManager.Core.Tests.Storage;
 
 public sealed class FileSystemAddinStoreTests : IDisposable
 {
-    private readonly List<string> _tempRoots = [];
+    private readonly TempDirectorySet _tempDirectories = new();
     private readonly IAddinManifestParser _parser =
         new LinqToXmlAddinManifestParser(TestLocalization.For<LinqToXmlAddinManifestParser>());
 
@@ -30,8 +30,8 @@ public sealed class FileSystemAddinStoreTests : IDisposable
         var disabledDir = Path.Combine(versionDir, "disabled");
         Directory.CreateDirectory(versionDir);
         Directory.CreateDirectory(disabledDir);
-        File.WriteAllText(Path.Combine(versionDir, "Enabled.addin"), ValidAddinXml("Enabled"));
-        File.WriteAllText(Path.Combine(disabledDir, "Disabled.addin"), ValidAddinXml("Disabled"));
+        File.WriteAllText(Path.Combine(versionDir, "Enabled.addin"), TestManifestXml.ValidAddin("Enabled"));
+        File.WriteAllText(Path.Combine(disabledDir, "Disabled.addin"), TestManifestXml.ValidAddin("Disabled"));
 
         var files = NewStore(userRoot, NewRoot()).ScanVersion("2025");
 
@@ -56,8 +56,8 @@ public sealed class FileSystemAddinStoreTests : IDisposable
         var machineRoot = NewRoot();
         Directory.CreateDirectory(VersionDir(userRoot, "2025"));
         Directory.CreateDirectory(VersionDir(machineRoot, "2025"));
-        File.WriteAllText(Path.Combine(VersionDir(userRoot, "2025"), "U.addin"), ValidAddinXml("U"));
-        File.WriteAllText(Path.Combine(VersionDir(machineRoot, "2025"), "M.addin"), ValidAddinXml("M"));
+        File.WriteAllText(Path.Combine(VersionDir(userRoot, "2025"), "U.addin"), TestManifestXml.ValidAddin("U"));
+        File.WriteAllText(Path.Combine(VersionDir(machineRoot, "2025"), "M.addin"), TestManifestXml.ValidAddin("M"));
 
         var files = NewStore(userRoot, machineRoot).ScanVersion("2025");
 
@@ -72,12 +72,42 @@ public sealed class FileSystemAddinStoreTests : IDisposable
         var versionDir = VersionDir(userRoot, "2025");
         Directory.CreateDirectory(versionDir);
         File.WriteAllText(Path.Combine(versionDir, "Broken.addin"), "not xml {{{");
-        File.WriteAllText(Path.Combine(versionDir, "Good.addin"), ValidAddinXml("Good"));
+        File.WriteAllText(Path.Combine(versionDir, "Good.addin"), TestManifestXml.ValidAddin("Good"));
 
         var files = NewStore(userRoot, NewRoot()).ScanVersion("2025");
 
         var file = Assert.Single(files);
         Assert.Equal("Good.addin", file.FileName);
+    }
+
+    [Fact]
+    public void ScanVersion_DuplicateAddInId_KeepsFileReadable()
+    {
+        const string duplicated = """
+            <RevitAddIns>
+              <AddIn Type="Application">
+                <Name>First</Name>
+                <Assembly>a.dll</Assembly>
+                <AddInId>99999999-9999-9999-9999-999999999999</AddInId>
+                <FullClassName>A.App</FullClassName>
+              </AddIn>
+              <AddIn Type="Application">
+                <Name>Second</Name>
+                <Assembly>a.dll</Assembly>
+                <AddInId>99999999-9999-9999-9999-999999999999</AddInId>
+                <FullClassName>A.App</FullClassName>
+              </AddIn>
+            </RevitAddIns>
+            """;
+        var userRoot = NewRoot();
+        var versionDir = VersionDir(userRoot, "2025");
+        Directory.CreateDirectory(versionDir);
+        File.WriteAllText(Path.Combine(versionDir, "Duplicated.addin"), duplicated);
+
+        var files = NewStore(userRoot, NewRoot()).ScanVersion("2025");
+
+        var file = Assert.Single(files);
+        Assert.Equal(2, file.Manifest.Entries.Count);
     }
 
     [Fact]
@@ -87,7 +117,7 @@ public sealed class FileSystemAddinStoreTests : IDisposable
         var versionDir = VersionDir(userRoot, "2025");
         Directory.CreateDirectory(versionDir);
         var path = Path.Combine(versionDir, "A.addin");
-        File.WriteAllText(path, ValidAddinXml("A"));
+        File.WriteAllText(path, TestManifestXml.ValidAddin("A"));
 
         var store = NewStore(userRoot, NewRoot());
         var file = Assert.Single(store.ScanVersion("2025"));
@@ -109,7 +139,7 @@ public sealed class FileSystemAddinStoreTests : IDisposable
         var disabledDir = Path.Combine(versionDir, "disabled");
         Directory.CreateDirectory(disabledDir);
         var path = Path.Combine(disabledDir, "A.addin");
-        File.WriteAllText(path, ValidAddinXml("A"));
+        File.WriteAllText(path, TestManifestXml.ValidAddin("A"));
 
         var store = NewStore(userRoot, NewRoot());
         var file = Assert.Single(store.ScanVersion("2025"));
@@ -130,7 +160,7 @@ public sealed class FileSystemAddinStoreTests : IDisposable
         var versionDir = VersionDir(userRoot, "2025");
         Directory.CreateDirectory(versionDir);
         var path = Path.Combine(versionDir, "A.addin");
-        File.WriteAllText(path, ValidAddinXml("A"));
+        File.WriteAllText(path, TestManifestXml.ValidAddin("A"));
 
         var store = NewStore(userRoot, NewRoot());
         var file = Assert.Single(store.ScanVersion("2025"));
@@ -170,12 +200,12 @@ public sealed class FileSystemAddinStoreTests : IDisposable
         var versionDir = VersionDir(userRoot, "2025");
         Directory.CreateDirectory(versionDir);
         var path = Path.Combine(versionDir, "A.addin");
-        File.WriteAllText(path, ValidAddinXml("A"));
+        File.WriteAllText(path, TestManifestXml.ValidAddin("A"));
 
         var store = NewStore(userRoot, NewRoot());
 
         Assert.Throws<IOException>(() => store.CreateFile("A.addin", "2025", AddinScope.User, disabled: false));
-        Assert.Equal(ValidAddinXml("A"), File.ReadAllText(path));
+        Assert.Equal(TestManifestXml.ValidAddin("A"), File.ReadAllText(path));
     }
 
     [Fact]
@@ -208,7 +238,7 @@ public sealed class FileSystemAddinStoreTests : IDisposable
         var versionDir = VersionDir(userRoot, "2025");
         Directory.CreateDirectory(versionDir);
         var path = Path.Combine(versionDir, "A.addin");
-        File.WriteAllText(path, ValidAddinXml("A"));
+        File.WriteAllText(path, TestManifestXml.ValidAddin("A"));
 
         using var guard = new PollingRevitProcessGuard(
             static () => new HashSet<string>(["2024"], StringComparer.Ordinal));
@@ -242,7 +272,7 @@ public sealed class FileSystemAddinStoreTests : IDisposable
         var disabledDir = Path.Combine(versionDir, "disabled");
         Directory.CreateDirectory(disabledDir);
         var path = Path.Combine(disabledDir, "AccentViewManager.addin");
-        File.WriteAllText(path, ValidAddinXml("AccentViewManager"));
+        File.WriteAllText(path, TestManifestXml.ValidAddin("AccentViewManager"));
 
         var store = NewStore(userRoot, NewRoot());
         var file = Assert.Single(store.ScanVersion("2021"));
@@ -270,7 +300,7 @@ public sealed class FileSystemAddinStoreTests : IDisposable
         var disabledDir = Path.Combine(versionDir, "disabled");
         Directory.CreateDirectory(disabledDir);
         var path = Path.Combine(disabledDir, "AccentViewManager.addin");
-        File.WriteAllText(path, ValidAddinXml("AccentViewManager"));
+        File.WriteAllText(path, TestManifestXml.ValidAddin("AccentViewManager"));
 
         var store = NewStore(userRoot, NewRoot());
         var staleFile = Assert.Single(store.ScanVersion("2021"));
@@ -290,7 +320,7 @@ public sealed class FileSystemAddinStoreTests : IDisposable
         var versionDir = VersionDir(userRoot, "2025");
         Directory.CreateDirectory(versionDir);
         var path = Path.Combine(versionDir, "A.addin");
-        File.WriteAllText(path, ValidAddinXml("A"));
+        File.WriteAllText(path, TestManifestXml.ValidAddin("A"));
 
         var store = NewStore(userRoot, NewRoot());
         var file = Assert.Single(store.ScanVersion("2025"));
@@ -312,7 +342,7 @@ public sealed class FileSystemAddinStoreTests : IDisposable
         var userRoot = NewRoot();
         var versionDir = VersionDir(userRoot, "2025");
         Directory.CreateDirectory(versionDir);
-        File.WriteAllText(Path.Combine(versionDir, "A.addin"), ValidAddinXml("A"));
+        File.WriteAllText(Path.Combine(versionDir, "A.addin"), TestManifestXml.ValidAddin("A"));
 
         var logger = new RecordingLogger<FileSystemAddinStore>();
         var store = NewStore(userRoot, NewRoot(), logger);
@@ -331,7 +361,7 @@ public sealed class FileSystemAddinStoreTests : IDisposable
         var userRoot = NewRoot();
         var versionDir = VersionDir(userRoot, "2025");
         Directory.CreateDirectory(versionDir);
-        File.WriteAllText(Path.Combine(versionDir, "A.addin"), ValidAddinXml("A"));
+        File.WriteAllText(Path.Combine(versionDir, "A.addin"), TestManifestXml.ValidAddin("A"));
 
         var logger = new RecordingLogger<FileSystemAddinStore>();
         var store = NewStore(userRoot, NewRoot(), logger);
@@ -367,7 +397,7 @@ public sealed class FileSystemAddinStoreTests : IDisposable
     {
         var userRoot = NewRoot();
         Directory.CreateDirectory(VersionDir(userRoot, "2025"));
-        File.WriteAllText(Path.Combine(VersionDir(userRoot, "2025"), "A.addin"), ValidAddinXml("A"));
+        File.WriteAllText(Path.Combine(VersionDir(userRoot, "2025"), "A.addin"), TestManifestXml.ValidAddin("A"));
 
         var logger = new RecordingLogger<FileSystemAddinStore>();
         var store = NewStore(userRoot, NewRoot(), logger);
@@ -385,41 +415,11 @@ public sealed class FileSystemAddinStoreTests : IDisposable
     private static string VersionDir(string baseDirectory, string version) =>
         Path.Combine(baseDirectory, "Autodesk", "Revit", "Addins", version);
 
-    private static string ValidAddinXml(string name) => $"""
-        <RevitAddIns>
-          <AddIn Type="Application">
-            <Name>{name}</Name>
-            <Assembly>a.dll</Assembly>
-            <AddInId>11111111-1111-1111-1111-111111111111</AddInId>
-            <FullClassName>A.App</FullClassName>
-          </AddIn>
-        </RevitAddIns>
-        """;
-
-    private string NewRoot()
-    {
-        var root = Path.Combine(Path.GetTempPath(), "AddinManagerTests-" + Guid.NewGuid());
-        _tempRoots.Add(root);
-        return root;
-    }
+    private string NewRoot() => _tempDirectories.Create();
 
     /// <inheritdoc />
     public void Dispose()
     {
-        foreach (var root in _tempRoots)
-        {
-            try
-            {
-                Directory.Delete(root, recursive: true);
-            }
-            catch (IOException)
-            {
-                // Временная папка теста — не критично, если не удалилась.
-            }
-            catch (UnauthorizedAccessException)
-            {
-                // Временная папка теста — не критично, если не удалилась.
-            }
-        }
+        _tempDirectories.Dispose();
     }
 }

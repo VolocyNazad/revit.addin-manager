@@ -56,7 +56,7 @@ public sealed class FileSystemAddinStoreMoveCopyTests : IDisposable
         var source = WriteFile(store, _userRoot, "2025", "A.addin", "A");
         var targetPath = store.GetTargetPath("A.addin", "2026", AddinScope.User, enabled: true);
         Directory.CreateDirectory(Path.GetDirectoryName(targetPath) ?? string.Empty);
-        File.WriteAllText(targetPath, ValidAddinXml("Old"));
+        File.WriteAllText(targetPath, TestManifestXml.ValidAddin("Old"));
 
         var result = store.Move(source, "2026", AddinScope.User, enabled: true, overwrite: true);
 
@@ -73,7 +73,7 @@ public sealed class FileSystemAddinStoreMoveCopyTests : IDisposable
         var source = WriteFile(store, _userRoot, "2025", "A.addin", "A");
         var targetPath = store.GetTargetPath("A.addin", "2026", AddinScope.User, enabled: true);
         Directory.CreateDirectory(Path.GetDirectoryName(targetPath) ?? string.Empty);
-        File.WriteAllText(targetPath, ValidAddinXml("Old"));
+        File.WriteAllText(targetPath, TestManifestXml.ValidAddin("Old"));
 
         Assert.Throws<IOException>(() => store.Move(source, "2026", AddinScope.User, enabled: true, overwrite: false));
         Assert.True(File.Exists(source.FullPath));
@@ -96,7 +96,7 @@ public sealed class FileSystemAddinStoreMoveCopyTests : IDisposable
         var source = WriteFile(store, _userRoot, "2025", "A.addin", "A");
         var targetPath = store.GetTargetPath("A.addin", "2026", AddinScope.User, enabled: true);
         Directory.CreateDirectory(Path.GetDirectoryName(targetPath) ?? string.Empty);
-        File.WriteAllText(targetPath, ValidAddinXml("Old"));
+        File.WriteAllText(targetPath, TestManifestXml.ValidAddin("Old"));
 
         var result = store.Copy(source, "2026", AddinScope.User, enabled: true, overwrite: true);
 
@@ -163,20 +163,9 @@ public sealed class FileSystemAddinStoreMoveCopyTests : IDisposable
     {
         var versionDir = Path.Combine(root, "Autodesk", "Revit", "Addins", version);
         Directory.CreateDirectory(versionDir);
-        File.WriteAllText(Path.Combine(versionDir, fileName), ValidAddinXml(name));
+        File.WriteAllText(Path.Combine(versionDir, fileName), TestManifestXml.ValidAddin(name));
         return Assert.Single(store.ScanVersion(version));
     }
-
-    private static string ValidAddinXml(string name) => $"""
-        <RevitAddIns>
-          <AddIn Type="Application">
-            <Name>{name}</Name>
-            <Assembly>a.dll</Assembly>
-            <AddInId>11111111-1111-1111-1111-111111111111</AddInId>
-            <FullClassName>A.App</FullClassName>
-          </AddIn>
-        </RevitAddIns>
-        """;
 
     /// <inheritdoc />
     public void Dispose()

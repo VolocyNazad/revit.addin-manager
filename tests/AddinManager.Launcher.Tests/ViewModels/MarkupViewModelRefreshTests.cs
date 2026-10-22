@@ -20,7 +20,7 @@ namespace AddinManager.Launcher.Tests.ViewModels;
 /// </summary>
 public sealed class MarkupViewModelRefreshTests : IDisposable
 {
-    private readonly List<string> _tempRoots = [];
+    private readonly TempDirectorySet _tempDirectories = new();
     private readonly IAddinManifestParser _parser =
         new LinqToXmlAddinManifestParser(TestLocalization.For<LinqToXmlAddinManifestParser>());
 
@@ -30,21 +30,11 @@ public sealed class MarkupViewModelRefreshTests : IDisposable
         var userRoot = NewRoot();
         var versionDir = Path.Combine(userRoot, "Autodesk", "Revit", "Addins", "2025");
         Directory.CreateDirectory(versionDir);
-        File.WriteAllText(Path.Combine(versionDir, "A.addin"), ValidAddinXml("Original"));
+        File.WriteAllText(Path.Combine(versionDir, "A.addin"), TestManifestXml.ValidAddin("Original"));
 
         var store = new FileSystemAddinStore(_parser, NullLogger<FileSystemAddinStore>.Instance, new FakeRevitProcessGuard(), TestLocalization.For<FileSystemAddinStore>(), userRoot, NewRoot());
-        var list = new ListViewModel(
-            store,
-            new FakeAddinChangeWatcher(), // слежение за диском тут не тестируем — см. ListViewModelChangeWatcherTests
-            new RecordingUiDispatcher(),
-            NullLogger<ListViewModel>.Instance,
-            new FakeLocalizationService(),
-            TestLocalization.For<ListViewModel>(),
-            new AddinFileRowViewModelFactory(store, NullLoggerFactory.Instance, TestLocalization.For<AddinFileRowViewModel>()),
-            new FakeToastService(),
-            new FakeRevitProcessGuard(),
-            new FakeDialogService(),
-            new FakeFolderOpener(), new FakeClipboardService());
+        // слежение за диском тут не тестируем — см. ListViewModelChangeWatcherTests
+        var list = ListViewModelFixture.Create(store);
 
         // Список уже прочитал файл при старте — с именем записи "Original".
         Assert.Equal("Original", list.Files.Single().File.Manifest.Entries.Single().Name);
@@ -58,7 +48,7 @@ public sealed class MarkupViewModelRefreshTests : IDisposable
             NewEntries(list),
             list)
         {
-            RawXml = ValidAddinXml("Edited")
+            RawXml = TestManifestXml.ValidAddin("Edited")
         };
         Assert.True(markup.IsDirty);
         Assert.Null(markup.ErrorMessage);
@@ -77,21 +67,10 @@ public sealed class MarkupViewModelRefreshTests : IDisposable
         var userRoot = NewRoot();
         var versionDir = Path.Combine(userRoot, "Autodesk", "Revit", "Addins", "2025");
         Directory.CreateDirectory(versionDir);
-        File.WriteAllText(Path.Combine(versionDir, "A.addin"), ValidAddinXml("Original"));
+        File.WriteAllText(Path.Combine(versionDir, "A.addin"), TestManifestXml.ValidAddin("Original"));
 
         var store = new FileSystemAddinStore(_parser, NullLogger<FileSystemAddinStore>.Instance, new FakeRevitProcessGuard(), TestLocalization.For<FileSystemAddinStore>(), userRoot, NewRoot());
-        var list = new ListViewModel(
-            store,
-            new FakeAddinChangeWatcher(),
-            new RecordingUiDispatcher(),
-            NullLogger<ListViewModel>.Instance,
-            new FakeLocalizationService(),
-            TestLocalization.For<ListViewModel>(),
-            new AddinFileRowViewModelFactory(store, NullLoggerFactory.Instance, TestLocalization.For<AddinFileRowViewModel>()),
-            new FakeToastService(),
-            new FakeRevitProcessGuard(),
-            new FakeDialogService(),
-            new FakeFolderOpener(), new FakeClipboardService());
+        var list = ListViewModelFixture.Create(store);
 
         var markupService = new FileAddinMarkupService(_parser, NullLogger<FileAddinMarkupService>.Instance, new FakeRevitProcessGuard(), TestLocalization.For<FileAddinMarkupService>());
         var markup = new MarkupViewModel(
@@ -125,21 +104,10 @@ public sealed class MarkupViewModelRefreshTests : IDisposable
         var userRoot = NewRoot();
         var versionDir = Path.Combine(userRoot, "Autodesk", "Revit", "Addins", "2025");
         Directory.CreateDirectory(versionDir);
-        File.WriteAllText(Path.Combine(versionDir, "A.addin"), ValidAddinXml("Original"));
+        File.WriteAllText(Path.Combine(versionDir, "A.addin"), TestManifestXml.ValidAddin("Original"));
 
         var store = new FileSystemAddinStore(_parser, NullLogger<FileSystemAddinStore>.Instance, new FakeRevitProcessGuard(), TestLocalization.For<FileSystemAddinStore>(), userRoot, NewRoot());
-        var list = new ListViewModel(
-            store,
-            new FakeAddinChangeWatcher(),
-            new RecordingUiDispatcher(),
-            NullLogger<ListViewModel>.Instance,
-            new FakeLocalizationService(),
-            TestLocalization.For<ListViewModel>(),
-            new AddinFileRowViewModelFactory(store, NullLoggerFactory.Instance, TestLocalization.For<AddinFileRowViewModel>()),
-            new FakeToastService(),
-            new FakeRevitProcessGuard(),
-            new FakeDialogService(),
-            new FakeFolderOpener(), new FakeClipboardService());
+        var list = ListViewModelFixture.Create(store);
 
         var markupService = new FileAddinMarkupService(_parser, NullLogger<FileAddinMarkupService>.Instance, new FakeRevitProcessGuard(), TestLocalization.For<FileAddinMarkupService>());
         var logger = new RecordingLogger<MarkupViewModel>();
@@ -151,7 +119,7 @@ public sealed class MarkupViewModelRefreshTests : IDisposable
             NewEntries(list),
             list)
         {
-            RawXml = ValidAddinXml("Edited")
+            RawXml = TestManifestXml.ValidAddin("Edited")
         };
         markup.SaveCommand.Execute(null);
 
@@ -204,7 +172,7 @@ public sealed class MarkupViewModelRefreshTests : IDisposable
         entries.SelectedEntry = entries.Entries[1];
         var before = Assert.NotNull(markup.SelectedEntrySpan);
 
-        markup.RawXml = ValidAddinXml("Only");
+        markup.RawXml = TestManifestXml.ValidAddin("Only");
 
         Assert.Equal(before, markup.SelectedEntrySpan);
     }
@@ -217,18 +185,7 @@ public sealed class MarkupViewModelRefreshTests : IDisposable
         File.WriteAllText(Path.Combine(versionDir, "A.addin"), xml);
 
         var store = new FileSystemAddinStore(_parser, NullLogger<FileSystemAddinStore>.Instance, new FakeRevitProcessGuard(), TestLocalization.For<FileSystemAddinStore>(), userRoot, NewRoot());
-        var list = new ListViewModel(
-            store,
-            new FakeAddinChangeWatcher(),
-            new RecordingUiDispatcher(),
-            NullLogger<ListViewModel>.Instance,
-            new FakeLocalizationService(),
-            TestLocalization.For<ListViewModel>(),
-            new AddinFileRowViewModelFactory(store, NullLoggerFactory.Instance, TestLocalization.For<AddinFileRowViewModel>()),
-            new FakeToastService(),
-            new FakeRevitProcessGuard(),
-            new FakeDialogService(),
-            new FakeFolderOpener(), new FakeClipboardService());
+        var list = ListViewModelFixture.Create(store);
         var entries = NewEntries(list);
         var markup = new MarkupViewModel(
             list,
@@ -262,41 +219,11 @@ public sealed class MarkupViewModelRefreshTests : IDisposable
         </RevitAddIns>
         """;
 
-    private static string ValidAddinXml(string name) => $"""
-        <RevitAddIns>
-          <AddIn Type="Application">
-            <Name>{name}</Name>
-            <Assembly>a.dll</Assembly>
-            <AddInId>11111111-1111-1111-1111-111111111111</AddInId>
-            <FullClassName>A.App</FullClassName>
-          </AddIn>
-        </RevitAddIns>
-        """;
-
-    private string NewRoot()
-    {
-        var root = Path.Combine(Path.GetTempPath(), "AddinManagerTests-" + Guid.NewGuid());
-        _tempRoots.Add(root);
-        return root;
-    }
+    private string NewRoot() => _tempDirectories.Create();
 
     /// <inheritdoc />
     public void Dispose()
     {
-        foreach (var root in _tempRoots)
-        {
-            try
-            {
-                Directory.Delete(root, recursive: true);
-            }
-            catch (IOException)
-            {
-                // Временная папка теста — не критично, если не удалилась.
-            }
-            catch (UnauthorizedAccessException)
-            {
-                // Временная папка теста — не критично, если не удалилась.
-            }
-        }
+        _tempDirectories.Dispose();
     }
 }

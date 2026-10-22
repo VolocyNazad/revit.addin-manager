@@ -22,7 +22,7 @@ public sealed class FileSystemAddinStoreRecycleTests : IDisposable
         var versionDir = Path.Combine(_root, "Autodesk", "Revit", "Addins", "2025");
         Directory.CreateDirectory(versionDir);
         var path = Path.Combine(versionDir, "A.addin");
-        File.WriteAllText(path, ValidAddinXml("A"));
+        File.WriteAllText(path, TestManifestXml.ValidAddin("A"));
         var recycler = new FakeRecycler();
         var store = new FileSystemAddinStore(
             _parser,
@@ -60,14 +60,4 @@ public sealed class FileSystemAddinStoreRecycleTests : IDisposable
         public void Recycle(string path) => Paths.Add(path);
     }
 
-    private static string ValidAddinXml(string name) => $"""
-        <RevitAddIns>
-          <AddIn Type="Application">
-            <Name>{name}</Name>
-            <Assembly>a.dll</Assembly>
-            <AddInId>11111111-1111-1111-1111-111111111111</AddInId>
-            <FullClassName>A.App</FullClassName>
-          </AddIn>
-        </RevitAddIns>
-        """;
 }

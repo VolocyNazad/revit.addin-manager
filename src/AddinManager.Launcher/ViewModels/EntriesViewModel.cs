@@ -286,13 +286,13 @@ public sealed partial class EntriesViewModel : ObservableObject, IEntrySelection
         }
 
         var entries = file.File.Manifest.Entries;
-        var inFileCounts = entries.GroupBy(e => e.AddInId).ToDictionary(g => g.Key, g => g.Count());
+        var duplicateInFileIds = AddinManifestValidator.FindDuplicateAddInIds(entries);
         var acrossFiles = FindCrossFileIds(file);
 
         var index = 1;
         foreach (var entry in entries)
         {
-            var duplicateInFile = inFileCounts.TryGetValue(entry.AddInId, out var count) && count > 1;
+            var duplicateInFile = duplicateInFileIds.Contains(entry.AddInId);
             var row = _rowFactory.Create(entry, index++, duplicateInFile, acrossFiles.Contains(entry.AddInId));
             row.PropertyChanged += OnRowPropertyChanged;
             row.IsSelected = previousBulkSelection.Contains(entry.AddInId);
@@ -335,21 +335,8 @@ public sealed partial class EntriesViewModel : ObservableObject, IEntrySelection
     /// дубли считаются только внутри версии). Текущий файл исключён по идентичности
     /// (<c>FileName</c>/<c>Scope</c>/<c>Version</c>), а не по ссылке — строки пересоздаются.
     /// </summary>
-    private HashSet<Guid> FindCrossFileIds(AddinFileRowViewModel file)
-    {
-        var others = new HashSet<Guid>();
-        foreach (var row in _fileCatalog.Files)
-        {
-            if (row.Version != file.Version)
-                continue;
-            if (row.FileName == file.FileName && row.Scope == file.Scope)
-                continue;
-            foreach (var entry in row.File.Manifest.Entries)
-                others.Add(entry.AddInId);
-        }
-
-        return others;
-    }
+    private HashSet<Guid> FindCrossFileIds(AddinFileRowViewModel file) =>
+        AddinFileDuplicates.FindInOtherFiles(file.File, _fileCatalog.Files.Select(row => row.File));
 
     /// <summary>Разносит <see cref="IRevitProcessGuard.IsRunning"/> на себя.</summary>
     private void SyncEditLock() => IsLocked = _guard.IsRunning;

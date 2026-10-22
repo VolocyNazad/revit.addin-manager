@@ -12,8 +12,6 @@ namespace AddinManager.Core.Storage;
 /// <summary>Файловая реализация <see cref="IAddinStore"/>: настоящие папки Revit под %APPDATA%/%PROGRAMDATA%.</summary>
 public sealed class FileSystemAddinStore : IAddinStore
 {
-    private const string DisabledFolderName = "disabled";
-
     private readonly IAddinManifestParser _parser;
     private readonly ILogger<FileSystemAddinStore> _logger;
     private readonly IRevitProcessGuard _guard;
@@ -70,13 +68,7 @@ public sealed class FileSystemAddinStore : IAddinStore
     /// <inheritdoc />
     public AddinFile SetEnabled(AddinFile file, bool enabled)
     {
-        if (_guard.IsRunning)
-        {
-            _logger.LogWarning(
-                "SetEnabled({FileName}, {Scope}, {Version}): отклонено — запущен Revit",
-                file.FileName, file.Scope, file.Version);
-            throw new RevitRunningException(_localizer["BlockedByRunningRevit"]);
-        }
+        ThrowIfRevitRunning("SetEnabled", file.FileName, file.Scope, file.Version);
 
         if (file.Enabled == enabled)
         {
@@ -86,9 +78,7 @@ public sealed class FileSystemAddinStore : IAddinStore
             return file;
         }
 
-        var targetDirectory = enabled
-            ? file.VersionRootDirectory
-            : Path.Combine(file.VersionRootDirectory, DisabledFolderName);
+        var targetDirectory = AddinFolderLayout.GetFileFolder(file.VersionRootDirectory, enabled);
         var targetPath = Path.Combine(targetDirectory, file.FileName);
 
         _logger.LogInformation(
@@ -124,27 +114,16 @@ public sealed class FileSystemAddinStore : IAddinStore
     /// <inheritdoc />
     public AddinFile Rename(AddinFile file, string newFileName)
     {
-        if (_guard.IsRunning)
-        {
-            _logger.LogWarning(
-                "Rename({FileName}, {Scope}, {Version}): отклонено — запущен Revit",
-                file.FileName, file.Scope, file.Version);
-            throw new RevitRunningException(_localizer["BlockedByRunningRevit"]);
-        }
+        ThrowIfRevitRunning("Rename", file.FileName, file.Scope, file.Version);
 
-        var normalizedName = (newFileName ?? string.Empty).Trim();
+        var normalizedName = NormalizeFileName(newFileName);
         if (normalizedName.Length == 0)
             throw new IOException(_localizer["EmptyFileName"]);
-
-        if (!normalizedName.EndsWith(".addin", StringComparison.OrdinalIgnoreCase))
-            normalizedName += ".addin";
 
         if (normalizedName.IndexOfAny(Path.GetInvalidFileNameChars()) >= 0)
             throw new IOException(_localizer["InvalidFileName"]);
 
-        var targetDirectory = file.Enabled
-            ? file.VersionRootDirectory
-            : Path.Combine(file.VersionRootDirectory, DisabledFolderName);
+        var targetDirectory = AddinFolderLayout.GetFileFolder(file.VersionRootDirectory, file.Enabled);
         var targetPath = Path.Combine(targetDirectory, normalizedName);
 
         if (string.Equals(targetPath, file.FullPath, StringComparison.Ordinal))
@@ -200,13 +179,7 @@ public sealed class FileSystemAddinStore : IAddinStore
     /// <inheritdoc />
     public byte[] Delete(AddinFile file)
     {
-        if (_guard.IsRunning)
-        {
-            _logger.LogWarning(
-                "Delete({FileName}, {Scope}, {Version}): отклонено — запущен Revit",
-                file.FileName, file.Scope, file.Version);
-            throw new RevitRunningException(_localizer["BlockedByRunningRevit"]);
-        }
+        ThrowIfRevitRunning("Delete", file.FileName, file.Scope, file.Version);
 
         _logger.LogInformation(
             "Delete({FileName}, {Scope}, {Version}): удаление {Path}",
@@ -243,7 +216,7 @@ public sealed class FileSystemAddinStore : IAddinStore
     public string GetTargetPath(string fileName, string version, AddinScope scope, bool enabled)
     {
         var versionRoot = GetVersionRoot(scope, version);
-        var directory = enabled ? versionRoot : Path.Combine(versionRoot, DisabledFolderName);
+        var directory = AddinFolderLayout.GetFileFolder(versionRoot, enabled);
         return Path.Combine(directory, fileName);
     }
 
@@ -267,13 +240,7 @@ public sealed class FileSystemAddinStore : IAddinStore
         bool overwrite,
         bool copy)
     {
-        if (_guard.IsRunning)
-        {
-            _logger.LogWarning(
-                "{Operation}({FileName}, {Scope}, {Version}): отклонено — запущен Revit",
-                copy ? "Copy" : "Move", file.FileName, file.Scope, file.Version);
-            throw new RevitRunningException(_localizer["BlockedByRunningRevit"]);
-        }
+        ThrowIfRevitRunning(copy ? "Copy" : "Move", file.FileName, file.Scope, file.Version);
 
         var targetPath = GetTargetPath(file.FileName, targetVersion, targetScope, enabled);
         if (string.Equals(targetPath, file.FullPath, StringComparison.OrdinalIgnoreCase))
@@ -297,7 +264,7 @@ public sealed class FileSystemAddinStore : IAddinStore
             }
 
             var targetRoot = GetVersionRoot(targetScope, targetVersion);
-            var targetDirectory = enabled ? targetRoot : Path.Combine(targetRoot, DisabledFolderName);
+            var targetDirectory = AddinFolderLayout.GetFileFolder(targetRoot, enabled);
             Directory.CreateDirectory(targetDirectory);
 
             _logger.LogInformation(
@@ -334,29 +301,50 @@ public sealed class FileSystemAddinStore : IAddinStore
     private string GetVersionRoot(AddinScope scope, string version)
     {
         var baseDirectory = scope == AddinScope.User ? _userBaseDirectory : _machineBaseDirectory;
-        return Path.Combine(baseDirectory, "Autodesk", "Revit", "Addins", version);
+        return AddinFolderLayout.GetVersionRoot(baseDirectory, version);
+    }
+
+    /// <summary>
+    /// Rejects a disk mutation while Revit runs: the log line and the exception carry the same
+    /// operation context as the former per-method copies.
+    /// </summary>
+    private void ThrowIfRevitRunning(string operation, string fileName, AddinScope scope, string version)
+    {
+        if (!_guard.IsRunning)
+            return;
+
+        _logger.LogWarning(
+            "{Operation}({FileName}, {Scope}, {Version}): отклонено — запущен Revit",
+            operation, fileName, scope, version);
+        throw new RevitRunningException(_localizer["BlockedByRunningRevit"]);
+    }
+
+    /// <summary>
+    /// Trims the requested name and enforces the <c>.addin</c> extension; an empty name stays empty so
+    /// each caller keeps its own empty-name message and validation order.
+    /// </summary>
+    private static string NormalizeFileName(string? fileName)
+    {
+        var normalizedName = (fileName ?? string.Empty).Trim();
+        if (normalizedName.Length == 0)
+            return string.Empty;
+
+        return normalizedName.EndsWith(AddinFolderLayout.AddinFileExtension, StringComparison.OrdinalIgnoreCase)
+            ? normalizedName
+            : normalizedName + AddinFolderLayout.AddinFileExtension;
     }
 
     /// <inheritdoc />
     public AddinFile CreateFile(string fileName, string version, AddinScope scope, bool disabled)
     {
-        if (_guard.IsRunning)
-        {
-            _logger.LogWarning(
-                "CreateFile({FileName}, {Scope}, {Version}): отклонено — запущен Revit",
-                fileName, scope, version);
-            throw new RevitRunningException(_localizer["BlockedByRunningRevit"]);
-        }
+        ThrowIfRevitRunning("CreateFile", fileName, scope, version);
 
-        var normalizedName = fileName?.Trim() ?? string.Empty;
+        var normalizedName = NormalizeFileName(fileName);
         if (normalizedName.Length == 0)
             throw new ArgumentException("File name is empty.", nameof(fileName));
-        if (!normalizedName.EndsWith(".addin", StringComparison.OrdinalIgnoreCase))
-            normalizedName += ".addin";
 
-        var baseDirectory = scope == AddinScope.User ? _userBaseDirectory : _machineBaseDirectory;
-        var versionRoot = Path.Combine(baseDirectory, "Autodesk", "Revit", "Addins", version);
-        var targetDirectory = disabled ? Path.Combine(versionRoot, DisabledFolderName) : versionRoot;
+        var versionRoot = GetVersionRoot(scope, version);
+        var targetDirectory = AddinFolderLayout.GetFileFolder(versionRoot, enabled: !disabled);
         var targetPath = Path.Combine(targetDirectory, normalizedName);
 
         if (File.Exists(targetPath))
@@ -396,7 +384,7 @@ public sealed class FileSystemAddinStore : IAddinStore
 
     private void ScanScope(string baseDirectory, AddinScope scope, string version, List<AddinFile> files)
     {
-        var versionRoot = Path.Combine(baseDirectory, "Autodesk", "Revit", "Addins", version);
+        var versionRoot = AddinFolderLayout.GetVersionRoot(baseDirectory, version);
         if (!Directory.Exists(versionRoot))
         {
             _logger.LogDebug("ScanScope({Scope}, {Version}): {Root} не найден, пропускаем", scope, version, versionRoot);
@@ -406,7 +394,7 @@ public sealed class FileSystemAddinStore : IAddinStore
         var countBefore = files.Count;
         ScanFolder(versionRoot, versionRoot, scope, version, enabled: true, files);
 
-        var disabledFolder = Path.Combine(versionRoot, DisabledFolderName);
+        var disabledFolder = AddinFolderLayout.GetFileFolder(versionRoot, enabled: false);
         if (Directory.Exists(disabledFolder))
             ScanFolder(disabledFolder, versionRoot, scope, version, enabled: false, files);
 
@@ -417,7 +405,7 @@ public sealed class FileSystemAddinStore : IAddinStore
 
     private void ScanFolder(string folder, string versionRoot, AddinScope scope, string version, bool enabled, List<AddinFile> files)
     {
-        foreach (var path in Directory.EnumerateFiles(folder, "*.addin"))
+        foreach (var path in Directory.EnumerateFiles(folder, AddinFolderLayout.AddinFilePattern))
         {
             AddinFile? file = null;
             try

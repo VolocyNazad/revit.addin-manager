@@ -3,15 +3,14 @@ using Microsoft.Extensions.Localization;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 
-namespace AddinManager.Core.Tests.TestDoubles;
+namespace AddinManager.Testing;
 
 /// <summary>
 /// Настоящий <see cref="IStringLocalizer{T}"/> поверх реальных resx тестируемой сборки
 /// (нейтральный — английский). Культуру выставляет сам тест (см. <see cref="TestCulture"/>),
 /// локайзер читает её лениво при каждом обращении. Фабрике локайзеров нужен
 /// <see cref="ILoggerFactory"/> — здесь заглушка, логи самих локайзеров тестам не нужны.
-/// Дубликат одноимённого хелпера из <c>AddinManager.Launcher.Tests</c> — тестовые сборки друг
-/// на друга не ссылаются.
+/// Общий хелпер тестовых проектов (linked source), а не копия в каждом.
 /// </summary>
 public static class TestLocalization
 {

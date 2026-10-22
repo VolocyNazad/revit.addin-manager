@@ -16,14 +16,14 @@ namespace AddinManager.Launcher.Tests.ViewModels;
 /// </summary>
 public sealed class MarkupViewModelDiagnosticsTests : IDisposable
 {
-    private readonly List<string> _tempRoots = [];
+    private readonly TempDirectorySet _tempDirectories = new();
     private readonly IAddinManifestParser _parser =
         new LinqToXmlAddinManifestParser(TestLocalization.For<LinqToXmlAddinManifestParser>());
 
     [Fact]
     public void EmptyRequiredFields_AreMarked()
     {
-        var (_, _, markup) = NewGraph(ValidAddinXml("Original"));
+        var (_, _, markup) = NewGraph(TestManifestXml.ValidAddin("Original"));
 
         var xml = """
             <RevitAddIns>
@@ -55,7 +55,7 @@ public sealed class MarkupViewModelDiagnosticsTests : IDisposable
     [Fact]
     public void DuplicateAddInIds_BothOccurrencesMarked()
     {
-        var (_, _, markup) = NewGraph(ValidAddinXml("Original"));
+        var (_, _, markup) = NewGraph(TestManifestXml.ValidAddin("Original"));
 
         var xml = """
             <RevitAddIns>
@@ -87,22 +87,43 @@ public sealed class MarkupViewModelDiagnosticsTests : IDisposable
     [Fact]
     public void ValidXml_NoSpans()
     {
-        var (_, _, markup) = NewGraph(ValidAddinXml("Original"));
+        var (_, _, markup) = NewGraph(TestManifestXml.ValidAddin("Original"));
 
         Assert.Empty(markup.DiagnosticSpans);
     }
 
     [Fact]
+    public void UnknownEntryType_IsMarked()
+    {
+        var (_, _, markup) = NewGraph(TestManifestXml.ValidAddin("Original"));
+
+        const string xml = """
+            <RevitAddIns>
+              <AddIn Type="SomethingNew">
+                <Name>Unknown</Name>
+                <Assembly>a.dll</Assembly>
+                <AddInId>33333333-3333-3333-3333-333333333333</AddInId>
+                <FullClassName>A.Unknown</FullClassName>
+              </AddIn>
+            </RevitAddIns>
+            """;
+        markup.RawXml = xml;
+
+        var span = Assert.Single(markup.DiagnosticSpans);
+        Assert.Equal("SomethingNew", xml.Substring(span.Start, span.Length));
+    }
+
+    [Fact]
     public void EditedXml_UpdatesSpansLive()
     {
-        var (_, _, markup) = NewGraph(ValidAddinXml("Original"));
+        var (_, _, markup) = NewGraph(TestManifestXml.ValidAddin("Original"));
         Assert.Empty(markup.DiagnosticSpans);
 
-        markup.RawXml = ValidAddinXml("Original").Replace("<Assembly>a.dll</Assembly>", "<Assembly></Assembly>", StringComparison.Ordinal);
+        markup.RawXml = TestManifestXml.ValidAddin("Original").Replace("<Assembly>a.dll</Assembly>", "<Assembly></Assembly>", StringComparison.Ordinal);
 
         Assert.Single(markup.DiagnosticSpans);
 
-        markup.RawXml = ValidAddinXml("Original");
+        markup.RawXml = TestManifestXml.ValidAddin("Original");
 
         Assert.Empty(markup.DiagnosticSpans);
     }
@@ -115,18 +136,7 @@ public sealed class MarkupViewModelDiagnosticsTests : IDisposable
         File.WriteAllText(Path.Combine(versionDir, "A.addin"), xml);
 
         var store = new FileSystemAddinStore(_parser, NullLogger<FileSystemAddinStore>.Instance, new FakeRevitProcessGuard(), TestLocalization.For<FileSystemAddinStore>(), userRoot, NewRoot());
-        var list = new ListViewModel(
-            store,
-            new FakeAddinChangeWatcher(),
-            new RecordingUiDispatcher(),
-            NullLogger<ListViewModel>.Instance,
-            new FakeLocalizationService(),
-            TestLocalization.For<ListViewModel>(),
-            new AddinFileRowViewModelFactory(store, NullLoggerFactory.Instance, TestLocalization.For<AddinFileRowViewModel>()),
-            new FakeToastService(),
-            new FakeRevitProcessGuard(),
-            new FakeDialogService(),
-            new FakeFolderOpener(), new FakeClipboardService());
+        var list = ListViewModelFixture.Create(store);
         var entries = new EntriesViewModel(
             list, list,
             new FakeLocalizationService(),
@@ -152,41 +162,11 @@ public sealed class MarkupViewModelDiagnosticsTests : IDisposable
         return (list, entries, markup);
     }
 
-    private static string ValidAddinXml(string name) => $"""
-        <RevitAddIns>
-          <AddIn Type="Application">
-            <Name>{name}</Name>
-            <Assembly>a.dll</Assembly>
-            <AddInId>11111111-1111-1111-1111-111111111111</AddInId>
-            <FullClassName>A.App</FullClassName>
-          </AddIn>
-        </RevitAddIns>
-        """;
-
-    private string NewRoot()
-    {
-        var root = Path.Combine(Path.GetTempPath(), "AddinManagerTests-" + Guid.NewGuid());
-        _tempRoots.Add(root);
-        return root;
-    }
+    private string NewRoot() => _tempDirectories.Create();
 
     /// <inheritdoc />
     public void Dispose()
     {
-        foreach (var root in _tempRoots)
-        {
-            try
-            {
-                Directory.Delete(root, recursive: true);
-            }
-            catch (IOException)
-            {
-                // Временная папка теста — не критично, если не удалилась.
-            }
-            catch (UnauthorizedAccessException)
-            {
-                // Временная папка теста — не критично, если не удалилась.
-            }
-        }
+        _tempDirectories.Dispose();
     }
 }

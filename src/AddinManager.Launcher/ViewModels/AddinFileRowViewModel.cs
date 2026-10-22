@@ -1,6 +1,7 @@
 using System.IO;
 using AddinManager.Core.Abstractions.Storage;
 using AddinManager.Core.Guard;
+using AddinManager.Core.Manifests;
 using AddinManager.Core.Storage;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
@@ -263,17 +264,26 @@ public sealed partial class AddinFileRowViewModel : ObservableObject
         var reasons = new List<string>();
         var entries = _file.Manifest.Entries;
 
-        if (entries.Count == 0)
-            reasons.Add(_localizer["WarningNoEntries"]);
-
-        if (entries.Any(e => string.IsNullOrWhiteSpace(e.AssemblyPath) || string.IsNullOrWhiteSpace(e.FullClassName)))
-            reasons.Add(_localizer["WarningEmptyFields"]);
-
-        if (entries.Any(e => e.Type == Core.Manifests.AddinEntryType.Unknown))
-            reasons.Add(_localizer["WarningUnknownType"]);
-
-        if (entries.GroupBy(e => e.AddInId).Any(group => group.Count() > 1))
-            reasons.Add(_localizer["WarningDuplicateInFile"]);
+        foreach (ManifestIssueKind kind in AddinManifestValidator.Validate(_file.Manifest)
+                     .Select(issue => issue.Kind)
+                     .Distinct())
+        {
+            switch (kind)
+            {
+                case ManifestIssueKind.NoEntries:
+                    reasons.Add(_localizer["WarningNoEntries"]);
+                    break;
+                case ManifestIssueKind.EmptyRequiredValue:
+                    reasons.Add(_localizer["WarningEmptyFields"]);
+                    break;
+                case ManifestIssueKind.UnknownEntryType:
+                    reasons.Add(_localizer["WarningUnknownType"]);
+                    break;
+                case ManifestIssueKind.DuplicateAddInIdInFile:
+                    reasons.Add(_localizer["WarningDuplicateInFile"]);
+                    break;
+            }
+        }
 
         if (entries.Any(e => duplicatedInVersion.Contains(e.AddInId)))
             reasons.Add(_localizer["WarningDuplicateAcrossFiles", _file.Version]);

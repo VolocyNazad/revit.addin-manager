@@ -11,7 +11,7 @@ namespace AddinManager.Core.Tests.Storage;
 
 public sealed class FileAddinMarkupServiceTests : IDisposable
 {
-    private readonly List<string> _tempRoots = [];
+    private readonly TempDirectorySet _tempDirectories = new();
     private readonly IAddinManifestParser _parser =
         new LinqToXmlAddinManifestParser(TestLocalization.For<LinqToXmlAddinManifestParser>());
     private readonly FileAddinMarkupService _sut;
@@ -60,7 +60,7 @@ public sealed class FileAddinMarkupServiceTests : IDisposable
     }
 
     [Fact]
-    public void Validate_DuplicateAddInId_ReturnsMessage()
+    public void Validate_DuplicateAddInId_ReturnsNoMessage()
     {
         const string xml = """
             <RevitAddIns>
@@ -78,7 +78,8 @@ public sealed class FileAddinMarkupServiceTests : IDisposable
             </RevitAddIns>
             """;
 
-        Assert.NotNull(_sut.Validate(xml));
+        // A duplicate keeps the file editable; AddinManifestValidator reports it as a warning.
+        Assert.Null(_sut.Validate(xml));
     }
 
     [Fact]
@@ -219,30 +220,11 @@ public sealed class FileAddinMarkupServiceTests : IDisposable
         return path;
     }
 
-    private string NewRoot()
-    {
-        var root = Path.Combine(Path.GetTempPath(), "AddinManagerTests-" + Guid.NewGuid());
-        _tempRoots.Add(root);
-        return root;
-    }
+    private string NewRoot() => _tempDirectories.Create();
 
     /// <inheritdoc />
     public void Dispose()
     {
-        foreach (var root in _tempRoots)
-        {
-            try
-            {
-                Directory.Delete(root, recursive: true);
-            }
-            catch (IOException)
-            {
-                // Временная папка теста — не критично, если не удалилась.
-            }
-            catch (UnauthorizedAccessException)
-            {
-                // Временная папка теста — не критично, если не удалилась.
-            }
-        }
+        _tempDirectories.Dispose();
     }
 }

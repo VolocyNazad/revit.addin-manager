@@ -12,9 +12,6 @@ namespace AddinManager.Launcher.Converters;
 /// </summary>
 public sealed class NullableBoolStateToOpacityConverter : IValueConverter
 {
-    private const double ActiveOpacity = 1.0;
-    private const double InactiveOpacity = 0.45;
-
     /// <inheritdoc />
     public object Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
     {
@@ -26,7 +23,7 @@ public sealed class NullableBoolStateToOpacityConverter : IValueConverter
             _ => current is null,
         };
 
-        return matches ? ActiveOpacity : InactiveOpacity;
+        return matches ? OpacityConversion.Active : OpacityConversion.Inactive;
     }
 
     /// <inheritdoc />

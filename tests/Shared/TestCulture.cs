@@ -1,12 +1,11 @@
 using System.Globalization;
 
-namespace AddinManager.Core.Tests.TestDoubles;
+namespace AddinManager.Testing;
 
 /// <summary>
 /// Явно выставляет <see cref="CultureInfo.CurrentUICulture"/> на время теста и возвращает обратно:
 /// утверждаемый локализованный текст не должен зависеть от языка ОС машины, где гоняют тесты.
-/// Дубликат одноимённого хелпера из <c>AddinManager.Launcher.Tests</c> — тестовые сборки друг
-/// на друга не ссылаются.
+/// Общий хелпер тестовых проектов (linked source), а не копия в каждом.
 /// </summary>
 public static class TestCulture
 {
