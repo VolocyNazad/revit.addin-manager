@@ -255,7 +255,7 @@ public sealed class FormViewModelTests : IDisposable
         var userRoot = NewRoot();
         var versionDir = Path.Combine(userRoot, "Autodesk", "Revit", "Addins", version);
         Directory.CreateDirectory(versionDir);
-        File.WriteAllText(Path.Combine(versionDir, "A.addin"), ValidAddinXml(entryName));
+        File.WriteAllText(Path.Combine(versionDir, "A.addin"), TestManifestXml.ValidAddin(entryName));
 
         var store = new FileSystemAddinStore(_parser, NullLogger<FileSystemAddinStore>.Instance, new FakeRevitProcessGuard(), TestLocalization.For<FileSystemAddinStore>(), userRoot, NewRoot());
         var list = new ListViewModel(
@@ -283,17 +283,6 @@ public sealed class FormViewModelTests : IDisposable
 
         return (list, entries);
     }
-
-    private static string ValidAddinXml(string name) => $"""
-        <RevitAddIns>
-          <AddIn Type="Application">
-            <Name>{name}</Name>
-            <Assembly>a.dll</Assembly>
-            <AddInId>11111111-1111-1111-1111-111111111111</AddInId>
-            <FullClassName>A.App</FullClassName>
-          </AddIn>
-        </RevitAddIns>
-        """;
 
     private static string CommandAddinXml() => """
         <RevitAddIns>

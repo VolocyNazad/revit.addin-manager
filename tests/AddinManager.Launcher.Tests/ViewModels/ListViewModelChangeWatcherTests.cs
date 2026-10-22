@@ -367,16 +367,6 @@ public sealed class ListViewModelChangeWatcherTests
         new(fileName, AddinScope.User, version, Enabled: true,
             FullPath: $@"C:\fake\{version}\{fileName}",
             VersionRootDirectory: $@"C:\fake\{version}",
-            Manifest: Parser.Parse(ValidAddinXml(fileName)));
+            Manifest: Parser.Parse(TestManifestXml.ValidAddin(fileName)));
 
-    private static string ValidAddinXml(string name) => $"""
-        <RevitAddIns>
-          <AddIn Type="Application">
-            <Name>{name}</Name>
-            <Assembly>a.dll</Assembly>
-            <AddInId>11111111-1111-1111-1111-111111111111</AddInId>
-            <FullClassName>A.App</FullClassName>
-          </AddIn>
-        </RevitAddIns>
-        """;
 }

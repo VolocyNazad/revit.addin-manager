@@ -74,7 +74,7 @@ public sealed class ManifestSettingsViewModelTests : IDisposable
         var versionDir = Path.Combine(userRoot, "Autodesk", "Revit", "Addins", version);
         Directory.CreateDirectory(versionDir);
         var path = Path.Combine(versionDir, "A.addin");
-        File.WriteAllText(path, ValidAddinXml("Original"));
+        File.WriteAllText(path, TestManifestXml.ValidAddin("Original"));
 
         var store = new FileSystemAddinStore(_parser, NullLogger<FileSystemAddinStore>.Instance, new FakeRevitProcessGuard(), TestLocalization.For<FileSystemAddinStore>(), userRoot, NewRoot());
         var list = new ListViewModel(
@@ -92,17 +92,6 @@ public sealed class ManifestSettingsViewModelTests : IDisposable
 
         return (list, path);
     }
-
-    private static string ValidAddinXml(string name) => $"""
-        <RevitAddIns>
-          <AddIn Type="Application">
-            <Name>{name}</Name>
-            <Assembly>a.dll</Assembly>
-            <AddInId>11111111-1111-1111-1111-111111111111</AddInId>
-            <FullClassName>A.App</FullClassName>
-          </AddIn>
-        </RevitAddIns>
-        """;
 
     private string NewRoot() => _tempDirectories.Create();
 

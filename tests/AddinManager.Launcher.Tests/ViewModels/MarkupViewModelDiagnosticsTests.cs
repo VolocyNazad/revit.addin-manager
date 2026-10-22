@@ -23,7 +23,7 @@ public sealed class MarkupViewModelDiagnosticsTests : IDisposable
     [Fact]
     public void EmptyRequiredFields_AreMarked()
     {
-        var (_, _, markup) = NewGraph(ValidAddinXml("Original"));
+        var (_, _, markup) = NewGraph(TestManifestXml.ValidAddin("Original"));
 
         var xml = """
             <RevitAddIns>
@@ -55,7 +55,7 @@ public sealed class MarkupViewModelDiagnosticsTests : IDisposable
     [Fact]
     public void DuplicateAddInIds_BothOccurrencesMarked()
     {
-        var (_, _, markup) = NewGraph(ValidAddinXml("Original"));
+        var (_, _, markup) = NewGraph(TestManifestXml.ValidAddin("Original"));
 
         var xml = """
             <RevitAddIns>
@@ -87,7 +87,7 @@ public sealed class MarkupViewModelDiagnosticsTests : IDisposable
     [Fact]
     public void ValidXml_NoSpans()
     {
-        var (_, _, markup) = NewGraph(ValidAddinXml("Original"));
+        var (_, _, markup) = NewGraph(TestManifestXml.ValidAddin("Original"));
 
         Assert.Empty(markup.DiagnosticSpans);
     }
@@ -95,14 +95,14 @@ public sealed class MarkupViewModelDiagnosticsTests : IDisposable
     [Fact]
     public void EditedXml_UpdatesSpansLive()
     {
-        var (_, _, markup) = NewGraph(ValidAddinXml("Original"));
+        var (_, _, markup) = NewGraph(TestManifestXml.ValidAddin("Original"));
         Assert.Empty(markup.DiagnosticSpans);
 
-        markup.RawXml = ValidAddinXml("Original").Replace("<Assembly>a.dll</Assembly>", "<Assembly></Assembly>", StringComparison.Ordinal);
+        markup.RawXml = TestManifestXml.ValidAddin("Original").Replace("<Assembly>a.dll</Assembly>", "<Assembly></Assembly>", StringComparison.Ordinal);
 
         Assert.Single(markup.DiagnosticSpans);
 
-        markup.RawXml = ValidAddinXml("Original");
+        markup.RawXml = TestManifestXml.ValidAddin("Original");
 
         Assert.Empty(markup.DiagnosticSpans);
     }
@@ -151,17 +151,6 @@ public sealed class MarkupViewModelDiagnosticsTests : IDisposable
 
         return (list, entries, markup);
     }
-
-    private static string ValidAddinXml(string name) => $"""
-        <RevitAddIns>
-          <AddIn Type="Application">
-            <Name>{name}</Name>
-            <Assembly>a.dll</Assembly>
-            <AddInId>11111111-1111-1111-1111-111111111111</AddInId>
-            <FullClassName>A.App</FullClassName>
-          </AddIn>
-        </RevitAddIns>
-        """;
 
     private string NewRoot() => _tempDirectories.Create();
 

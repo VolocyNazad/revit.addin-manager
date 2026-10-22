@@ -30,7 +30,7 @@ public sealed class MarkupViewModelRefreshTests : IDisposable
         var userRoot = NewRoot();
         var versionDir = Path.Combine(userRoot, "Autodesk", "Revit", "Addins", "2025");
         Directory.CreateDirectory(versionDir);
-        File.WriteAllText(Path.Combine(versionDir, "A.addin"), ValidAddinXml("Original"));
+        File.WriteAllText(Path.Combine(versionDir, "A.addin"), TestManifestXml.ValidAddin("Original"));
 
         var store = new FileSystemAddinStore(_parser, NullLogger<FileSystemAddinStore>.Instance, new FakeRevitProcessGuard(), TestLocalization.For<FileSystemAddinStore>(), userRoot, NewRoot());
         var list = new ListViewModel(
@@ -58,7 +58,7 @@ public sealed class MarkupViewModelRefreshTests : IDisposable
             NewEntries(list),
             list)
         {
-            RawXml = ValidAddinXml("Edited")
+            RawXml = TestManifestXml.ValidAddin("Edited")
         };
         Assert.True(markup.IsDirty);
         Assert.Null(markup.ErrorMessage);
@@ -77,7 +77,7 @@ public sealed class MarkupViewModelRefreshTests : IDisposable
         var userRoot = NewRoot();
         var versionDir = Path.Combine(userRoot, "Autodesk", "Revit", "Addins", "2025");
         Directory.CreateDirectory(versionDir);
-        File.WriteAllText(Path.Combine(versionDir, "A.addin"), ValidAddinXml("Original"));
+        File.WriteAllText(Path.Combine(versionDir, "A.addin"), TestManifestXml.ValidAddin("Original"));
 
         var store = new FileSystemAddinStore(_parser, NullLogger<FileSystemAddinStore>.Instance, new FakeRevitProcessGuard(), TestLocalization.For<FileSystemAddinStore>(), userRoot, NewRoot());
         var list = new ListViewModel(
@@ -125,7 +125,7 @@ public sealed class MarkupViewModelRefreshTests : IDisposable
         var userRoot = NewRoot();
         var versionDir = Path.Combine(userRoot, "Autodesk", "Revit", "Addins", "2025");
         Directory.CreateDirectory(versionDir);
-        File.WriteAllText(Path.Combine(versionDir, "A.addin"), ValidAddinXml("Original"));
+        File.WriteAllText(Path.Combine(versionDir, "A.addin"), TestManifestXml.ValidAddin("Original"));
 
         var store = new FileSystemAddinStore(_parser, NullLogger<FileSystemAddinStore>.Instance, new FakeRevitProcessGuard(), TestLocalization.For<FileSystemAddinStore>(), userRoot, NewRoot());
         var list = new ListViewModel(
@@ -151,7 +151,7 @@ public sealed class MarkupViewModelRefreshTests : IDisposable
             NewEntries(list),
             list)
         {
-            RawXml = ValidAddinXml("Edited")
+            RawXml = TestManifestXml.ValidAddin("Edited")
         };
         markup.SaveCommand.Execute(null);
 
@@ -204,7 +204,7 @@ public sealed class MarkupViewModelRefreshTests : IDisposable
         entries.SelectedEntry = entries.Entries[1];
         var before = Assert.NotNull(markup.SelectedEntrySpan);
 
-        markup.RawXml = ValidAddinXml("Only");
+        markup.RawXml = TestManifestXml.ValidAddin("Only");
 
         Assert.Equal(before, markup.SelectedEntrySpan);
     }
@@ -258,17 +258,6 @@ public sealed class MarkupViewModelRefreshTests : IDisposable
             <Assembly>b.dll</Assembly>
             <AddInId>22222222-2222-2222-2222-222222222222</AddInId>
             <FullClassName>A.Second</FullClassName>
-          </AddIn>
-        </RevitAddIns>
-        """;
-
-    private static string ValidAddinXml(string name) => $"""
-        <RevitAddIns>
-          <AddIn Type="Application">
-            <Name>{name}</Name>
-            <Assembly>a.dll</Assembly>
-            <AddInId>11111111-1111-1111-1111-111111111111</AddInId>
-            <FullClassName>A.App</FullClassName>
           </AddIn>
         </RevitAddIns>
         """;
