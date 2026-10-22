@@ -23,6 +23,7 @@
     <File Path="docs/policies/development.md" />
   </Folder>
   <Folder Name="/scripts/">
+    <File Path="scripts/Clear-BuildOutput.ps1" />
     <File Path="scripts/Validate-Repository.ps1" />
   </Folder>
   <Folder Name="/.github/" />

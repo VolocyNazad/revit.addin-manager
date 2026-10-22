@@ -23,7 +23,8 @@ Detailed behavior is defined in [FEATURES.md](FEATURES.md).
 - `build/` — separate solution (`Revit.AddinManager.Build.slnx`) with the ModularPipelines
   release pipeline (compile the launcher, pack the MSI, publish the GitHub release)
 - `docs/` — contributor documentation, policies and the plan
-- `scripts/` — maintenance scripts
+- `scripts/` — maintenance scripts (`Validate-Repository.ps1` checks the repository policy,
+  `Clear-BuildOutput.ps1` removes `bin`/`obj` directories without touching sources)
 - `.github/` — CI workflows
 - `sandbox/` — отдельный solution (`AddinManager.Sandbox.slnx`) с песочницей разметки
   (`AddinManager.Playground`: вставка XAML-фрагмента и живой предпросмотр через

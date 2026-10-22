@@ -6,6 +6,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+### Added
+
+- `scripts/Clear-BuildOutput.ps1` removes the `bin`/`obj` directories inside the repository without touching sources; it is listed in the solution's `scripts` folder.
+
 ### Changed
 
 - Cross-file duplicate `AddInId` detection is now one shared Core algorithm (`AddinFileDuplicates`) used by the plugin list, the entries zone and the markup editor, instead of three separate copies.
