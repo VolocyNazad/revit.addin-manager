@@ -1,4 +1,5 @@
 using System.IO;
+using AddinManager.Core;
 using AddinManager.Core.Storage;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
@@ -29,7 +30,7 @@ public sealed partial class AddFileDialogViewModel : ObservableObject
 
     /// <summary>Версия Revit.</summary>
     [ObservableProperty]
-    private string _version = "2027";
+    private string _version = RevitVersionCatalog.Latest;
 
     /// <summary>Сразу в <c>disabled/</c>.</summary>
     [ObservableProperty]

@@ -12,12 +12,8 @@ namespace AddinManager.Launcher.Converters;
 public sealed class NullToVisibilityConverter : IValueConverter
 {
     /// <inheritdoc />
-    public object Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
-    {
-        var hasValue = value is not null;
-        var invert = string.Equals(parameter as string, "Invert", StringComparison.OrdinalIgnoreCase);
-        return hasValue != invert ? Visibility.Visible : Visibility.Collapsed;
-    }
+    public object Convert(object? value, Type targetType, object? parameter, CultureInfo culture) =>
+        VisibilityConversion.FromFlag(value is not null, parameter);
 
     /// <inheritdoc />
     public object ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture) =>

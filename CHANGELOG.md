@@ -13,6 +13,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - Per-test temporary-directory cleanup (`TempDirectorySet`) is shared too, replacing the `NewRoot`/`Dispose` pair copied into 13 test classes.
 - The valid-manifest XML used by the headless tests comes from one `TestManifestXml` builder instead of ten local copies.
 - The launcher tests build `ListViewModel` through one `ListViewModelFixture` with fake defaults and explicit overrides, replacing every inline copy of the twelve-dependency graph.
+- The supported Revit version list and the picker default now come from one `RevitVersionCatalog` in Core instead of the array and the `"2027"` defaults repeated in the launcher.
+- The visibility converters share one `ConverterParameter="Invert"` rule and the opacity converters share one pair of active/inactive values.
 - The store and the change watcher share one `AddinFolderLayout` for the Revit add-in folder paths and the disabled-folder rule; the store's five Revit-running refusals and two file-name normalizations are each one helper now.
 - The manifest parser defines each `AddIn` field once in a tag metadata table; the canonical write order and the write value lookup are derived from it, and reading uses the same tag constants.
 

@@ -2,6 +2,7 @@ using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.IO;
 using System.Windows.Data;
+using AddinManager.Core;
 using AddinManager.Core.Abstractions.Guard;
 using AddinManager.Core.Abstractions.Storage;
 using AddinManager.Core.Guard;
@@ -23,7 +24,7 @@ namespace AddinManager.Launcher.ViewModels;
 public sealed partial class ListViewModel : ObservableObject, IFileSelection, IAddinFileCatalog
 {
     /// <summary>Все версии, которые сканируем (план, раздел 2 — "all seven").</summary>
-    public static readonly IReadOnlyList<string> RevitVersions = ["2021", "2022", "2023", "2024", "2025", "2026", "2027"];
+    public static readonly IReadOnlyList<string> RevitVersions = RevitVersionCatalog.SupportedVersions;
 
     private readonly IAddinStore _store;
     private readonly IAddinChangeWatcher _changeWatcher;

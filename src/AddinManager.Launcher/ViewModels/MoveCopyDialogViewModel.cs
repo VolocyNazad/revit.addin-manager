@@ -1,3 +1,4 @@
+using AddinManager.Core;
 using AddinManager.Core.Abstractions.Manifests;
 using AddinManager.Core.Abstractions.Storage;
 using AddinManager.Core.Storage;
@@ -36,7 +37,7 @@ public sealed partial class MoveCopyDialogViewModel : ObservableObject
 
     /// <summary>Версия Revit, куда переносим/копируем.</summary>
     [ObservableProperty]
-    private string _version = "2027";
+    private string _version = RevitVersionCatalog.Latest;
 
     /// <summary>Целевая область.</summary>
     [ObservableProperty]
