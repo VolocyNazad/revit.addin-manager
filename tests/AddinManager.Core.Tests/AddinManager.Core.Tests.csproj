@@ -18,6 +18,11 @@
   </ItemGroup>
 
   <ItemGroup>
+    <!-- Helpers shared with the other headless test projects; linked source keeps one copy. -->
+    <Compile Include="..\Shared\*.cs" Link="Shared\%(Filename)%(Extension)" />
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\..\src\AddinManager.Core\AddinManager.Core.csproj" />
   </ItemGroup>
 

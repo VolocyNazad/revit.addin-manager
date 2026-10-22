@@ -1,14 +1,13 @@
 using Microsoft.Extensions.Logging;
 
-namespace AddinManager.Launcher.Tests.TestDoubles;
+namespace AddinManager.Testing;
 
 /// <summary>
 /// Записывает каждый вызов <see cref="ILogger"/> вместо того, чтобы никуда не писать (в отличие
 /// от <see cref="Microsoft.Extensions.Logging.Abstractions.NullLogger{T}"/>, который тесты берут
 /// по умолчанию) — нужен там, где сам факт и уровень логирования конкретного события — часть
 /// проверяемого поведения ("это обязано быть залогировано"), а не просто побочный эффект.
-/// Тот же двойник, что и в <c>AddinManager.Core.Tests</c> (другая сборка, отсюда без <c>cref</c>
-/// и без общего проекта — тестовые проекты друг на друга не ссылаются).
+/// Общий хелпер тестовых проектов (linked source), а не копия в каждом.
 /// </summary>
 public sealed class RecordingLogger<T> : ILogger<T>
 {
