@@ -22,12 +22,58 @@ public sealed class LinqToXmlAddinManifestParser : IAddinManifestParser
     {
         _localizer = localizer;
     }
-    private static readonly string[] CanonicalOrder =
+    /// <summary>Local names of the single-value and multi-value elements of one <c>AddIn</c> entry.</summary>
+    private static class EntryTags
+    {
+        public const string Name = "Name";
+        public const string Text = "Text";
+        public const string Description = "Description";
+        public const string LongDescription = "LongDescription";
+        public const string Assembly = "Assembly";
+        public const string AddInId = "AddInId";
+        public const string FullClassName = "FullClassName";
+        public const string AvailabilityClassName = "AvailabilityClassName";
+        public const string VendorId = "VendorId";
+        public const string VendorDescription = "VendorDescription";
+        public const string VisibilityMode = "VisibilityMode";
+        public const string Discipline = "Discipline";
+        public const string LargeImage = "LargeImage";
+        public const string SmallImage = "SmallImage";
+        public const string ToolTipImage = "ToolTipImage";
+    }
+
+    /// <summary>
+    /// One element of an <c>AddIn</c> entry: its tag and how to read its value from the model on write.
+    /// The table is the single definition of the entry field order used by the round-trip writer.
+    /// </summary>
+    private sealed record EntryField(
+        string Tag,
+        Func<AddinEntry, string?> Value,
+        Func<AddinEntry, IReadOnlyList<string>>? ListValue = null);
+
+    private static readonly EntryField[] EntryFields =
     [
-        "Name", "Text", "Description", "LongDescription", "Assembly", "AddInId",
-        "FullClassName", "AvailabilityClassName", "VendorId", "VendorDescription",
-        "VisibilityMode", "Discipline", "LargeImage", "SmallImage", "ToolTipImage",
+        new(EntryTags.Name, static entry => entry.Name),
+        new(EntryTags.Text, static entry => entry.Text),
+        new(EntryTags.Description, static entry => entry.Description),
+        new(EntryTags.LongDescription, static entry => entry.LongDescription),
+        new(EntryTags.Assembly, static entry => entry.AssemblyPath),
+        new(EntryTags.AddInId, static entry => entry.AddInId.ToString()),
+        new(EntryTags.FullClassName, static entry => entry.FullClassName),
+        new(EntryTags.AvailabilityClassName, static entry => entry.AvailabilityClassName),
+        new(EntryTags.VendorId, static entry => entry.VendorId),
+        new(EntryTags.VendorDescription, static entry => entry.VendorDescription),
+        new(EntryTags.VisibilityMode, static entry => null, static entry => entry.VisibilityModes),
+        new(EntryTags.Discipline, static entry => null, static entry => entry.Disciplines),
+        new(EntryTags.LargeImage, static entry => entry.LargeImage),
+        new(EntryTags.SmallImage, static entry => entry.SmallImage),
+        new(EntryTags.ToolTipImage, static entry => entry.ToolTipImage),
     ];
+
+    private static readonly string[] CanonicalOrder = [.. EntryFields.Select(field => field.Tag)];
+
+    private static readonly Dictionary<string, EntryField> EntryFieldsByTag =
+        EntryFields.ToDictionary(field => field.Tag, StringComparer.Ordinal);
 
     /// <inheritdoc />
     public AddinManifest Parse(string xml)
@@ -142,11 +188,11 @@ public sealed class LinqToXmlAddinManifestParser : IAddinManifestParser
             return value;
         }
 
-        var assembly = Req("Assembly");
-        var guidRaw = Req("AddInId");
+        var assembly = Req(EntryTags.Assembly);
+        var guidRaw = Req(EntryTags.AddInId);
         if (!Guid.TryParse(guidRaw.Trim(), out var guid))
             throw new AddinManifestFormatException(_localizer["InvalidAddInId", guidRaw].Value);
-        var fullClassName = Req("FullClassName");
+        var fullClassName = Req(EntryTags.FullClassName);
 
         var order = new List<string>();
         var unknowns = new List<XNode>();
@@ -173,21 +219,21 @@ public sealed class LinqToXmlAddinManifestParser : IAddinManifestParser
         return new AddinEntry(
             type,
             rawType,
-            el.Element(N("Name"))?.Value,
-            el.Element(N("Text"))?.Value,
-            el.Element(N("Description"))?.Value,
-            el.Element(N("LongDescription"))?.Value,
+            el.Element(N(EntryTags.Name))?.Value,
+            el.Element(N(EntryTags.Text))?.Value,
+            el.Element(N(EntryTags.Description))?.Value,
+            el.Element(N(EntryTags.LongDescription))?.Value,
             assembly,
             guid,
             fullClassName,
-            el.Element(N("AvailabilityClassName"))?.Value,
-            el.Element(N("VendorId"))?.Value,
-            el.Element(N("VendorDescription"))?.Value,
-            el.Elements(N("VisibilityMode")).Select(e => e.Value).ToList(),
-            el.Elements(N("Discipline")).Select(e => e.Value).ToList(),
-            el.Element(N("LargeImage"))?.Value,
-            el.Element(N("SmallImage"))?.Value,
-            el.Element(N("ToolTipImage"))?.Value,
+            el.Element(N(EntryTags.AvailabilityClassName))?.Value,
+            el.Element(N(EntryTags.VendorId))?.Value,
+            el.Element(N(EntryTags.VendorDescription))?.Value,
+            el.Elements(N(EntryTags.VisibilityMode)).Select(e => e.Value).ToList(),
+            el.Elements(N(EntryTags.Discipline)).Select(e => e.Value).ToList(),
+            el.Element(N(EntryTags.LargeImage))?.Value,
+            el.Element(N(EntryTags.SmallImage))?.Value,
+            el.Element(N(EntryTags.ToolTipImage))?.Value,
             order,
             unknowns);
     }
@@ -245,23 +291,8 @@ public sealed class LinqToXmlAddinManifestParser : IAddinManifestParser
         if (typeValue is not null)
             el.SetAttributeValue("Type", typeValue);
 
-        string? Single(string name) => name switch
-        {
-            "Name" => entry.Name,
-            "Text" => entry.Text,
-            "Description" => entry.Description,
-            "LongDescription" => entry.LongDescription,
-            "Assembly" => entry.AssemblyPath,
-            "AddInId" => entry.AddInId.ToString(),
-            "FullClassName" => entry.FullClassName,
-            "AvailabilityClassName" => entry.AvailabilityClassName,
-            "VendorId" => entry.VendorId,
-            "VendorDescription" => entry.VendorDescription,
-            "LargeImage" => entry.LargeImage,
-            "SmallImage" => entry.SmallImage,
-            "ToolTipImage" => entry.ToolTipImage,
-            _ => null,
-        };
+        string? Single(string name) =>
+            EntryFieldsByTag.TryGetValue(name, out EntryField? field) ? field.Value(entry) : null;
 
         var multiIndex = new Dictionary<string, int>(StringComparer.Ordinal);
         int MultiIndex(string name)
@@ -281,9 +312,9 @@ public sealed class LinqToXmlAddinManifestParser : IAddinManifestParser
                 continue;
             }
 
-            if (tag is "VisibilityMode" or "Discipline")
+            if (EntryFieldsByTag.TryGetValue(tag, out EntryField? multiField) && multiField.ListValue is { } listValues)
             {
-                var list = tag == "VisibilityMode" ? entry.VisibilityModes : entry.Disciplines;
+                IReadOnlyList<string> list = listValues(entry);
                 var i = MultiIndex(tag);
                 if (i < list.Count)
                     el.Add(new XElement(tag, list[i]));
@@ -301,9 +332,9 @@ public sealed class LinqToXmlAddinManifestParser : IAddinManifestParser
         {
             if (seen.Contains(tag))
                 continue;
-            if (tag is "VisibilityMode" or "Discipline")
+            if (EntryFieldsByTag.TryGetValue(tag, out EntryField? multiField) && multiField.ListValue is { } listValues)
             {
-                var list = tag == "VisibilityMode" ? entry.VisibilityModes : entry.Disciplines;
+                IReadOnlyList<string> list = listValues(entry);
                 var emitted = multiIndex.GetValueOrDefault(tag);
                 foreach (var v in list.Skip(emitted))
                     el.Add(new XElement(tag, v));
