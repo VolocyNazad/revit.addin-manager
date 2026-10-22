@@ -1,5 +1,4 @@
 using AddinManager.Core.Storage;
-using AddinManager.Core.Tests.TestDoubles;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 
@@ -149,6 +148,75 @@ public sealed class FileSystemAddinChangeWatcherTests : IDisposable
         var ex = Record.Exception(watcher.Start);
 
         Assert.Null(ex);
+    }
+
+    /// <summary>
+    /// Регрессия: если папки <c>Autodesk\Revit\Addins</c> нет на момент <see cref="FileSystemAddinChangeWatcher.Start"/>,
+    /// слежение должно включиться позже, когда папка появится (раньше флаг "стартовали" выставлялся
+    /// до попытки создать наблюдателя, и при отсутствующей папке слежение не включалось уже никогда).
+    /// </summary>
+    [Fact]
+    public async Task Start_MissingAddinsRoot_StartsWatchingWhenRootAppears()
+    {
+        var userRoot = NewRoot();
+        var watcher = new FileSystemAddinChangeWatcher(
+            NullLogger<FileSystemAddinChangeWatcher>.Instance,
+            userRoot,
+            NewRoot(),
+            retryInterval: TimeSpan.FromMilliseconds(50));
+        _watchers.Add(watcher);
+        using var signal = new ManualResetEventSlim(false);
+        watcher.Changed += (_, _) => signal.Set();
+        watcher.Start();
+
+        var versionDir = VersionDir(userRoot, "2025");
+        Directory.CreateDirectory(versionDir);
+
+        // Момент, когда повторный таймер создаст наблюдателя, не синхронизирован с тестом, поэтому
+        // пишем файл, пока Changed не сработает; каждая попытка ждёт дольше дебаунса (300 мс),
+        // чтобы событие успело подняться, а не тонуло в бесконечных перезаписях.
+        var cancellationToken = TestContext.Current.CancellationToken;
+        var deadline = DateTime.UtcNow + WaitTimeout;
+        var attempt = 0;
+        while (!signal.IsSet && DateTime.UtcNow < deadline)
+        {
+            await File.WriteAllTextAsync(
+                Path.Combine(versionDir, "Retried.addin"),
+                TestManifestXml.ValidAddin($"Retried-{attempt++}"),
+                cancellationToken);
+            signal.Wait(TimeSpan.FromMilliseconds(500), cancellationToken);
+        }
+
+        Assert.True(signal.IsSet, "Changed не сработал после появления корня и записи .addin файла.");
+    }
+
+    /// <summary>
+    /// Когда оба корня уже существуют, повторный таймер не должен взводиться: наблюдатель на корень
+    /// ровно один (Information "слежение запущено" по разу на корень), дублей нет.
+    /// </summary>
+    [Fact]
+    public async Task Start_BothRootsPresent_WatchesEachRootOnceWithoutDuplicates()
+    {
+        var userRoot = NewRoot();
+        var machineRoot = NewRoot();
+        Directory.CreateDirectory(VersionDir(userRoot, "2025"));
+        Directory.CreateDirectory(VersionDir(machineRoot, "2025"));
+        var logger = new RecordingLogger<FileSystemAddinChangeWatcher>();
+        var watcher = new FileSystemAddinChangeWatcher(
+            logger,
+            userRoot,
+            machineRoot,
+            retryInterval: TimeSpan.FromMilliseconds(25));
+        _watchers.Add(watcher);
+
+        watcher.Start();
+
+        // Даём повторному таймеру (если бы он ошибочно остался взведённым) шанс создать дубль.
+        await Task.Delay(TimeSpan.FromMilliseconds(200), TestContext.Current.CancellationToken);
+
+        Assert.Equal(2, logger.Entries.Count(entry =>
+            entry.Level == LogLevel.Information
+            && entry.Message.Contains("слежение запущено", StringComparison.OrdinalIgnoreCase)));
     }
 
     /// <summary>

@@ -3,6 +3,7 @@ using AddinManager.Core.Abstractions.Storage;
 using AddinManager.Core.Parsing;
 using AddinManager.Core.Storage;
 using AddinManager.Core.Tests.TestDoubles;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 
 namespace AddinManager.Core.Tests.Storage;
@@ -38,6 +39,37 @@ public sealed class FileSystemAddinStoreRecycleTests : IDisposable
 
         Assert.Equal([path], recycler.Paths);
         Assert.True(File.Exists(path));
+    }
+
+    /// <summary>
+    /// Fallback без <see cref="IFileRecycler"/> (поведение Core-тестов) удаляет файл безвозвратно,
+    /// поэтому обязан быть виден в логе на уровне Warning — иначе необратимое удаление пройдёт молча
+    /// (см. development policy: fallback must be explicit, documented and logged).
+    /// </summary>
+    [Fact]
+    public void Delete_WithoutRecycler_LogsWarningAndDeletesPermanently()
+    {
+        var versionDir = Path.Combine(_root, "Autodesk", "Revit", "Addins", "2025");
+        Directory.CreateDirectory(versionDir);
+        var path = Path.Combine(versionDir, "A.addin");
+        File.WriteAllText(path, TestManifestXml.ValidAddin("A"));
+        var logger = new RecordingLogger<FileSystemAddinStore>();
+        var store = new FileSystemAddinStore(
+            _parser,
+            logger,
+            StoppedRevitProcessGuard.Instance,
+            TestLocalization.For<FileSystemAddinStore>(),
+            _root,
+            Path.Combine(_root, "machine"));
+        var file = Assert.Single(store.ScanVersion("2025"));
+
+        var content = store.Delete(file);
+
+        Assert.NotEmpty(content);
+        Assert.False(File.Exists(path));
+        Assert.True(
+            logger.HasEntry(LogLevel.Warning, "IFileRecycler не передан"),
+            "Permanent-delete fallback без корзины должен быть залогирован на уровне Warning.");
     }
 
     /// <inheritdoc />

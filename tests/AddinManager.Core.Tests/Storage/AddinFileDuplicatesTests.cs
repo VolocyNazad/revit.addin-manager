@@ -128,6 +128,30 @@ public sealed class AddinFileDuplicatesTests
             () => AddinFileDuplicates.FindDuplicatedByVersion(null!));
     }
 
+    [Fact]
+    public void FindInOtherFiles_SameIdentityWithDifferentPathAndState_IsExcluded()
+    {
+        AddinFile current = NewFile("Current.addin", "2025", AddinScope.User, FirstId);
+        AddinFile sameIdentity = NewFile("Current.addin", "2025", AddinScope.User, SecondId) with
+        {
+            Enabled = false,
+            FullPath = @"C:\fake\2025\disabled\Current.addin",
+        };
+
+        HashSet<Guid> otherIds = AddinFileDuplicates.FindInOtherFiles(current, [current, sameIdentity]);
+
+        Assert.Empty(otherIds);
+    }
+
+    [Fact]
+    public void FindDuplicatedByVersion_SameIdentityWithDifferentPath_CountsAsOneFile()
+    {
+        AddinFile first = NewFile("Same.addin", "2025", AddinScope.User, FirstId);
+        AddinFile sameIdentity = first with { FullPath = @"C:\fake\2025\disabled\Same.addin", Enabled = false };
+
+        Assert.Empty(AddinFileDuplicates.FindDuplicatedByVersion([first, sameIdentity]));
+    }
+
     private static AddinFile NewFile(string fileName, string version, AddinScope scope, params Guid[] addInIds)
     {
         AddinEntry[] entries = [.. addInIds.Select(NewEntry)];

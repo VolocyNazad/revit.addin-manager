@@ -99,9 +99,7 @@ public sealed class FileSystemAddinStore : IAddinStore
 
             // Не throw; — тот же экземпляр не должен уйти наверх залогированным дважды (S2139):
             // оборачиваем в новое исключение с тем же контекстом, оригинал остаётся в InnerException.
-            throw new IOException(
-                $"Не удалось перенести '{file.FullPath}' в '{targetPath}' (SetEnabled {file.FileName}, {file.Scope}, {file.Version}).",
-                ex);
+            throw new IOException(_localizer["SetEnabledFailed", file.FullPath, targetPath], ex);
         }
 
         _logger.LogInformation(
@@ -116,7 +114,7 @@ public sealed class FileSystemAddinStore : IAddinStore
     {
         ThrowIfRevitRunning("Rename", file.FileName, file.Scope, file.Version);
 
-        var normalizedName = NormalizeFileName(newFileName);
+        var normalizedName = AddinFileNames.Normalize(newFileName);
         if (normalizedName.Length == 0)
             throw new IOException(_localizer["EmptyFileName"]);
 
@@ -170,7 +168,7 @@ public sealed class FileSystemAddinStore : IAddinStore
                 file.FileName, file.Scope, file.Version, file.FullPath, targetPath);
 
             // Не throw; — тот же экземпляр не должен уйти наверх залогированным дважды (S2139).
-            throw new IOException($"Не удалось переименовать '{file.FullPath}'.", ex);
+            throw new IOException(_localizer["RenameFailed", file.FullPath], ex);
         }
 
         return file with { FileName = normalizedName, FullPath = targetPath };
@@ -190,9 +188,18 @@ public sealed class FileSystemAddinStore : IAddinStore
         {
             content = File.ReadAllBytes(file.FullPath);
             if (_recycler is not null)
+            {
                 _recycler.Recycle(file.FullPath);
+            }
             else
+            {
+                // Без корзины удаление необратимо — это осознанное поведение ядра для тестов,
+                // но оно обязано быть видно в логе (development policy: fallback must be logged).
+                _logger.LogWarning(
+                    "Delete({FileName}, {Scope}, {Version}): файл {Path} удаляется безвозвратно — IFileRecycler не передан",
+                    file.FileName, file.Scope, file.Version, file.FullPath);
                 File.Delete(file.FullPath);
+            }
         }
         catch (Exception ex)
         {
@@ -202,7 +209,7 @@ public sealed class FileSystemAddinStore : IAddinStore
                 file.FileName, file.Scope, file.Version, file.FullPath);
 
             // Не throw; — тот же экземпляр не должен уйти наверх залогированным дважды (S2139).
-            throw new IOException($"Не удалось удалить '{file.FullPath}'.", ex);
+            throw new IOException(_localizer["DeleteFailed", file.FullPath], ex);
         }
 
         _logger.LogInformation(
@@ -210,6 +217,71 @@ public sealed class FileSystemAddinStore : IAddinStore
             file.FileName, file.Scope, file.Version);
 
         return content;
+    }
+
+    /// <inheritdoc />
+    public void Restore(string fullPath, byte[] content)
+    {
+        ThrowIfRevitRunning("Restore", Path.GetFileName(fullPath));
+
+        if (File.Exists(fullPath))
+        {
+            _logger.LogWarning(
+                "Restore({Path}): файл уже есть, перезапись запрещена",
+                fullPath);
+            throw new IOException(_localizer["RestoreTargetExists", Path.GetFileName(fullPath)]);
+        }
+
+        var targetDirectory = Path.GetDirectoryName(fullPath);
+
+        // Уникальный временный файл в той же папке: File.Move в пределах одного тома атомарен,
+        // а уникальный суффикс не даёт двум параллельным восстановлениям затереть temp друг друга.
+        var temporaryPath = fullPath + "." + Guid.NewGuid().ToString("N") + ".tmp";
+
+        try
+        {
+            if (!string.IsNullOrEmpty(targetDirectory))
+                Directory.CreateDirectory(targetDirectory);
+
+            File.WriteAllBytes(temporaryPath, content);
+            File.Move(temporaryPath, fullPath);
+        }
+        catch (Exception ex)
+        {
+            TryDeleteTemporaryFile(temporaryPath);
+
+            _logger.LogError(
+                ex,
+                "Restore({Path}): не удалось восстановить файл",
+                fullPath);
+
+            // Не throw; — тот же экземпляр не должен уйти наверх залогированным дважды (S2139).
+            throw new IOException(_localizer["RestoreFailed", Path.GetFileName(fullPath)], ex);
+        }
+
+        _logger.LogInformation(
+            "Restore({Path}): восстановлено, {Length} байт",
+            fullPath, content.Length);
+    }
+
+    /// <summary>
+    /// Best-effort cleanup of the temporary file left by a failed <see cref="Restore"/>: the
+    /// original failure is what the caller must see, so a cleanup failure stays silent.
+    /// </summary>
+    private static void TryDeleteTemporaryFile(string temporaryPath)
+    {
+        try
+        {
+            File.Delete(temporaryPath);
+        }
+        catch (IOException)
+        {
+            // Уборка временного файла — best effort: исходная ошибка важнее.
+        }
+        catch (UnauthorizedAccessException)
+        {
+            // Уборка временного файла — best effort: исходная ошибка важнее.
+        }
     }
 
     /// <inheritdoc />
@@ -258,9 +330,17 @@ public sealed class FileSystemAddinStore : IAddinStore
                 replacedPath = targetPath;
                 replacedContent = File.ReadAllBytes(targetPath);
                 if (_recycler is not null)
+                {
                     _recycler.Recycle(targetPath);
+                }
                 else
+                {
+                    // Без корзины замена необратима — осознанный fallback ядра, но он обязан быть в логе.
+                    _logger.LogWarning(
+                        "{Operation}({FileName}, {Scope}, {Version}): заменяемый файл {Path} удаляется безвозвратно — IFileRecycler не передан",
+                        copy ? "Copy" : "Move", file.FileName, file.Scope, file.Version, targetPath);
                     File.Delete(targetPath);
+                }
             }
 
             var targetRoot = GetVersionRoot(targetScope, targetVersion);
@@ -320,18 +400,18 @@ public sealed class FileSystemAddinStore : IAddinStore
     }
 
     /// <summary>
-    /// Trims the requested name and enforces the <c>.addin</c> extension; an empty name stays empty so
-    /// each caller keeps its own empty-name message and validation order.
+    /// Same refusal for a mutation that addresses a bare path and therefore has no scope/version
+    /// context (see <see cref="Restore"/>).
     /// </summary>
-    private static string NormalizeFileName(string? fileName)
+    private void ThrowIfRevitRunning(string operation, string fileName)
     {
-        var normalizedName = (fileName ?? string.Empty).Trim();
-        if (normalizedName.Length == 0)
-            return string.Empty;
+        if (!_guard.IsRunning)
+            return;
 
-        return normalizedName.EndsWith(AddinFolderLayout.AddinFileExtension, StringComparison.OrdinalIgnoreCase)
-            ? normalizedName
-            : normalizedName + AddinFolderLayout.AddinFileExtension;
+        _logger.LogWarning(
+            "{Operation}({FileName}): отклонено — запущен Revit",
+            operation, fileName);
+        throw new RevitRunningException(_localizer["BlockedByRunningRevit"]);
     }
 
     /// <inheritdoc />
@@ -339,9 +419,9 @@ public sealed class FileSystemAddinStore : IAddinStore
     {
         ThrowIfRevitRunning("CreateFile", fileName, scope, version);
 
-        var normalizedName = NormalizeFileName(fileName);
+        var normalizedName = AddinFileNames.Normalize(fileName);
         if (normalizedName.Length == 0)
-            throw new ArgumentException("File name is empty.", nameof(fileName));
+            throw new ArgumentException(_localizer["EmptyFileName"], nameof(fileName));
 
         var versionRoot = GetVersionRoot(scope, version);
         var targetDirectory = AddinFolderLayout.GetFileFolder(versionRoot, enabled: !disabled);
@@ -370,7 +450,7 @@ public sealed class FileSystemAddinStore : IAddinStore
                 normalizedName, scope, version, targetPath);
 
             // Не throw; — тот же экземпляр не должен уйти наверх залогированным дважды (S2139).
-            throw new IOException($"Не удалось создать '{targetPath}'.", ex);
+            throw new IOException(_localizer["CreateFileFailed", targetPath], ex);
         }
 
         _logger.LogInformation(

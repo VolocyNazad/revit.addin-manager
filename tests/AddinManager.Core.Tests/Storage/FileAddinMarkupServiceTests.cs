@@ -202,6 +202,23 @@ public sealed class FileAddinMarkupServiceTests : IDisposable
             "Сбой записи должен быть залогирован на уровне Error с деталями пути.");
     }
 
+    [Theory]
+    [InlineData("en", "Could not save")]
+    [InlineData("ru", "Не удалось сохранить")]
+    public void Save_WriteFailure_MessageFollowsCulture(string culture, string expected)
+    {
+        // Каталог не создан: File.WriteAllText во временный файл бросает DirectoryNotFoundException.
+        var root = Path.Combine(Path.GetTempPath(), "AddinManagerTests-" + Guid.NewGuid());
+        var path = Path.Combine(root, "Missing.addin");
+
+        TestCulture.RunIn(culture, () =>
+        {
+            var exception = Assert.Throws<IOException>(() => _sut.Save(FileAt(path), ValidXml));
+
+            Assert.Contains(expected, exception.Message);
+        });
+    }
+
     private static AddinFile FileAt(string path) => new(
         Path.GetFileName(path),
         AddinScope.User,

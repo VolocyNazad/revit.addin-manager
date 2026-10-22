@@ -1,10 +1,10 @@
 using AddinManager.Core.Abstractions.Guard;
 using AddinManager.Core.Abstractions.Parsing;
-using AddinManager.Core.Abstractions.Storage;
 using AddinManager.Core.Guard;
 using AddinManager.Core.Parsing;
 using AddinManager.Core.Storage;
 using AddinManager.Core.Tests.TestDoubles;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 
 namespace AddinManager.Core.Tests.Storage;
@@ -140,6 +140,27 @@ public sealed class FileSystemAddinStoreMoveCopyTests : IDisposable
         Assert.True(File.Exists(source.FullPath));
     }
 
+    /// <summary>
+    /// Замена существующей цели без корзины удаляет её безвозвратно — этот fallback обязан быть
+    /// залогирован на уровне Warning, а не пройти молча (development policy).
+    /// </summary>
+    [Fact]
+    public void Move_OverwriteWithoutRecycler_LogsWarningForPermanentDelete()
+    {
+        var logger = new RecordingLogger<FileSystemAddinStore>();
+        var store = NewStore(logger: logger);
+        var source = WriteFile(store, _userRoot, "2025", "A.addin", "A");
+        var targetPath = store.GetTargetPath("A.addin", "2026", AddinScope.User, enabled: true);
+        Directory.CreateDirectory(Path.GetDirectoryName(targetPath) ?? string.Empty);
+        File.WriteAllText(targetPath, TestManifestXml.ValidAddin("Old"));
+
+        store.Move(source, "2026", AddinScope.User, enabled: true, overwrite: true);
+
+        Assert.True(
+            logger.HasEntry(LogLevel.Warning, "IFileRecycler не передан"),
+            "Permanent-delete fallback при замене цели должен быть залогирован на уровне Warning.");
+    }
+
     [Fact]
     public void TargetExists_ReflectsFileOnDisk()
     {
@@ -150,10 +171,12 @@ public sealed class FileSystemAddinStoreMoveCopyTests : IDisposable
         Assert.False(store.TargetExists("A.addin", "2026", AddinScope.User, enabled: true));
     }
 
-    private FileSystemAddinStore NewStore(IRevitProcessGuard? guard = null) =>
+    private FileSystemAddinStore NewStore(
+        IRevitProcessGuard? guard = null,
+        ILogger<FileSystemAddinStore>? logger = null) =>
         new(
             _parser,
-            NullLogger<FileSystemAddinStore>.Instance,
+            logger ?? NullLogger<FileSystemAddinStore>.Instance,
             guard ?? StoppedRevitProcessGuard.Instance,
             TestLocalization.For<FileSystemAddinStore>(),
             _userRoot,

@@ -14,4 +14,8 @@ public sealed record AddinFile(
     bool Enabled,
     string FullPath,
     string VersionRootDirectory,
-    AddinManifest Manifest);
+    AddinManifest Manifest)
+{
+    /// <summary>Идентичность файла, переживающая пересканирование и изменение пути/состояния.</summary>
+    public AddinFileIdentity Identity => AddinFileIdentity.From(this);
+}

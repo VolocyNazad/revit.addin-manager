@@ -61,4 +61,7 @@
   <data name="BlockedByRunningRevit" xml:space="preserve">
     <value>Revit запущен — изменение файлов заблокировано, пока он не закрыт.</value>
   </data>
+  <data name="SaveFailed" xml:space="preserve">
+    <value>Не удалось сохранить '{0}'.</value>
+  </data>
 </root>

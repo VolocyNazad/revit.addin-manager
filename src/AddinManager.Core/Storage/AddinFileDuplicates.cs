@@ -5,8 +5,7 @@ namespace AddinManager.Core.Storage;
 /// <summary>
 /// Cross-file <c>AddInId</c> rules shared by the plugin list, the entries zone and the markup editor.
 /// Duplicates are counted only inside one Revit version, and a file is identified by
-/// <see cref="AddinFile.FileName"/>, <see cref="AddinFile.Scope"/> and <see cref="AddinFile.Version"/>
-/// rather than by path, because rows are refreshed and recreated.
+/// <see cref="AddinFileIdentity"/> rather than by path, because rows are refreshed and recreated.
 /// </summary>
 public static class AddinFileDuplicates
 {
@@ -27,7 +26,7 @@ public static class AddinFileDuplicates
         {
             if (candidate.Version != file.Version)
                 continue;
-            if (candidate.FileName == file.FileName && candidate.Scope == file.Scope)
+            if (candidate.Identity == file.Identity)
                 continue;
             foreach (AddinEntry entry in candidate.Manifest.Entries)
                 otherIds.Add(entry.AddInId);
@@ -48,21 +47,20 @@ public static class AddinFileDuplicates
     {
         ArgumentNullException.ThrowIfNull(files);
 
-        var filesByIdentity = new Dictionary<(string Version, Guid AddInId), HashSet<string>>();
+        var filesByIdentity = new Dictionary<(string Version, Guid AddInId), HashSet<AddinFileIdentity>>();
         foreach (AddinFile file in files)
         {
-            string fileIdentity = $"{file.Scope}/{file.FileName}";
             foreach (Guid addInId in file.Manifest.Entries.Select(entry => entry.AddInId).Distinct())
             {
                 (string Version, Guid AddInId) key = (file.Version, addInId);
-                if (!filesByIdentity.TryGetValue(key, out HashSet<string>? identities))
+                if (!filesByIdentity.TryGetValue(key, out HashSet<AddinFileIdentity>? identities))
                     filesByIdentity[key] = identities = [];
-                identities.Add(fileIdentity);
+                identities.Add(file.Identity);
             }
         }
 
         var duplicatedByVersion = new Dictionary<string, HashSet<Guid>>(StringComparer.Ordinal);
-        foreach (KeyValuePair<(string Version, Guid AddInId), HashSet<string>> pair in filesByIdentity)
+        foreach (KeyValuePair<(string Version, Guid AddInId), HashSet<AddinFileIdentity>> pair in filesByIdentity)
         {
             if (pair.Value.Count < 2)
                 continue;

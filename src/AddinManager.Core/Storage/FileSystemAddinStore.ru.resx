@@ -79,4 +79,22 @@
   <data name="CopyFailed" xml:space="preserve">
     <value>Не удалось скопировать '{0}'.</value>
   </data>
+  <data name="SetEnabledFailed" xml:space="preserve">
+    <value>Не удалось перенести '{0}' в '{1}'.</value>
+  </data>
+  <data name="RenameFailed" xml:space="preserve">
+    <value>Не удалось переименовать '{0}'.</value>
+  </data>
+  <data name="DeleteFailed" xml:space="preserve">
+    <value>Не удалось удалить '{0}'.</value>
+  </data>
+  <data name="CreateFileFailed" xml:space="preserve">
+    <value>Не удалось создать '{0}'.</value>
+  </data>
+  <data name="RestoreTargetExists" xml:space="preserve">
+    <value>Файл '{0}' уже существует и не был перезаписан.</value>
+  </data>
+  <data name="RestoreFailed" xml:space="preserve">
+    <value>Не удалось восстановить '{0}'.</value>
+  </data>
 </root>

@@ -405,8 +405,11 @@ public sealed class FileSystemAddinStoreTests : IDisposable
         store.ScanVersion("2025");
 
         Assert.True(
-            logger.HasEntry(LogLevel.Debug, "найдено 1 файлов"),
+            logger.HasTemplate(LogLevel.Debug, "найдено"),
             "Найденные в scope файлы должны быть залогированы с их количеством.");
+        Assert.True(
+            logger.HasProperty(LogLevel.Debug, "Count", 1),
+            "Количество найденных файлов должно быть структурным полем лога, а не частью текста.");
     }
 
     private FileSystemAddinStore NewStore(string userRoot, string machineRoot, ILogger<FileSystemAddinStore>? logger = null) =>

@@ -36,6 +36,18 @@ public interface IAddinStore
     byte[] Delete(AddinFile file);
 
     /// <summary>
+    /// Восстанавливает файл по сохранённым байтам — отмена удаления или замены цели
+    /// перемещением/копированием (<c>Ctrl+Z</c>). Недостающие папки создаются, запись атомарная
+    /// (temp + перенос), существующий файл не перезаписывается: отмена не должна затирать то,
+    /// что пользователь успел создать на этом пути.
+    /// </summary>
+    /// <param name="fullPath">Путь восстанавливаемого файла.</param>
+    /// <param name="content">Байты, сохранённые до удаления/замены.</param>
+    /// <exception cref="RevitRunningException">Revit запущен — запись запрещена.</exception>
+    /// <exception cref="IOException">Файл по пути уже есть, нет прав или запись не удалась.</exception>
+    void Restore(string fullPath, byte[] content);
+
+    /// <summary>
     /// Переименовывает файл на месте, сохраняя папку (корень версии или <c>disabled/</c>), scope и
     /// состояние enabled/disabled. Расширение <c>.addin</c> дописывается, если его нет.
     /// </summary>

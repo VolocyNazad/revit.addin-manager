@@ -76,7 +76,7 @@ public sealed class FileAddinMarkupService(
                 file.FileName, file.Scope, file.Version, file.FullPath);
 
             // Не throw; — тот же экземпляр не должен уйти наверх залогированным дважды (S2139), см. FileSystemAddinStore.SetEnabled.
-            throw new IOException($"Не удалось сохранить '{file.FullPath}'.", ex);
+            throw new IOException(localizer["SaveFailed", file.FullPath], ex);
         }
 
         logger.LogInformation(
