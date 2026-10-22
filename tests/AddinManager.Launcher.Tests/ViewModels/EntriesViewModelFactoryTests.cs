@@ -22,18 +22,7 @@ public sealed class EntriesViewModelFactoryTests
     {
         var store = new FakeAddinStore();
         store.SetFiles("2025", NewFile("Two.addin", "2025"));
-        var list = new ListViewModel(
-            store,
-            new FakeAddinChangeWatcher(),
-            new RecordingUiDispatcher(),
-            NullLogger<ListViewModel>.Instance,
-            new FakeLocalizationService(),
-            TestLocalization.For<ListViewModel>(),
-            new AddinFileRowViewModelFactory(store, NullLoggerFactory.Instance, TestLocalization.For<AddinFileRowViewModel>()),
-            new FakeToastService(),
-            new FakeRevitProcessGuard(),
-            new FakeDialogService(),
-            new FakeFolderOpener(), new FakeClipboardService());
+        var list = ListViewModelFixture.Create(store);
         var factory = new FakeEntryRowFactory();
 
         var entries = new EntriesViewModel(

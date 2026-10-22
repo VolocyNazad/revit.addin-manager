@@ -196,18 +196,7 @@ public sealed class RowWarningTests : IDisposable
         }
 
         var store = new FileSystemAddinStore(_parser, NullLogger<FileSystemAddinStore>.Instance, new FakeRevitProcessGuard(), TestLocalization.For<FileSystemAddinStore>(), userRoot, machineRoot);
-        var list = new ListViewModel(
-            store,
-            new FakeAddinChangeWatcher(),
-            new RecordingUiDispatcher(),
-            NullLogger<ListViewModel>.Instance,
-            new FakeLocalizationService(),
-            TestLocalization.For<ListViewModel>(),
-            new AddinFileRowViewModelFactory(store, NullLoggerFactory.Instance, TestLocalization.For<AddinFileRowViewModel>()),
-            new FakeToastService(),
-            new FakeRevitProcessGuard(),
-            new FakeDialogService(),
-            new FakeFolderOpener(), new FakeClipboardService());
+        var list = ListViewModelFixture.Create(store);
         var entries = new EntriesViewModel(
             list, list,
             new FakeLocalizationService(),

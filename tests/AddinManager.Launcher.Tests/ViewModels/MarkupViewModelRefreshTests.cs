@@ -80,18 +80,7 @@ public sealed class MarkupViewModelRefreshTests : IDisposable
         File.WriteAllText(Path.Combine(versionDir, "A.addin"), TestManifestXml.ValidAddin("Original"));
 
         var store = new FileSystemAddinStore(_parser, NullLogger<FileSystemAddinStore>.Instance, new FakeRevitProcessGuard(), TestLocalization.For<FileSystemAddinStore>(), userRoot, NewRoot());
-        var list = new ListViewModel(
-            store,
-            new FakeAddinChangeWatcher(),
-            new RecordingUiDispatcher(),
-            NullLogger<ListViewModel>.Instance,
-            new FakeLocalizationService(),
-            TestLocalization.For<ListViewModel>(),
-            new AddinFileRowViewModelFactory(store, NullLoggerFactory.Instance, TestLocalization.For<AddinFileRowViewModel>()),
-            new FakeToastService(),
-            new FakeRevitProcessGuard(),
-            new FakeDialogService(),
-            new FakeFolderOpener(), new FakeClipboardService());
+        var list = ListViewModelFixture.Create(store);
 
         var markupService = new FileAddinMarkupService(_parser, NullLogger<FileAddinMarkupService>.Instance, new FakeRevitProcessGuard(), TestLocalization.For<FileAddinMarkupService>());
         var markup = new MarkupViewModel(
@@ -128,18 +117,7 @@ public sealed class MarkupViewModelRefreshTests : IDisposable
         File.WriteAllText(Path.Combine(versionDir, "A.addin"), TestManifestXml.ValidAddin("Original"));
 
         var store = new FileSystemAddinStore(_parser, NullLogger<FileSystemAddinStore>.Instance, new FakeRevitProcessGuard(), TestLocalization.For<FileSystemAddinStore>(), userRoot, NewRoot());
-        var list = new ListViewModel(
-            store,
-            new FakeAddinChangeWatcher(),
-            new RecordingUiDispatcher(),
-            NullLogger<ListViewModel>.Instance,
-            new FakeLocalizationService(),
-            TestLocalization.For<ListViewModel>(),
-            new AddinFileRowViewModelFactory(store, NullLoggerFactory.Instance, TestLocalization.For<AddinFileRowViewModel>()),
-            new FakeToastService(),
-            new FakeRevitProcessGuard(),
-            new FakeDialogService(),
-            new FakeFolderOpener(), new FakeClipboardService());
+        var list = ListViewModelFixture.Create(store);
 
         var markupService = new FileAddinMarkupService(_parser, NullLogger<FileAddinMarkupService>.Instance, new FakeRevitProcessGuard(), TestLocalization.For<FileAddinMarkupService>());
         var logger = new RecordingLogger<MarkupViewModel>();
@@ -217,18 +195,7 @@ public sealed class MarkupViewModelRefreshTests : IDisposable
         File.WriteAllText(Path.Combine(versionDir, "A.addin"), xml);
 
         var store = new FileSystemAddinStore(_parser, NullLogger<FileSystemAddinStore>.Instance, new FakeRevitProcessGuard(), TestLocalization.For<FileSystemAddinStore>(), userRoot, NewRoot());
-        var list = new ListViewModel(
-            store,
-            new FakeAddinChangeWatcher(),
-            new RecordingUiDispatcher(),
-            NullLogger<ListViewModel>.Instance,
-            new FakeLocalizationService(),
-            TestLocalization.For<ListViewModel>(),
-            new AddinFileRowViewModelFactory(store, NullLoggerFactory.Instance, TestLocalization.For<AddinFileRowViewModel>()),
-            new FakeToastService(),
-            new FakeRevitProcessGuard(),
-            new FakeDialogService(),
-            new FakeFolderOpener(), new FakeClipboardService());
+        var list = ListViewModelFixture.Create(store);
         var entries = NewEntries(list);
         var markup = new MarkupViewModel(
             list,
