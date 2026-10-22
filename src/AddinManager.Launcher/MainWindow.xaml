@@ -167,7 +167,7 @@
                     Margin="0,4,8,0"
                     RenderOptions.BitmapScalingMode="HighQuality"
                     Source="Resources/Icon.png" />
-                <TextBlock
+                <TextBlock Margin="0 6 0 0"
                     VerticalAlignment="Center"
                     FontWeight="SemiBold"
                     Text="Revit Addin Manager" />
