@@ -6,6 +6,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+### Changed
+
+- Cross-file duplicate `AddInId` detection is now one shared Core algorithm (`AddinFileDuplicates`) used by the plugin list, the entries zone and the markup editor, instead of three separate copies.
+
 ## [1.4.0] - 2026-10-20
 
 ### Added

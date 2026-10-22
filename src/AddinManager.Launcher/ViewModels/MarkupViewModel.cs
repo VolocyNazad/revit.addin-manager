@@ -294,24 +294,10 @@ public sealed partial class MarkupViewModel : ObservableObject, ISavablePane
     /// Идентификаторы других файлов той же версии, что выбранный (<c>null</c> — файл не выбран).
     /// Дубли считаются только внутри версии: Revit грузит версии независимо.
     /// </summary>
-    private HashSet<Guid> FindExternalIds()
-    {
-        var external = new HashSet<Guid>();
-        if (_boundFile is not { } bound)
-            return external;
-
-        foreach (var row in _fileCatalog.Files)
-        {
-            if (row.Version != bound.Version)
-                continue;
-            if (row.FileName == bound.FileName && row.Scope == bound.Scope)
-                continue;
-            foreach (var entry in row.File.Manifest.Entries)
-                external.Add(entry.AddInId);
-        }
-
-        return external;
-    }
+    private HashSet<Guid> FindExternalIds() =>
+        _boundFile is { } bound
+            ? AddinFileDuplicates.FindInOtherFiles(bound, _fileCatalog.Files.Select(row => row.File))
+            : [];
 
     /// <summary>
     /// Срезы проблемных мест текста: пустые обязательные элементы, каждое вхождение

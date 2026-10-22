@@ -656,33 +656,8 @@ public sealed partial class ListViewModel : ObservableObject, IFileSelection, IA
     /// Дубль внутри одного файла без второго файла сюда не попадает (это не кросс-файловый).
     /// </summary>
     internal static Dictionary<string, HashSet<Guid>> FindCrossFileDuplicates(
-        IEnumerable<AddinFileRowViewModel> rows)
-    {
-        var filesById = new Dictionary<(string Version, Guid Id), HashSet<string>>( );
-        foreach (var row in rows)
-        {
-            var fileKey = $"{row.Scope}/{row.FileName}";
-            foreach (var id in row.File.Manifest.Entries.Select(e => e.AddInId).Distinct())
-            {
-                var key = (row.Version, id);
-                if (!filesById.TryGetValue(key, out var files))
-                    filesById[key] = files = [];
-                files.Add(fileKey);
-            }
-        }
-
-        var result = new Dictionary<string, HashSet<Guid>>(StringComparer.Ordinal);
-        foreach (var ((version, id), files) in filesById)
-        {
-            if (files.Count < 2)
-                continue;
-            if (!result.TryGetValue(version, out var set))
-                result[version] = set = [];
-            set.Add(id);
-        }
-
-        return result;
-    }
+        IEnumerable<AddinFileRowViewModel> rows) =>
+        AddinFileDuplicates.FindDuplicatedByVersion(rows.Select(row => row.File));
 
     private void OnRowDeleteRequested(object? sender, EventArgs e)
     {
