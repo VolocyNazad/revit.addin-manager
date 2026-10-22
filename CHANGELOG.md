@@ -18,7 +18,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Fixed
 
-- A file with a duplicate `AddInId` between its entries no longer disappears from the list: the manifest stays readable and the duplicate is shown as a warning. Structural checks (empty required fields, unknown entry type, duplicate identifier) now come from one `AddinManifestValidator` in Core instead of separate per-surface copies.
+- A file with a duplicate `AddInId` between its entries no longer disappears from the list: the manifest stays readable and the duplicate is shown as a warning. Structural checks (empty required fields, unknown entry type, duplicate identifier) now come from one `AddinManifestValidator` in Core, and the Markup editor marks an unknown entry type too.
 - The store and the change watcher share one `AddinFolderLayout` for the Revit add-in folder paths and the disabled-folder rule; the store's five Revit-running refusals and two file-name normalizations are each one helper now.
 - The manifest parser defines each `AddIn` field once in a tag metadata table; the canonical write order and the write value lookup are derived from it, and reading uses the same tag constants.
 

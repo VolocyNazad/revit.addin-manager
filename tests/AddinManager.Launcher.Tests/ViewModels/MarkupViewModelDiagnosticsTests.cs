@@ -93,6 +93,27 @@ public sealed class MarkupViewModelDiagnosticsTests : IDisposable
     }
 
     [Fact]
+    public void UnknownEntryType_IsMarked()
+    {
+        var (_, _, markup) = NewGraph(TestManifestXml.ValidAddin("Original"));
+
+        const string xml = """
+            <RevitAddIns>
+              <AddIn Type="SomethingNew">
+                <Name>Unknown</Name>
+                <Assembly>a.dll</Assembly>
+                <AddInId>33333333-3333-3333-3333-333333333333</AddInId>
+                <FullClassName>A.Unknown</FullClassName>
+              </AddIn>
+            </RevitAddIns>
+            """;
+        markup.RawXml = xml;
+
+        var span = Assert.Single(markup.DiagnosticSpans);
+        Assert.Equal("SomethingNew", xml.Substring(span.Start, span.Length));
+    }
+
+    [Fact]
     public void EditedXml_UpdatesSpansLive()
     {
         var (_, _, markup) = NewGraph(TestManifestXml.ValidAddin("Original"));

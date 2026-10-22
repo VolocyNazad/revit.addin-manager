@@ -4,6 +4,7 @@ using System.Text.RegularExpressions;
 using AddinManager.Core.Abstractions.Guard;
 using AddinManager.Core.Abstractions.Storage;
 using AddinManager.Core.Guard;
+using AddinManager.Core.Manifests;
 using AddinManager.Core.Parsing;
 using AddinManager.Core.Storage;
 using AddinManager.Launcher.Abstractions.Services;
@@ -300,11 +301,11 @@ public sealed partial class MarkupViewModel : ObservableObject, ISavablePane
             : [];
 
     /// <summary>
-    /// Срезы проблемных мест текста: пустые обязательные элементы, каждое вхождение
-    /// повторяющегося значения <c>AddInId</c> внутри текста и каждое вхождение значения из
-    /// <paramref name="externalIds"/> (дубль в другом файле той же версии). Пустые невалидные
-    /// значения пропускаем в поиске дублей: они уже помечены как пустые. Регистр тегов — точный,
-    /// как у парсера (чужой регистр для него — отсутствие элемента, а не пустота).
+    /// Срезы проблемных мест текста: пустые обязательные элементы, неизвестный <c>Type</c> записи,
+    /// каждое вхождение повторяющегося значения <c>AddInId</c> внутри текста и каждое вхождение
+    /// значения из <paramref name="externalIds"/> (дубль в другом файле той же версии). Пустые
+    /// невалидные значения пропускаем в поиске дублей: они уже помечены как пустые. Регистр
+    /// тегов — точный, как у парсера (чужой регистр для него — отсутствие элемента, а не пустота).
     /// </summary>
     internal static IReadOnlyList<TextSpan> FindDiagnosticSpans(string? xml, IReadOnlySet<Guid>? externalIds = null)
     {
@@ -314,6 +315,13 @@ public sealed partial class MarkupViewModel : ObservableObject, ISavablePane
         var spans = new List<TextSpan>();
         foreach (Match empty in EmptyFieldPattern().Matches(xml))
             spans.Add(new TextSpan(empty.Index, empty.Length));
+
+        foreach (Match typeMatch in EntryTypePattern().Matches(xml))
+        {
+            Group type = typeMatch.Groups["type"];
+            if (!AddinManifestValidator.IsRecognizedEntryType(type.Value.Trim()))
+                spans.Add(new TextSpan(type.Index, type.Length));
+        }
 
         var byId = new Dictionary<string, List<Match>>(StringComparer.OrdinalIgnoreCase);
         foreach (Match candidate in EntryIdPattern().Matches(xml))
@@ -395,6 +403,9 @@ public sealed partial class MarkupViewModel : ObservableObject, ISavablePane
 
     [GeneratedRegex("<(Assembly|FullClassName|AddInId)\\s*(?:/\\s*>|>\\s*</\\1\\s*>)", RegexOptions.CultureInvariant)]
     private static partial Regex EmptyFieldPattern();
+
+    [GeneratedRegex("<AddIn(?=[\\s>])[^>]*?\\bType\\s*=\\s*(?<quote>[\"'])(?<type>.*?)\\k<quote>", RegexOptions.IgnoreCase | RegexOptions.CultureInvariant)]
+    private static partial Regex EntryTypePattern();
 
     [GeneratedRegex("<AddIn(?=[\\s>])", RegexOptions.RightToLeft | RegexOptions.CultureInvariant)]
     private static partial Regex OpenEntryPattern();

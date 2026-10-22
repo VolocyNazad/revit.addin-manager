@@ -68,12 +68,13 @@ This document records stable architectural rules. Implementation details belong 
 - `IAddinManifestParser` maps XML to one model for all entry types and back.
 - Parsing preserves the declaration, element order, comments and unknown nodes for honest round trips.
 - Unknown entry types are represented as `Unknown` and are not rejected solely for that reason.
-- Structural validation is shared by live diagnostics and save operations.
+- Structural validation is owned by one Core rule set, `AddinManifestValidator`, and shared by the parser consumers, the live diagnostics and the save path.
 
 ## Diagnostics
 
-- File and entry rows warn about missing required data, unknown types and duplicate `AddInId` values.
-- Cross-file duplicates are scoped to a Revit version. The Markup editor reports the same duplicates.
+- Empty required values are an unfinished draft: they are warned about everywhere and block only the form's own save, so a new entry can still be created.
+- Unknown entry types and duplicate `AddInId` values are warnings: the file stays readable and editable so the user can fix it. File rows, entry rows and the Markup editor report the same issues.
+- Cross-file duplicates are scoped to a Revit version.
 
 ## Logging
 
