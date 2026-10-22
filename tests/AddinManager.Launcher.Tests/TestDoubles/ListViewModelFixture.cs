@@ -3,6 +3,7 @@ using AddinManager.Core.Abstractions.Storage;
 using AddinManager.Launcher.Abstractions.Composition;
 using AddinManager.Launcher.Abstractions.Services;
 using AddinManager.Launcher.Composition;
+using AddinManager.Localization.Abstractions;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 
@@ -22,13 +23,15 @@ internal static class ListViewModelFixture
         IAddinFileRowViewModelFactory? rowFactory = null,
         IToastService? toastService = null,
         IDialogService? dialogService = null,
+        IUiDispatcher? dispatcher = null,
+        ILocalizationService? localizationService = null,
         IEditorDirtyState? dirtyState = null) =>
         new(
             store,
             changeWatcher ?? new FakeAddinChangeWatcher(),
-            new RecordingUiDispatcher(),
+            dispatcher ?? new RecordingUiDispatcher(),
             logger ?? NullLogger<ListViewModel>.Instance,
-            new FakeLocalizationService(),
+            localizationService ?? new FakeLocalizationService(),
             TestLocalization.For<ListViewModel>(),
             rowFactory ?? new AddinFileRowViewModelFactory(
                 store, NullLoggerFactory.Instance, TestLocalization.For<AddinFileRowViewModel>()),

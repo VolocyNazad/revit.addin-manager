@@ -87,18 +87,7 @@ public sealed class EntriesViewModelSearchTests : IDisposable
 
         var stoppedGuard = new FakeRevitProcessGuard();
         var store = new FileSystemAddinStore(_parser, NullLogger<FileSystemAddinStore>.Instance, stoppedGuard, TestLocalization.For<FileSystemAddinStore>(), userRoot, NewRoot());
-        var list = new ListViewModel(
-            store,
-            new FakeAddinChangeWatcher(),
-            new RecordingUiDispatcher(),
-            NullLogger<ListViewModel>.Instance,
-            new FakeLocalizationService(),
-            TestLocalization.For<ListViewModel>(),
-            new AddinFileRowViewModelFactory(store, NullLoggerFactory.Instance, TestLocalization.For<AddinFileRowViewModel>()),
-            new FakeToastService(),
-            stoppedGuard,
-            new FakeDialogService(),
-            new FakeFolderOpener(), new FakeClipboardService());
+        var list = ListViewModelFixture.Create(store, guard: stoppedGuard);
 
         return new EntriesViewModel(
             list, list,

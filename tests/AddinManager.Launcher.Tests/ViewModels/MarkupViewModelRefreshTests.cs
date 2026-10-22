@@ -33,18 +33,8 @@ public sealed class MarkupViewModelRefreshTests : IDisposable
         File.WriteAllText(Path.Combine(versionDir, "A.addin"), TestManifestXml.ValidAddin("Original"));
 
         var store = new FileSystemAddinStore(_parser, NullLogger<FileSystemAddinStore>.Instance, new FakeRevitProcessGuard(), TestLocalization.For<FileSystemAddinStore>(), userRoot, NewRoot());
-        var list = new ListViewModel(
-            store,
-            new FakeAddinChangeWatcher(), // слежение за диском тут не тестируем — см. ListViewModelChangeWatcherTests
-            new RecordingUiDispatcher(),
-            NullLogger<ListViewModel>.Instance,
-            new FakeLocalizationService(),
-            TestLocalization.For<ListViewModel>(),
-            new AddinFileRowViewModelFactory(store, NullLoggerFactory.Instance, TestLocalization.For<AddinFileRowViewModel>()),
-            new FakeToastService(),
-            new FakeRevitProcessGuard(),
-            new FakeDialogService(),
-            new FakeFolderOpener(), new FakeClipboardService());
+        // слежение за диском тут не тестируем — см. ListViewModelChangeWatcherTests
+        var list = ListViewModelFixture.Create(store);
 
         // Список уже прочитал файл при старте — с именем записи "Original".
         Assert.Equal("Original", list.Files.Single().File.Manifest.Entries.Single().Name);
