@@ -11,9 +11,6 @@ using AddinManager.Core.Parsing;
 using AddinManager.Core.Storage;
 using AddinManager.Launcher.Abstractions.Composition;
 using AddinManager.Launcher.Abstractions.Services;
-using AddinManager.Launcher.Composition;
-using AddinManager.Launcher.Services;
-using AddinManager.Localization;
 using AddinManager.Localization.Abstractions;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
@@ -198,6 +195,8 @@ public sealed partial class EntriesViewModel : ObservableObject, IEntrySelection
     /// <summary>
     /// Удаляет все отмеченные записи одним сохранением файла (после одного подтверждения).
     /// Ошибка сохранения — в баннер, записи остаются.
+    /// Записи сопоставляются по экземпляру, а не по <c>AddInId</c>: дубли идентификатора —
+    /// легальное warning-состояние, и удаление одной записи не должно уносить соседнюю с тем же ID.
     /// </summary>
     [RelayCommand(CanExecute = nameof(CanBulkDelete))]
     public void DeleteSelected()
@@ -209,8 +208,8 @@ public sealed partial class EntriesViewModel : ObservableObject, IEntrySelection
         if (!_dialogService.Confirm(_localizer["DeleteEntriesConfirm", targets.Count]))
             return;
 
-        var condemned = new HashSet<Guid>(targets.Select(e => e.Entry.AddInId));
-        var remaining = file.Manifest.Entries.Where(e => !condemned.Contains(e.AddInId)).ToList();
+        var condemned = targets.Select(row => row.Entry).ToHashSet(ReferenceEqualityComparer.Instance);
+        var remaining = file.Manifest.Entries.Where(entry => !condemned.Contains(entry)).ToList();
         var xml = _parser.ToXml(file.Manifest with { Entries = remaining });
 
         try
@@ -228,6 +227,8 @@ public sealed partial class EntriesViewModel : ObservableObject, IEntrySelection
     /// <summary>
     /// Удаляет запись из файла навсегда (после подтверждения): выкидывает её из манифеста,
     /// пишет файл целиком тем же атомарным путём, что форма, и обновляет список.
+    /// Сопоставление — по экземпляру записи: <c>AddInId</c> может дублироваться (warning), и
+    /// удаление одной из таких записей не должно удалять остальные.
     /// </summary>
     /// <param name="row">Строка с крестика (может быть невыбранной).</param>
     [RelayCommand(CanExecute = nameof(CanDeleteEntry))]
@@ -239,7 +240,7 @@ public sealed partial class EntriesViewModel : ObservableObject, IEntrySelection
         if (!_dialogService.Confirm(_localizer["DeleteEntryConfirm", row.DisplayName]))
             return;
 
-        var remaining = file.Manifest.Entries.Where(e => e.AddInId != entry.AddInId).ToList();
+        var remaining = file.Manifest.Entries.Where(candidate => !ReferenceEquals(candidate, entry)).ToList();
         var xml = _parser.ToXml(file.Manifest with { Entries = remaining });
 
         try

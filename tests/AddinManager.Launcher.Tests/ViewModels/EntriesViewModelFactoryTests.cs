@@ -1,8 +1,6 @@
 using AddinManager.Core.Abstractions.Parsing;
 using AddinManager.Core.Parsing;
 using AddinManager.Core.Storage;
-using AddinManager.Launcher.Composition;
-using Microsoft.Extensions.Logging.Abstractions;
 
 namespace AddinManager.Launcher.Tests.ViewModels;
 
@@ -25,16 +23,7 @@ public sealed class EntriesViewModelFactoryTests
         var list = ListViewModelFixture.Create(store);
         var factory = new FakeEntryRowFactory();
 
-        var entries = new EntriesViewModel(
-            list, list,
-            new FakeLocalizationService(),
-            TestLocalization.For<EntriesViewModel>(),
-            factory,
-            Parser,
-            new FileAddinMarkupService(Parser, NullLogger<FileAddinMarkupService>.Instance, new FakeRevitProcessGuard(), TestLocalization.For<FileAddinMarkupService>()),
-            new FakeDialogService(),
-            new RecordingUiDispatcher(),
-            new FakeRevitProcessGuard(), new FakeClipboardService(), new FakeToastService());
+        var entries = EditorZoneFixture.CreateEntries(Parser, list, list, rowFactory: factory);
 
         Assert.Equal(2, factory.CreatedEntries.Count);
         Assert.Equal([1, 2], factory.CreatedEntries.Select(e => e.Index));

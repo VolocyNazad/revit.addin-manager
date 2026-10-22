@@ -4,7 +4,6 @@ using AddinManager.Core.Abstractions.Parsing;
 using AddinManager.Core.Manifests;
 using AddinManager.Core.Parsing;
 using AddinManager.Core.Storage;
-using AddinManager.Launcher.Composition;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 

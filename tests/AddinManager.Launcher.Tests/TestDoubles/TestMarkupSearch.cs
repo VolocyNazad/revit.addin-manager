@@ -1,5 +1,4 @@
 using Microsoft.Extensions.Logging.Abstractions;
-using AddinManager.Launcher.ViewModels;
 
 namespace AddinManager.Launcher.Tests.TestDoubles;
 

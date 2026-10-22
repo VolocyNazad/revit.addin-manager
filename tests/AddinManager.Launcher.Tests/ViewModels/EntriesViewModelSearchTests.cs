@@ -2,7 +2,6 @@ using System.IO;
 using AddinManager.Core.Abstractions.Parsing;
 using AddinManager.Core.Parsing;
 using AddinManager.Core.Storage;
-using AddinManager.Launcher.Composition;
 using Microsoft.Extensions.Logging.Abstractions;
 
 namespace AddinManager.Launcher.Tests.ViewModels;
@@ -89,16 +88,7 @@ public sealed class EntriesViewModelSearchTests : IDisposable
         var store = new FileSystemAddinStore(_parser, NullLogger<FileSystemAddinStore>.Instance, stoppedGuard, TestLocalization.For<FileSystemAddinStore>(), userRoot, NewRoot());
         var list = ListViewModelFixture.Create(store, guard: stoppedGuard);
 
-        return new EntriesViewModel(
-            list, list,
-            new FakeLocalizationService(),
-            TestLocalization.For<EntriesViewModel>(),
-            new AddinEntryRowViewModelFactory(TestLocalization.For<AddinEntryRowViewModel>()),
-            _parser,
-            new FileAddinMarkupService(_parser, NullLogger<FileAddinMarkupService>.Instance, stoppedGuard, TestLocalization.For<FileAddinMarkupService>()),
-            new FakeDialogService(),
-            new RecordingUiDispatcher(),
-            stoppedGuard, new FakeClipboardService(), new FakeToastService());
+        return EditorZoneFixture.CreateEntries(_parser, list, list, guard: stoppedGuard);
     }
 
     private static string TwoEntryXml() => """

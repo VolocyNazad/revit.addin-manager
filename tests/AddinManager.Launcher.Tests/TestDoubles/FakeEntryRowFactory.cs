@@ -1,6 +1,5 @@
 using AddinManager.Core.Manifests;
 using AddinManager.Launcher.Abstractions.Composition;
-using AddinManager.Launcher.Composition;
 
 namespace AddinManager.Launcher.Tests.TestDoubles;
 

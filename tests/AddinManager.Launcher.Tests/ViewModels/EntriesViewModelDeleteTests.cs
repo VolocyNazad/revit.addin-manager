@@ -4,7 +4,6 @@ using AddinManager.Core.Abstractions.Storage;
 using AddinManager.Core.Guard;
 using AddinManager.Core.Parsing;
 using AddinManager.Core.Storage;
-using AddinManager.Launcher.Composition;
 using Microsoft.Extensions.Logging.Abstractions;
 
 namespace AddinManager.Launcher.Tests.ViewModels;
@@ -86,6 +85,34 @@ public sealed class EntriesViewModelDeleteTests : IDisposable
         Assert.Equal(2, entries.Entries.Count);
     }
 
+    [Fact]
+    public void DeleteEntry_DuplicateAddInId_RemovesOnlySelectedEntry()
+    {
+        var (entries, _, path) = NewGraph(DuplicateIdXml());
+
+        entries.DeleteEntryCommand.Execute(entries.Entries[1]);
+
+        var text = File.ReadAllText(path);
+        Assert.Contains("A.First", text, StringComparison.Ordinal);
+        Assert.DoesNotContain("A.Second", text, StringComparison.Ordinal);
+        Assert.Single(entries.Entries);
+        Assert.Equal("First", entries.SelectedEntry?.DisplayName);
+    }
+
+    [Fact]
+    public void DeleteSelected_DuplicateAddInId_RemovesOnlyCheckedEntries()
+    {
+        var (entries, _, path) = NewGraph(DuplicateIdXml());
+        entries.Entries[1].IsSelected = true;
+
+        entries.DeleteSelectedCommand.Execute(null);
+
+        var text = File.ReadAllText(path);
+        Assert.Contains("A.First", text, StringComparison.Ordinal);
+        Assert.DoesNotContain("A.Second", text, StringComparison.Ordinal);
+        Assert.Single(entries.Entries);
+    }
+
     private (EntriesViewModel Entries, FakeDialogService Dialog, string Path) NewGraph(
         string xml, IAddinMarkupService? markupService = null, FakeRevitProcessGuard? entriesGuard = null)
     {
@@ -99,16 +126,8 @@ public sealed class EntriesViewModelDeleteTests : IDisposable
         var store = new FileSystemAddinStore(_parser, NullLogger<FileSystemAddinStore>.Instance, stoppedGuard, TestLocalization.For<FileSystemAddinStore>(), userRoot, NewRoot());
         var list = ListViewModelFixture.Create(store, guard: stoppedGuard);
         var dialog = new FakeDialogService();
-        var entries = new EntriesViewModel(
-            list, list,
-            new FakeLocalizationService(),
-            TestLocalization.For<EntriesViewModel>(),
-            new AddinEntryRowViewModelFactory(TestLocalization.For<AddinEntryRowViewModel>()),
-            _parser,
-            markupService ?? new FileAddinMarkupService(_parser, NullLogger<FileAddinMarkupService>.Instance, stoppedGuard, TestLocalization.For<FileAddinMarkupService>()),
-            dialog,
-            new RecordingUiDispatcher(),
-            entriesGuard ?? stoppedGuard, new FakeClipboardService(), new FakeToastService());
+        var entries = EditorZoneFixture.CreateEntries(
+            _parser, list, list, markupService, dialog, entriesGuard ?? stoppedGuard);
 
         return (entries, dialog, path);
     }
@@ -125,6 +144,24 @@ public sealed class EntriesViewModelDeleteTests : IDisposable
             <Text>Second</Text>
             <Assembly>b.dll</Assembly>
             <AddInId>22222222-2222-2222-2222-222222222222</AddInId>
+            <FullClassName>A.Second</FullClassName>
+          </AddIn>
+        </RevitAddIns>
+        """;
+
+    /// <summary>Две записи с одинаковым <c>AddInId</c> — легальное warning-состояние.</summary>
+    private static string DuplicateIdXml() => """
+        <RevitAddIns>
+          <AddIn Type="Application">
+            <Name>First</Name>
+            <Assembly>a.dll</Assembly>
+            <AddInId>11111111-1111-1111-1111-111111111111</AddInId>
+            <FullClassName>A.First</FullClassName>
+          </AddIn>
+          <AddIn Type="Command">
+            <Text>Second</Text>
+            <Assembly>b.dll</Assembly>
+            <AddInId>11111111-1111-1111-1111-111111111111</AddInId>
             <FullClassName>A.Second</FullClassName>
           </AddIn>
         </RevitAddIns>

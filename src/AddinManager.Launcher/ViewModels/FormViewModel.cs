@@ -8,12 +8,8 @@ using AddinManager.Core.Abstractions.Storage;
 using AddinManager.Core.Guard;
 using AddinManager.Core.Manifests;
 using AddinManager.Core.Parsing;
-using AddinManager.Core.Storage;
 using AddinManager.Launcher.Abstractions.Composition;
 using AddinManager.Launcher.Abstractions.Services;
-using AddinManager.Launcher.Composition;
-using AddinManager.Launcher.Services;
-using AddinManager.Localization;
 using AddinManager.Localization.Abstractions;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
@@ -234,7 +230,8 @@ public sealed partial class FormViewModel : ObservableObject, ISavablePane
 
     private void LoadFrom(AddinFileRowViewModel? file, AddinEntryRowViewModel? entryRow)
     {
-        if (IsDirty && entryRow?.Entry.AddInId != _originalEntry?.AddInId)
+        // Сравнение по экземпляру: у дублирующихся AddInId идентификатор не отличает записи.
+        if (IsDirty && !ReferenceEquals(entryRow?.Entry, _originalEntry))
         {
             _logger.LogWarning(
                 "Переключение записи с несохранёнными изменениями формы ({From} → {To}) — правки отброшены",
@@ -332,8 +329,10 @@ public sealed partial class FormViewModel : ObservableObject, ISavablePane
         && AssemblyPathError is null && AddInIdError is null && FullClassNameError is null;
 
     /// <summary>
-    /// Собирает отредактированную запись, подставляет её в манифест файла (по <c>AddInId</c>
-    /// исходной записи) и сохраняет весь файл через <see cref="IAddinMarkupService.Save"/> —
+    /// Собирает отредактированную запись, подставляет её в манифест файла по позиции исходной
+    /// записи (сопоставление по экземпляру, а не по <c>AddInId</c>: дубли идентификатора — легальное
+    /// warning-состояние, и правка одной записи не должна переписывать соседнюю с тем же ID)
+    /// и сохраняет весь файл через <see cref="IAddinMarkupService.Save"/> —
     /// тот же атомарный путь (temp + <c>.bak</c>) и та же повторная структурная валидация
     /// (включая уникальность <c>AddInId</c> по всему файлу), что и у Markup-подпанели, вместо
     /// отдельного, параллельного пути записи только одной записи.
@@ -386,10 +385,18 @@ public sealed partial class FormViewModel : ObservableObject, ISavablePane
             ToolTipImage = fields.Contains(AddinEntryField.ToolTipImage) ? ToolTipImage : null,
         };
 
-        var entries = file.Manifest.Entries.Select(e => e.AddInId == original.AddInId ? updated : e).ToList();
-        // Несохранённая новая запись: в манифесте её ещё нет — дописываем.
-        if (!file.Manifest.Entries.Any(e => e.AddInId == original.AddInId))
+        var entries = file.Manifest.Entries.ToList();
+        var index = entries.FindIndex(entry => ReferenceEquals(entry, original));
+        if (index >= 0)
+        {
+            entries[index] = updated;
+        }
+        else
+        {
+            // Несохранённая новая запись: в манифесте её ещё нет — дописываем.
             entries.Add(updated);
+        }
+
         var manifest = file.Manifest with { Entries = entries };
         var xml = _parser.ToXml(manifest);
 

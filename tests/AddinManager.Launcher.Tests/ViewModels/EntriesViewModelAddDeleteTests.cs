@@ -5,7 +5,6 @@ using AddinManager.Core.Guard;
 using AddinManager.Core.Manifests;
 using AddinManager.Core.Parsing;
 using AddinManager.Core.Storage;
-using AddinManager.Launcher.Composition;
 using Microsoft.Extensions.Logging.Abstractions;
 
 namespace AddinManager.Launcher.Tests.ViewModels;
@@ -178,16 +177,8 @@ public sealed class EntriesViewModelAddDeleteTests : IDisposable
         var store = new FileSystemAddinStore(_parser, NullLogger<FileSystemAddinStore>.Instance, stoppedGuard, TestLocalization.For<FileSystemAddinStore>(), userRoot, NewRoot());
         var list = ListViewModelFixture.Create(store, guard: stoppedGuard);
         var dialog = new FakeDialogService();
-        var entries = new EntriesViewModel(
-            list, list,
-            new FakeLocalizationService(),
-            TestLocalization.For<EntriesViewModel>(),
-            new AddinEntryRowViewModelFactory(TestLocalization.For<AddinEntryRowViewModel>()),
-            _parser,
-            markupService ?? new FileAddinMarkupService(_parser, NullLogger<FileAddinMarkupService>.Instance, stoppedGuard, TestLocalization.For<FileAddinMarkupService>()),
-            dialog,
-            new RecordingUiDispatcher(),
-            entriesGuard ?? stoppedGuard, new FakeClipboardService(), new FakeToastService());
+        var entries = EditorZoneFixture.CreateEntries(
+            _parser, list, list, markupService, dialog, entriesGuard ?? stoppedGuard);
 
         return (list, entries, dialog, path);
     }

@@ -1,9 +1,7 @@
 using System.IO;
 using AddinManager.Core.Abstractions.Parsing;
-using AddinManager.Core.Manifests;
 using AddinManager.Core.Parsing;
 using AddinManager.Core.Storage;
-using AddinManager.Launcher.Composition;
 using Microsoft.Extensions.Logging.Abstractions;
 
 namespace AddinManager.Launcher.Tests.ViewModels;
@@ -61,13 +59,15 @@ public sealed class RowWarningTests : IDisposable
     [Fact]
     public void DuplicateInFile_WarnsFileAndEntries()
     {
-        var (list, entries, _) = NewGraph(("A.addin", "2025", DuplicateFileXml()));
+        ListViewModel list = null!;
+        EntriesViewModel entries = null!;
+
+        // Строки вычисляют локализованный WarningMessage при создании — культуру пиним до NewGraph.
+        TestCulture.RunIn("en", () => (list, entries, _) = NewGraph(("A.addin", "2025", DuplicateFileXml())));
 
         var fileRow = Assert.Single(list.Files);
         Assert.True(fileRow.HasWarning);
-        Assert.True(
-            (fileRow.WarningMessage ?? string.Empty).Contains("within the file", StringComparison.OrdinalIgnoreCase)
-                || (fileRow.WarningMessage ?? string.Empty).Contains("внутри файла", StringComparison.OrdinalIgnoreCase));
+        Assert.Contains("within the file", fileRow.WarningMessage ?? string.Empty, StringComparison.OrdinalIgnoreCase);
 
         Assert.Equal(2, entries.Entries.Count);
         Assert.All(entries.Entries, row => Assert.True(row.HasWarning));
@@ -186,16 +186,7 @@ public sealed class RowWarningTests : IDisposable
 
         var store = new FileSystemAddinStore(_parser, NullLogger<FileSystemAddinStore>.Instance, new FakeRevitProcessGuard(), TestLocalization.For<FileSystemAddinStore>(), userRoot, machineRoot);
         var list = ListViewModelFixture.Create(store);
-        var entries = new EntriesViewModel(
-            list, list,
-            new FakeLocalizationService(),
-            TestLocalization.For<EntriesViewModel>(),
-            new AddinEntryRowViewModelFactory(TestLocalization.For<AddinEntryRowViewModel>()),
-            _parser,
-            new FileAddinMarkupService(_parser, NullLogger<FileAddinMarkupService>.Instance, new FakeRevitProcessGuard(), TestLocalization.For<FileAddinMarkupService>()),
-            new FakeDialogService(),
-            new RecordingUiDispatcher(),
-            new FakeRevitProcessGuard(), new FakeClipboardService(), new FakeToastService());
+        var entries = EditorZoneFixture.CreateEntries(_parser, list, list);
         var markup = new MarkupViewModel(
             list,
             TestMarkupSearch.Create(),

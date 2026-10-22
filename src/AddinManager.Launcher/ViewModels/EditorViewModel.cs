@@ -1,7 +1,5 @@
 using System.ComponentModel;
 using AddinManager.Launcher.Abstractions.Services;
-using AddinManager.Launcher.Services;
-using AddinManager.Localization;
 using AddinManager.Localization.Abstractions;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;

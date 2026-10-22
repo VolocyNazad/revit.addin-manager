@@ -4,7 +4,6 @@ using AddinManager.Core.Abstractions.Parsing;
 using AddinManager.Core.Manifests;
 using AddinManager.Core.Parsing;
 using AddinManager.Core.Storage;
-using AddinManager.Launcher.Composition;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 
@@ -30,15 +29,8 @@ public sealed class FormViewModelTests : IDisposable
     {
         var (list, entries) = NewListAndEntries("2025", "Original");
         var logger = new RecordingLogger<FormViewModel>();
-        var form = new FormViewModel(
-            entries, list, list, _parser, NewMarkupService(), _schema, logger,
-            new FakeLocalizationService(), TestLocalization.For<FormViewModel>(),
-            new SelectableOptionViewModelFactory(),
-            new RecordingUiDispatcher(),
-            new FakeRevitProcessGuard())
-        {
-            Name = "Renamed"
-        };
+        var form = EditorZoneFixture.CreateForm(entries, list, list, _parser, _schema, logger);
+        form.Name = "Renamed";
         Assert.True(form.IsDirty);
         Assert.True(form.SaveCommand.CanExecute(null));
 
@@ -55,15 +47,8 @@ public sealed class FormViewModelTests : IDisposable
     {
         var (list, entries) = NewListAndEntries("2025", "Original");
         var logger = new RecordingLogger<FormViewModel>();
-        var form = new FormViewModel(
-            entries, list, list, _parser, NewMarkupService(), _schema, logger,
-            new FakeLocalizationService(), TestLocalization.For<FormViewModel>(),
-            new SelectableOptionViewModelFactory(),
-            new RecordingUiDispatcher(),
-            new FakeRevitProcessGuard())
-        {
-            AddInIdText = "not-a-guid"
-        };
+        var form = EditorZoneFixture.CreateForm(entries, list, list, _parser, _schema, logger);
+        form.AddInIdText = "not-a-guid";
 
         Assert.False(form.SaveCommand.CanExecute(null)); // инлайн-валидация: невалидный AddInId блокирует Save заранее
         form.SaveCommand.Execute(null);
@@ -79,15 +64,8 @@ public sealed class FormViewModelTests : IDisposable
     {
         var (list, entries) = NewListAndEntries("2025", "Original");
         var logger = new RecordingLogger<FormViewModel>();
-        var form = new FormViewModel(
-            entries, list, list, _parser, NewMarkupService(), _schema, logger,
-            new FakeLocalizationService(), TestLocalization.For<FormViewModel>(),
-            new SelectableOptionViewModelFactory(),
-            new RecordingUiDispatcher(),
-            new FakeRevitProcessGuard())
-        {
-            AssemblyPath = "   "
-        };
+        var form = EditorZoneFixture.CreateForm(entries, list, list, _parser, _schema, logger);
+        form.AssemblyPath = "   ";
 
         Assert.False(form.SaveCommand.CanExecute(null)); // инлайн-валидация: пустой Assembly блокирует Save заранее
         form.SaveCommand.Execute(null);
@@ -145,14 +123,27 @@ public sealed class FormViewModelTests : IDisposable
         Assert.True(form.SaveCommand.CanExecute(null));
     }
 
+    [Fact]
+    public void Save_WithDuplicateAddInId_ChangesOnlyEditedEntry()
+    {
+        var (list, entries) = NewListAndEntriesFromXml("2025", DuplicateIdXml());
+        entries.SelectedEntry = entries.Entries[1];
+        var form = NewForm(entries, list);
+        form.Text = "RenamedSecond";
+        Assert.True(form.SaveCommand.CanExecute(null));
+
+        form.SaveCommand.Execute(null);
+
+        var saved = list.Files.Single().File.Manifest.Entries;
+        Assert.Equal(2, saved.Count);
+        Assert.Equal("First", saved[0].Name);
+        Assert.Equal("RenamedSecond", saved[1].Text);
+        Assert.Equal(saved[0].AddInId, saved[1].AddInId);
+    }
+
     private FormViewModel NewForm(
         EntriesViewModel entries, ListViewModel list, ILogger<FormViewModel>? logger = null) =>
-        new(entries, list, list, _parser, NewMarkupService(), _schema,
-            logger ?? NullLogger<FormViewModel>.Instance,
-            new FakeLocalizationService(), TestLocalization.For<FormViewModel>(),
-            new SelectableOptionViewModelFactory(),
-            new RecordingUiDispatcher(),
-            new FakeRevitProcessGuard());
+        EditorZoneFixture.CreateForm(entries, list, list, _parser, _schema, logger);
 
     /// <summary>
     /// Пункты мульти-наборов обязан создавать контейнер через фабрику: форму собирает
@@ -170,33 +161,16 @@ public sealed class FormViewModelTests : IDisposable
 
         var store = new FileSystemAddinStore(_parser, NullLogger<FileSystemAddinStore>.Instance, new FakeRevitProcessGuard(), TestLocalization.For<FileSystemAddinStore>(), userRoot, NewRoot());
         var list = ListViewModelFixture.Create(store);
-        var entries = new EntriesViewModel(
-            list, list,
-            new FakeLocalizationService(),
-            TestLocalization.For<EntriesViewModel>(),
-            new AddinEntryRowViewModelFactory(TestLocalization.For<AddinEntryRowViewModel>()),
-            _parser,
-            NewMarkupService(),
-            new FakeDialogService(),
-            new RecordingUiDispatcher(),
-            new FakeRevitProcessGuard(), new FakeClipboardService(), new FakeToastService());
+        var entries = EditorZoneFixture.CreateEntries(_parser, list, list);
         var factory = new FakeOptionFactory();
 
-        var form = new FormViewModel(
-            entries, list, list, _parser, NewMarkupService(), _schema,
-            NullLogger<FormViewModel>.Instance,
-            new FakeLocalizationService(), TestLocalization.For<FormViewModel>(),
-            factory,
-            new RecordingUiDispatcher(),
-            new FakeRevitProcessGuard());
+        var form = EditorZoneFixture.CreateForm(
+            entries, list, list, _parser, _schema, optionFactory: factory);
 
         var expected = _schema.VisibilityModeValues.Concat(_schema.DisciplineValues).ToList();
         Assert.Equal(expected, factory.CreatedValues);
         Assert.Equal(expected.Count, form.VisibilityModeOptions.Count + form.DisciplineOptions.Count);
     }
-
-    private FileAddinMarkupService NewMarkupService() =>
-        new(_parser, NullLogger<FileAddinMarkupService>.Instance, new FakeRevitProcessGuard(), TestLocalization.For<FileAddinMarkupService>());
 
     /// <summary>
     /// Пока жив Revit, форма заблокирована: поля только читаются, Save/Discard/Generate
@@ -208,16 +182,9 @@ public sealed class FormViewModelTests : IDisposable
         var guard = new FakeRevitProcessGuard();
         var dispatcher = new RecordingUiDispatcher();
         var (list, entries) = NewListAndEntries("2025", "Original");
-        var form = new FormViewModel(
-            entries, list, list, _parser, NewMarkupService(), _schema,
-            NullLogger<FormViewModel>.Instance,
-            new FakeLocalizationService(), TestLocalization.For<FormViewModel>(),
-            new SelectableOptionViewModelFactory(),
-            dispatcher,
-            guard)
-        {
-            Name = "Renamed"
-        };
+        var form = EditorZoneFixture.CreateForm(
+            entries, list, list, _parser, _schema, dispatcher: dispatcher, guard: guard);
+        form.Name = "Renamed";
         Assert.False(form.IsLocked);
         Assert.True(form.SaveCommand.CanExecute(null));
 
@@ -239,28 +206,40 @@ public sealed class FormViewModelTests : IDisposable
         Assert.True(form.SaveCommand.CanExecute(null));
     }
 
-    private (ListViewModel List, EntriesViewModel Entries) NewListAndEntries(string version, string entryName)
+    private (ListViewModel List, EntriesViewModel Entries) NewListAndEntries(string version, string entryName) =>
+        NewListAndEntriesFromXml(version, TestManifestXml.ValidAddin(entryName));
+
+    private (ListViewModel List, EntriesViewModel Entries) NewListAndEntriesFromXml(string version, string xml)
     {
         var userRoot = NewRoot();
         var versionDir = Path.Combine(userRoot, "Autodesk", "Revit", "Addins", version);
         Directory.CreateDirectory(versionDir);
-        File.WriteAllText(Path.Combine(versionDir, "A.addin"), TestManifestXml.ValidAddin(entryName));
+        File.WriteAllText(Path.Combine(versionDir, "A.addin"), xml);
 
         var store = new FileSystemAddinStore(_parser, NullLogger<FileSystemAddinStore>.Instance, new FakeRevitProcessGuard(), TestLocalization.For<FileSystemAddinStore>(), userRoot, NewRoot());
         var list = ListViewModelFixture.Create(store);
-        var entries = new EntriesViewModel(
-            list, list,
-            new FakeLocalizationService(),
-            TestLocalization.For<EntriesViewModel>(),
-            new AddinEntryRowViewModelFactory(TestLocalization.For<AddinEntryRowViewModel>()),
-            _parser,
-            NewMarkupService(),
-            new FakeDialogService(),
-            new RecordingUiDispatcher(),
-            new FakeRevitProcessGuard(), new FakeClipboardService(), new FakeToastService());
+        var entries = EditorZoneFixture.CreateEntries(_parser, list, list);
 
         return (list, entries);
     }
+
+    /// <summary>Две записи с одинаковым <c>AddInId</c> — легальное warning-состояние.</summary>
+    private static string DuplicateIdXml() => """
+        <RevitAddIns>
+          <AddIn Type="Application">
+            <Name>First</Name>
+            <Assembly>a.dll</Assembly>
+            <AddInId>11111111-1111-1111-1111-111111111111</AddInId>
+            <FullClassName>A.First</FullClassName>
+          </AddIn>
+          <AddIn Type="Command">
+            <Text>Second</Text>
+            <Assembly>b.dll</Assembly>
+            <AddInId>11111111-1111-1111-1111-111111111111</AddInId>
+            <FullClassName>A.Second</FullClassName>
+          </AddIn>
+        </RevitAddIns>
+        """;
 
     private static string CommandAddinXml() => """
         <RevitAddIns>

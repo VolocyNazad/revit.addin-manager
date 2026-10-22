@@ -2,7 +2,6 @@ using System.IO;
 using AddinManager.Core.Abstractions.Parsing;
 using AddinManager.Core.Parsing;
 using AddinManager.Core.Storage;
-using AddinManager.Launcher.Composition;
 using Microsoft.Extensions.Logging.Abstractions;
 
 namespace AddinManager.Launcher.Tests.ViewModels;
@@ -137,16 +136,7 @@ public sealed class MarkupViewModelDiagnosticsTests : IDisposable
 
         var store = new FileSystemAddinStore(_parser, NullLogger<FileSystemAddinStore>.Instance, new FakeRevitProcessGuard(), TestLocalization.For<FileSystemAddinStore>(), userRoot, NewRoot());
         var list = ListViewModelFixture.Create(store);
-        var entries = new EntriesViewModel(
-            list, list,
-            new FakeLocalizationService(),
-            TestLocalization.For<EntriesViewModel>(),
-            new AddinEntryRowViewModelFactory(TestLocalization.For<AddinEntryRowViewModel>()),
-            _parser,
-            new FileAddinMarkupService(_parser, NullLogger<FileAddinMarkupService>.Instance, new FakeRevitProcessGuard(), TestLocalization.For<FileAddinMarkupService>()),
-            new FakeDialogService(),
-            new RecordingUiDispatcher(),
-            new FakeRevitProcessGuard(), new FakeClipboardService(), new FakeToastService());
+        var entries = EditorZoneFixture.CreateEntries(_parser, list, list);
         var markup = new MarkupViewModel(
             list,
             TestMarkupSearch.Create(),
