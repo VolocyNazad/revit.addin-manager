@@ -81,6 +81,36 @@ public sealed class FileSystemAddinStoreTests : IDisposable
     }
 
     [Fact]
+    public void ScanVersion_DuplicateAddInId_KeepsFileReadable()
+    {
+        const string duplicated = """
+            <RevitAddIns>
+              <AddIn Type="Application">
+                <Name>First</Name>
+                <Assembly>a.dll</Assembly>
+                <AddInId>99999999-9999-9999-9999-999999999999</AddInId>
+                <FullClassName>A.App</FullClassName>
+              </AddIn>
+              <AddIn Type="Application">
+                <Name>Second</Name>
+                <Assembly>a.dll</Assembly>
+                <AddInId>99999999-9999-9999-9999-999999999999</AddInId>
+                <FullClassName>A.App</FullClassName>
+              </AddIn>
+            </RevitAddIns>
+            """;
+        var userRoot = NewRoot();
+        var versionDir = VersionDir(userRoot, "2025");
+        Directory.CreateDirectory(versionDir);
+        File.WriteAllText(Path.Combine(versionDir, "Duplicated.addin"), duplicated);
+
+        var files = NewStore(userRoot, NewRoot()).ScanVersion("2025");
+
+        var file = Assert.Single(files);
+        Assert.Equal(2, file.Manifest.Entries.Count);
+    }
+
+    [Fact]
     public void SetEnabled_Disables_MovesToDisabledFolder_AndReturnsUpdatedRecord()
     {
         var userRoot = NewRoot();

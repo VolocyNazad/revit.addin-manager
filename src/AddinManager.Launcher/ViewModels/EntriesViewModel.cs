@@ -286,13 +286,13 @@ public sealed partial class EntriesViewModel : ObservableObject, IEntrySelection
         }
 
         var entries = file.File.Manifest.Entries;
-        var inFileCounts = entries.GroupBy(e => e.AddInId).ToDictionary(g => g.Key, g => g.Count());
+        var duplicateInFileIds = AddinManifestValidator.FindDuplicateAddInIds(entries);
         var acrossFiles = FindCrossFileIds(file);
 
         var index = 1;
         foreach (var entry in entries)
         {
-            var duplicateInFile = inFileCounts.TryGetValue(entry.AddInId, out var count) && count > 1;
+            var duplicateInFile = duplicateInFileIds.Contains(entry.AddInId);
             var row = _rowFactory.Create(entry, index++, duplicateInFile, acrossFiles.Contains(entry.AddInId));
             row.PropertyChanged += OnRowPropertyChanged;
             row.IsSelected = previousBulkSelection.Contains(entry.AddInId);

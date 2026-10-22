@@ -60,7 +60,7 @@ public sealed class FileAddinMarkupServiceTests : IDisposable
     }
 
     [Fact]
-    public void Validate_DuplicateAddInId_ReturnsMessage()
+    public void Validate_DuplicateAddInId_ReturnsNoMessage()
     {
         const string xml = """
             <RevitAddIns>
@@ -78,7 +78,8 @@ public sealed class FileAddinMarkupServiceTests : IDisposable
             </RevitAddIns>
             """;
 
-        Assert.NotNull(_sut.Validate(xml));
+        // A duplicate keeps the file editable; AddinManifestValidator reports it as a warning.
+        Assert.Null(_sut.Validate(xml));
     }
 
     [Fact]

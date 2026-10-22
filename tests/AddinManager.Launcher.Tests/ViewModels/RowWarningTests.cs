@@ -61,18 +61,7 @@ public sealed class RowWarningTests : IDisposable
     [Fact]
     public void DuplicateInFile_WarnsFileAndEntries()
     {
-        // Парсер дубли внутри файла не пропускает (стор такой файл скипает), поэтому
-        // собираем манифест вручную через FakeAddinStore, а не через диск.
-        var manifest = new AddinManifest(
-            [NewEntry("First", SharedId), NewEntry("Second", SharedId)],
-            null, null, null, null, [], [], []);
-        var file = new AddinFile(
-            "A.addin", AddinScope.User, "2025", true,
-            @"C:\fake\2025\A.addin", @"C:\fake\2025", manifest);
-        var store = new FakeAddinStore();
-        store.SetFiles("2025", file);
-        var list = NewList(store);
-        var entries = NewEntries(list);
+        var (list, entries, _) = NewGraph(("A.addin", "2025", DuplicateFileXml()));
 
         var fileRow = Assert.Single(list.Files);
         Assert.True(fileRow.HasWarning);
@@ -233,33 +222,22 @@ public sealed class RowWarningTests : IDisposable
         </RevitAddIns>
         """;
 
-    private static AddinEntry NewEntry(string name, Guid id) =>
-        new(AddinEntryType.Application, "Application", name, null, null, null,
-            "a.dll", id, "A.App", null, null, null, [], [], null, null, null, [], []);
-
-    private static ListViewModel NewList(FakeAddinStore store) =>
-        new(store,
-            new FakeAddinChangeWatcher(),
-            new RecordingUiDispatcher(),
-            NullLogger<ListViewModel>.Instance,
-            new FakeLocalizationService(),
-            TestLocalization.For<ListViewModel>(),
-            new AddinFileRowViewModelFactory(store, NullLoggerFactory.Instance, TestLocalization.For<AddinFileRowViewModel>()),
-            new FakeToastService(),
-            new FakeRevitProcessGuard(),
-            new FakeDialogService(),
-            new FakeFolderOpener(), new FakeClipboardService());
-
-    private EntriesViewModel NewEntries(ListViewModel list) =>
-        new(list, list,
-            new FakeLocalizationService(),
-            TestLocalization.For<EntriesViewModel>(),
-            new AddinEntryRowViewModelFactory(TestLocalization.For<AddinEntryRowViewModel>()),
-            _parser,
-            new FileAddinMarkupService(_parser, NullLogger<FileAddinMarkupService>.Instance, new FakeRevitProcessGuard(), TestLocalization.For<FileAddinMarkupService>()),
-            new FakeDialogService(),
-            new RecordingUiDispatcher(),
-            new FakeRevitProcessGuard(), new FakeClipboardService(), new FakeToastService());
+    private static string DuplicateFileXml() => $"""
+        <RevitAddIns>
+          <AddIn Type="Application">
+            <Name>First</Name>
+            <Assembly>a.dll</Assembly>
+            <AddInId>{SharedId}</AddInId>
+            <FullClassName>A.App</FullClassName>
+          </AddIn>
+          <AddIn Type="Application">
+            <Name>Second</Name>
+            <Assembly>a.dll</Assembly>
+            <AddInId>{SharedId}</AddInId>
+            <FullClassName>A.App</FullClassName>
+          </AddIn>
+        </RevitAddIns>
+        """;
 
     private string NewRoot() => _tempDirectories.Create();
 

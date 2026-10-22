@@ -116,10 +116,21 @@ public sealed class AddinEntryRowViewModel(
         get
         {
             var reasons = new List<string>();
-            if (string.IsNullOrWhiteSpace(Entry.AssemblyPath) || string.IsNullOrWhiteSpace(Entry.FullClassName))
-                reasons.Add(localizer["WarningEmptyFields"]);
-            if (Entry.Type == AddinEntryType.Unknown)
-                reasons.Add(localizer["WarningUnknownType"]);
+            foreach (ManifestIssueKind kind in AddinManifestValidator.ValidateEntry(Entry)
+                         .Select(issue => issue.Kind)
+                         .Distinct())
+            {
+                switch (kind)
+                {
+                    case ManifestIssueKind.EmptyRequiredValue:
+                        reasons.Add(localizer["WarningEmptyFields"]);
+                        break;
+                    case ManifestIssueKind.UnknownEntryType:
+                        reasons.Add(localizer["WarningUnknownType"]);
+                        break;
+                }
+            }
+
             if (duplicateInFile)
                 reasons.Add(localizer["WarningDuplicateInFile"]);
             if (duplicateAcrossFiles)

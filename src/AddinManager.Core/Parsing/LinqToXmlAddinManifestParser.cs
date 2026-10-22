@@ -110,10 +110,7 @@ public sealed class LinqToXmlAddinManifestParser : IAddinManifestParser
 
             if (el.Name.LocalName == "AddIn")
             {
-                var entry = ParseEntry(el);
-                if (entries.Any(e => e.AddInId == entry.AddInId))
-                    throw new AddinManifestFormatException(_localizer["DuplicateAddInId", entry.AddInId].Value);
-                entries.Add(entry);
+                entries.Add(ParseEntry(el));
             }
             else if (el.Name.LocalName == "ManifestSettings" && !seenSettings)
             {
@@ -169,13 +166,7 @@ public sealed class LinqToXmlAddinManifestParser : IAddinManifestParser
     private AddinEntry ParseEntry(XElement el)
     {
         var rawType = el.Attribute("Type")?.Value;
-        var type = rawType?.ToLowerInvariant() switch
-        {
-            "application" => AddinEntryType.Application,
-            "dbapplication" => AddinEntryType.DBApplication,
-            "command" => AddinEntryType.Command,
-            _ => AddinEntryType.Unknown,
-        };
+        var type = AddinManifestValidator.ParseEntryType(rawType);
 
         string Req(string name)
         {

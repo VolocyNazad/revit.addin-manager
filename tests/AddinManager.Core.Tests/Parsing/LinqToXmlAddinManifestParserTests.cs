@@ -173,7 +173,7 @@ public sealed class LinqToXmlAddinManifestParserTests
     }
 
     [Fact]
-    public void Parse_DuplicateAddInId_ThrowsFormat()
+    public void Parse_DuplicateAddInId_KeepsBothEntries()
     {
         const string xml = """
             <RevitAddIns>
@@ -191,7 +191,11 @@ public sealed class LinqToXmlAddinManifestParserTests
             </RevitAddIns>
             """;
 
-        Assert.Throws<AddinManifestFormatException>(() => _sut.Parse(xml));
+        var entries = _sut.Parse(xml).Entries;
+
+        // A duplicate keeps the file readable and fixable; AddinManifestValidator reports it.
+        Assert.Equal(2, entries.Count);
+        Assert.All(entries, entry => Assert.Equal(Guid.Parse("77777777-7777-7777-7777-777777777777"), entry.AddInId));
     }
 
     [Fact]
