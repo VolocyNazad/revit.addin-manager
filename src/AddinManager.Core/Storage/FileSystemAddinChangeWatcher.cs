@@ -76,8 +76,8 @@ public sealed class FileSystemAddinChangeWatcher : IAddinChangeWatcher
             _started = true;
         }
 
-        TryWatch(Path.Combine(_userBaseDirectory, "Autodesk", "Revit", "Addins"));
-        TryWatch(Path.Combine(_machineBaseDirectory, "Autodesk", "Revit", "Addins"));
+        TryWatch(AddinFolderLayout.GetAddinsRoot(_userBaseDirectory));
+        TryWatch(AddinFolderLayout.GetAddinsRoot(_machineBaseDirectory));
     }
 
     private void TryWatch(string addinsRoot)
@@ -93,7 +93,7 @@ public sealed class FileSystemAddinChangeWatcher : IAddinChangeWatcher
         FileSystemWatcher watcher;
         try
         {
-            watcher = new FileSystemWatcher(addinsRoot, "*.addin")
+            watcher = new FileSystemWatcher(addinsRoot, AddinFolderLayout.AddinFilePattern)
             {
                 IncludeSubdirectories = true,
                 NotifyFilter = NotifyFilters.FileName | NotifyFilters.LastWrite | NotifyFilters.DirectoryName,

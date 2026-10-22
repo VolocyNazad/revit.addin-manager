@@ -10,6 +10,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 - Cross-file duplicate `AddInId` detection is now one shared Core algorithm (`AddinFileDuplicates`) used by the plugin list, the entries zone and the markup editor, instead of three separate copies.
 - Test helpers (`TestCulture`, `TestLocalization`, `RecordingLogger`) now live once in `tests/Shared/` and are linked into both headless test projects instead of being copied per project.
+- The store and the change watcher share one `AddinFolderLayout` for the Revit add-in folder paths and the disabled-folder rule; the store's five Revit-running refusals and two file-name normalizations are each one helper now.
 
 ## [1.4.0] - 2026-10-20
 
