@@ -16,8 +16,8 @@ Detailed behavior is defined in [FEATURES.md](FEATURES.md).
   `build/` each keep their own solution, like the gallery does)
 - `src/` — projects (`AddinManager.Core`: manifest parsing, disk scanning, the headless text-search engine and Revit process guard, UI-framework-agnostic; `AddinManager.Localization`: interface language choice (`System`/`Russian`/`English`) persistence and culture application, UI-framework-agnostic; `AddinManager.Theming`: theme choice persistence, UI-framework-agnostic; `AddinManager.Theming.Wpf`: WPF theme resource dictionaries and the dictionary-switching helper; `AddinManager.Launcher`: WPF shell on the built-in Fluent theme, including the Markup editor and its find bar)
 - `tests/` — headless tests (`*.Tests`); `tests/Shared/` holds the helpers linked into both
-  test projects (`TestCulture`, `TestLocalization`, `RecordingLogger`, `TempDirectorySet`,
-  `TestManifestXml`), so a helper has one source
+  test projects (`TestCulture` pinning both UI cultures, `TestLocalization`, the structured
+  `RecordingLogger`, `TempDirectorySet`, `TestManifestXml`), so a helper has one source
 - `installer/` — separate solution (`Revit.AddinManager.Installer.slnx`) with the
   WixSharp MSI generator: builds exactly one MSI for the launcher
 - `build/` — separate solution (`Revit.AddinManager.Build.slnx`) with the ModularPipelines
@@ -36,7 +36,7 @@ Detailed behavior is defined in [FEATURES.md](FEATURES.md).
 
 - .NET 10 (`net10.0` libraries; WPF launcher on `net10.0-windows`)
 - `Microsoft.Extensions.*` (DependencyInjection, Hosting, Localization, Logging.Abstractions) for composition
-- `CommunityToolkit.Mvvm` for view models (`MainViewModel`: layout state plus commands)
+- `CommunityToolkit.Mvvm` for view models (`MainViewModel`: layout, theme/language switching, toasts, update check and Revit-guard commands)
 - `Microsoft.Xaml.Behaviors.Wpf` for view mechanics shared across views (window drag, dialog-result mirroring)
 - Serilog (`Serilog.Extensions.Hosting`, `Serilog.Sinks.File`) for structured logging to size- and
   day-rolled files under `%LOCALAPPDATA%\Volocy\Revit.AddinManager\logs\`, retaining at most

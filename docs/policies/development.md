@@ -22,9 +22,23 @@ All services live behind abstractions: domain and headless contracts are owned b
 
 Abstractions live in a top-level `Abstractions/` folder mirroring the implementation layout (`Abstractions/Storage/IAddinStore.cs` for `Storage/FileSystemAddinStore.cs`, namespaces follow folders) — the same mirroring as localized resources follow their owning types. Folder and namespace both carry the `Abstractions` segment a separate `*.Abstractions` project would use (`AddinManager.Core.Abstractions`, ...), so extracting them later is a pure file move with no renames, no using churn, and no doc-`cref` churn.
 
+### Constructors
+
+- Use a primary constructor when the type only stores its dependencies (`public sealed class FileOperations(...)`); it keeps the dependency graph visible in the type declaration and avoids boilerplate that hides it.
+- Keep an explicit constructor when it does real work beyond assignment: argument validation, computed fields, optional parameters with guarded/derived defaults, multiple overloads, or calling `base(...)` with transformed arguments. WPF views keep their parameterless constructor for `InitializeComponent` and may add a DI constructor next to it.
+- Do not expose constructor parameters as public mutable properties; capture them in private readonly fields or private properties.
+- Do not generate constructors with source generators (`AutoConstructor`-style attributes): the project already writes primary constructors directly, generated constructors would hide the graph from review, and a generated public constructor would still have to satisfy `CS1591`.
+
 Optional dependencies are a test seam, not a production policy: the composition root must always supply the real implementation. A fallback that silently changes user-visible safety (for example, permanent delete instead of the Recycle Bin) is forbidden; if a fallback is unavoidable, it must be explicit, documented and logged.
 
 Avoid code-behind in WPF views: prefer bindings, converters and DynamicResource over C# in `.xaml.cs`. Code-behind is for view mechanics with no declarative equivalent (window chrome, splitter drag, reading `ActualWidth`, and similar) — never for state. If it's unclear whether a declarative way exists, ask the user before writing code-behind instead of defaulting to it.
+
+### Design-time data
+
+- Every composed view with bindings (main window, zone views, dialogs) exposes a parameterless constructor and sets `d:DataContext` to a `Design*` stub from `AddinManager.Launcher.Design`; `d:`/`mc:` namespaces are declared on the view and `mc:Ignorable="d"` is present.
+- A design stub shows a realistic populated state (several rows, an active chip, a warning or a long text), not an empty screen; its property names mirror the view's bindings so the designer highlights drift.
+- Design stubs are only for `d:DesignInstance` and must never be referenced from runtime code. They may suppress `CS1591` only inside the design-data file, because their members exist for the designer rather than the application API.
+- A trivial pass-through view without its own bindings may stay without design data until it grows bindings. Split the design-data file by zone (`Design/List/`, `Design/Dialogs/`, ...) once one file stops being readable.
 
 Do not repeat the XAML-declared base type in code-behind: the `x:Class` root element already fixes the base (`Window`, `UserControl`, `Application`), so `public partial class Foo` suffices — `: Window` in `.xaml.cs` is redundant.
 

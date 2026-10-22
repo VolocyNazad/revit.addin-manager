@@ -11,8 +11,8 @@ files and edit their manifests — everything happens before Revit starts.
 ## Installation
 
 - One MSI per product version (`RevitAddinManager-<version>.msi`, from the GitHub
-  release): per-machine install with a Start Menu shortcut, in-place upgrades.
-  See `build/README.md` for how the installer is produced.
+  release): per-machine install with Start Menu and Desktop shortcuts, only runtime files
+  in Program Files, in-place upgrades. See `build/README.md` for how the installer is produced.
 
 ## Plugin list
 
@@ -74,11 +74,14 @@ files and edit their manifests — everything happens before Revit starts.
   entries+form and entries+markup views stay mouse-only. Every mode shares one editor header
   (file name, meta line, unsaved badge, Save/Discard and the error of the visible pane), so the
   combined views never repeat it next to each other.
+- Selecting another file while the visible pane has unsaved changes asks to save them, discard
+  them or cancel the switch; cancelling keeps the previous file selected.
 
 ## Manifest entries
 
 - Lists every `<AddIn>` record of the selected file (display name, type, vendor, `AddInId`)
-  with a hover card carrying the full details. Read-only; selecting a row feeds the form.
+  with a hover card carrying the full details. The list itself is not editable in place;
+  selecting a row feeds the form, while entries are added and deleted with the buttons below.
 - A search box in the footer, next to the add button, filters entries live by display name, type, vendor,
   `AddInId`, `Assembly` and `FullClassName`.
 - The entry being edited stays selected across reloads (restored by `AddInId`).
@@ -110,10 +113,10 @@ files and edit their manifests — everything happens before Revit starts.
 ## Raw XML markup
 
 - Full-file editor with line numbers, undo/redo and XML highlighting that follows the
-  Light/Dark theme. Live validation reuses the same parser as saving, so what you see is
-  what blocks the save (structural errors, bad GUIDs, duplicate `AddInId` values).
-  Empty required fields and duplicate `AddInId` values are additionally underlined red
-  right in the text, as you type.
+  Light/Dark theme. Live validation reuses the same parser as saving, so malformed XML
+  blocks the save immediately. Empty required fields and duplicate `AddInId` values are
+  additionally underlined red right in the text, as you type; they are warnings, not a
+  reason to refuse saving the raw text.
 - A persistent find bar above the editor searches the whole file: `Ctrl+F` focuses it
   (the current selection becomes the query), `Enter`/`Shift+Enter` in the field and
   `F3`/`Shift+F3` move to the next/previous match, `Esc` clears the search. Match case,
@@ -144,7 +147,8 @@ files and edit their manifests — everything happens before Revit starts.
   version exists it offers to download it (opening the release page in the browser),
   otherwise it confirms "up to date" — and reports check failures as a toast.
   The same check runs automatically at startup: a newer release opens the download
-  dialog over the just-opened window, up-to-date and offline starts stay silent.
+  dialog over the just-opened window, up-to-date and offline starts stay silent. Debug
+  builds skip the startup dialog; the manual `Ctrl+U` check still works there.
 - A "Support" toolbar button opens the repository's issue tracker in the browser for
   help and bug reports.
 - A "Sponsor" toolbar button opens the GitHub Sponsors page to support the author.
@@ -154,6 +158,9 @@ files and edit their manifests — everything happens before Revit starts.
 - While any `Revit.exe` runs, a floating top-center banner lists the running versions
   (e.g. `2024, 2025`) and warns that `.addin` changes apply after restart. It can be
   dismissed until Revit exits; the next Revit session shows it again.
+- Saving preserves the rest of the file: comments, unknown tags and unknown attributes on
+  `RevitAddIns`/`AddIn`/`ManifestSettings` survive the round trip, and the order of
+  entries relative to each other and to other root nodes is kept; new entries are appended.
 - Editing is locked while Revit lives: list toggles, form/markup/settings fields and all
   save buttons go inert (search, filters, refresh, selection and appearance switching
   keep working — they write nothing). The disk layer refuses on its own too: moves and
