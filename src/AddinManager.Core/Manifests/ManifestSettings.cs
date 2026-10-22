@@ -7,4 +7,5 @@ public sealed record ManifestSettings(
     bool? UseRevitContext,
     string? ContextName,
     IReadOnlyList<string> TagOrder,
-    IReadOnlyList<XNode> UnknownNodes);
+    IReadOnlyList<XNode> UnknownNodes,
+    IReadOnlyList<XAttribute>? Attributes = null);

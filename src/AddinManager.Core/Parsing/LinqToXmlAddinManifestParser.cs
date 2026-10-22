@@ -8,20 +8,13 @@ namespace AddinManager.Core.Parsing;
 
 /// <summary>
 /// LINQ to XML реализация парсера: без зависимости от Revit API.
-/// Честный round-trip: декларация, порядок тегов, чужие узлы и комментарии сохраняются.
-/// Сообщения об ошибках идут через <see cref="IStringLocalizer{T}"/> — они показываются
-/// в UI-баннерах как есть, а resx лежат рядом с классом (нейтральный — английский).
+/// Честный round-trip: декларация, порядок детей корня и записей, чужие узлы, комментарии
+/// и незнакомые атрибуты сохраняются. Сообщения об ошибках идут через
+/// <see cref="IStringLocalizer{T}"/> — они показываются в UI-баннерах как есть, а resx
+/// лежат рядом с классом (нейтральный — английский).
 /// </summary>
-public sealed class LinqToXmlAddinManifestParser : IAddinManifestParser
+public sealed class LinqToXmlAddinManifestParser(IStringLocalizer<LinqToXmlAddinManifestParser> localizer) : IAddinManifestParser
 {
-    private readonly IStringLocalizer<LinqToXmlAddinManifestParser> _localizer;
-
-    /// <summary>Создает парсер.</summary>
-    /// <param name="localizer">Строки сообщений об ошибках.</param>
-    public LinqToXmlAddinManifestParser(IStringLocalizer<LinqToXmlAddinManifestParser> localizer)
-    {
-        _localizer = localizer;
-    }
     /// <summary>Local names of the single-value and multi-value elements of one <c>AddIn</c> entry.</summary>
     private static class EntryTags
     {
@@ -79,7 +72,7 @@ public sealed class LinqToXmlAddinManifestParser : IAddinManifestParser
     public AddinManifest Parse(string xml)
     {
         if (string.IsNullOrWhiteSpace(xml))
-            throw new AddinManifestFormatException(_localizer["EmptyManifest"].Value);
+            throw new AddinManifestFormatException(localizer["EmptyManifest"].Value);
 
         XDocument doc;
         try
@@ -88,37 +81,44 @@ public sealed class LinqToXmlAddinManifestParser : IAddinManifestParser
         }
         catch (XmlException ex)
         {
-            throw new AddinManifestFormatException(_localizer["BrokenXml", ex.Message].Value, ex);
+            throw new AddinManifestFormatException(localizer["BrokenXml", ex.Message].Value, ex);
         }
 
         var root = doc.Root;
         if (root is null || root.Name.LocalName != "RevitAddIns")
-            throw new AddinManifestFormatException(_localizer["RootElementNotFound"].Value);
+            throw new AddinManifestFormatException(localizer["RootElementNotFound"].Value);
 
         var entries = new List<AddinEntry>();
         ManifestSettings? settings = null;
         var rootUnknowns = new List<XNode>();
+        var rootOrder = new List<ManifestRootChild>();
         var seenSettings = false;
 
         foreach (var node in root.Nodes())
         {
             if (node is not XElement el)
             {
-                AddUnknown(rootUnknowns, node);
+                if (AddUnknown(rootUnknowns, node))
+                    rootOrder.Add(ManifestRootChild.Unknown);
                 continue;
             }
 
             if (el.Name.LocalName == "AddIn")
             {
                 entries.Add(ParseEntry(el));
+                rootOrder.Add(ManifestRootChild.Entry);
             }
             else if (el.Name.LocalName == "ManifestSettings" && !seenSettings)
             {
                 settings = ParseSettings(el);
                 seenSettings = true;
+                rootOrder.Add(ManifestRootChild.Settings);
             }
             else
+            {
                 rootUnknowns.Add(Copy(el));
+                rootOrder.Add(ManifestRootChild.Unknown);
+            }
         }
 
         var before = doc.Nodes().TakeWhile(n => n != root).Where(Significant).Select(Copy).ToList();
@@ -132,19 +132,57 @@ public sealed class LinqToXmlAddinManifestParser : IAddinManifestParser
             doc.Declaration?.Standalone,
             before,
             after,
-            rootUnknowns);
+            rootUnknowns,
+            rootOrder,
+            root.Attributes().Select(attribute => new XAttribute(attribute)).ToList());
     }
 
     /// <inheritdoc />
     public string ToXml(AddinManifest manifest)
     {
         var root = new XElement("RevitAddIns");
-        foreach (var entry in manifest.Entries)
-            root.Add(WriteEntry(entry));
-        if (manifest.Settings is not null)
-            root.Add(WriteSettings(manifest.Settings));
-        foreach (var node in manifest.RootUnknownNodes)
-            root.Add(Copy(node));
+        foreach (var attribute in manifest.RootAttributes ?? [])
+            root.Add(new XAttribute(attribute));
+
+        if (manifest.RootOrder is { } rootOrder)
+        {
+            var entryIndex = 0;
+            var unknownIndex = 0;
+            var settingsWritten = false;
+            foreach (var child in rootOrder)
+            {
+                switch (child)
+                {
+                    case ManifestRootChild.Entry when entryIndex < manifest.Entries.Count:
+                        root.Add(WriteEntry(manifest.Entries[entryIndex++]));
+                        break;
+                    case ManifestRootChild.Settings when manifest.Settings is not null && !settingsWritten:
+                        root.Add(WriteSettings(manifest.Settings));
+                        settingsWritten = true;
+                        break;
+                    case ManifestRootChild.Unknown when unknownIndex < manifest.RootUnknownNodes.Count:
+                        root.Add(Copy(manifest.RootUnknownNodes[unknownIndex++]));
+                        break;
+                }
+            }
+
+            // Новые записи/узлы, которых не было в исходном порядке, — в конец.
+            for (; entryIndex < manifest.Entries.Count; entryIndex++)
+                root.Add(WriteEntry(manifest.Entries[entryIndex]));
+            for (; unknownIndex < manifest.RootUnknownNodes.Count; unknownIndex++)
+                root.Add(Copy(manifest.RootUnknownNodes[unknownIndex]));
+            if (manifest.Settings is not null && !settingsWritten)
+                root.Add(WriteSettings(manifest.Settings));
+        }
+        else
+        {
+            foreach (var entry in manifest.Entries)
+                root.Add(WriteEntry(entry));
+            if (manifest.Settings is not null)
+                root.Add(WriteSettings(manifest.Settings));
+            foreach (var node in manifest.RootUnknownNodes)
+                root.Add(Copy(node));
+        }
 
         var doc = new XDocument();
         if (manifest is { DeclarationVersion: not null } or { DeclarationEncoding: not null } or { DeclarationStandalone: not null })
@@ -175,14 +213,14 @@ public sealed class LinqToXmlAddinManifestParser : IAddinManifestParser
             // отсутствие элемента целиком.
             var value = el.Element(N(name))?.Value;
             if (value is null)
-                throw new AddinManifestFormatException(_localizer["MissingRequiredElement", name].Value);
+                throw new AddinManifestFormatException(localizer["MissingRequiredElement", name].Value);
             return value;
         }
 
         var assembly = Req(EntryTags.Assembly);
         var guidRaw = Req(EntryTags.AddInId);
         if (!Guid.TryParse(guidRaw.Trim(), out var guid))
-            throw new AddinManifestFormatException(_localizer["InvalidAddInId", guidRaw].Value);
+            throw new AddinManifestFormatException(localizer["InvalidAddInId", guidRaw].Value);
         var fullClassName = Req(EntryTags.FullClassName);
 
         var order = new List<string>();
@@ -226,7 +264,11 @@ public sealed class LinqToXmlAddinManifestParser : IAddinManifestParser
             el.Element(N(EntryTags.SmallImage))?.Value,
             el.Element(N(EntryTags.ToolTipImage))?.Value,
             order,
-            unknowns);
+            unknowns,
+            el.Attributes()
+                .Where(attribute => attribute.Name.LocalName != "Type")
+                .Select(attribute => new XAttribute(attribute))
+                .ToList());
     }
 
     private ManifestSettings ParseSettings(XElement el)
@@ -237,7 +279,7 @@ public sealed class LinqToXmlAddinManifestParser : IAddinManifestParser
             "true" => true,
             "false" => false,
             null => null,
-            _ => throw new AddinManifestFormatException(_localizer["InvalidUseRevitContext", raw].Value),
+            _ => throw new AddinManifestFormatException(localizer["InvalidUseRevitContext", raw].Value),
         };
 
         var order = new List<string>();
@@ -265,7 +307,8 @@ public sealed class LinqToXmlAddinManifestParser : IAddinManifestParser
             useRevitContext,
             el.Element(N("ContextName"))?.Value,
             order,
-            unknowns);
+            unknowns,
+            el.Attributes().Select(attribute => new XAttribute(attribute)).ToList());
     }
 
     private XElement WriteEntry(AddinEntry entry)
@@ -281,6 +324,8 @@ public sealed class LinqToXmlAddinManifestParser : IAddinManifestParser
             };
         if (typeValue is not null)
             el.SetAttributeValue("Type", typeValue);
+        foreach (var attribute in entry.Attributes ?? [])
+            el.Add(new XAttribute(attribute));
 
         string? Single(string name) =>
             EntryFieldsByTag.TryGetValue(name, out EntryField? field) ? field.Value(entry) : null;
@@ -343,6 +388,9 @@ public sealed class LinqToXmlAddinManifestParser : IAddinManifestParser
     private XElement WriteSettings(ManifestSettings settings)
     {
         var el = new XElement("ManifestSettings");
+        foreach (var attribute in settings.Attributes ?? [])
+            el.Add(new XAttribute(attribute));
+
         var seen = new HashSet<string>(StringComparer.Ordinal);
         foreach (var tag in settings.TagOrder)
         {
@@ -381,10 +429,13 @@ public sealed class LinqToXmlAddinManifestParser : IAddinManifestParser
         _ => false,
     };
 
-    private void AddUnknown(List<XNode> list, XNode node)
+    private bool AddUnknown(List<XNode> list, XNode node)
     {
-        if (Significant(node))
-            list.Add(Copy(node));
+        if (!Significant(node))
+            return false;
+
+        list.Add(Copy(node));
+        return true;
     }
 
     private XNode Copy(XNode node) => node switch
@@ -394,6 +445,6 @@ public sealed class LinqToXmlAddinManifestParser : IAddinManifestParser
         XProcessingInstruction pi => new XProcessingInstruction(pi.Target, pi.Data),
         XText t => new XText(t.Value),
         XDocumentType d => new XDocumentType(d.Name, d.PublicId, d.SystemId, d.InternalSubset),
-        _ => throw new AddinManifestFormatException(_localizer["UnsupportedXmlNode", node.NodeType].Value),
+        _ => throw new AddinManifestFormatException(localizer["UnsupportedXmlNode", node.NodeType].Value),
     };
 }

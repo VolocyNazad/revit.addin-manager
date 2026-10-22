@@ -1,7 +1,6 @@
 using AddinManager.Core.Abstractions.Parsing;
 using AddinManager.Core.Manifests;
 using AddinManager.Core.Parsing;
-using AddinManager.Core.Tests.TestDoubles;
 
 namespace AddinManager.Core.Tests.Parsing;
 

@@ -11,4 +11,7 @@ public sealed record AddinManifest(
     string? DeclarationStandalone,
     IReadOnlyList<XNode> BeforeRoot,
     IReadOnlyList<XNode> AfterRoot,
-    IReadOnlyList<XNode> RootUnknownNodes);
+    IReadOnlyList<XNode> RootUnknownNodes,
+    // Порядок детей корня и незнакомые атрибуты самого <RevitAddIns> — чтобы не терять их при сохранении.
+    IReadOnlyList<ManifestRootChild>? RootOrder = null,
+    IReadOnlyList<XAttribute>? RootAttributes = null);

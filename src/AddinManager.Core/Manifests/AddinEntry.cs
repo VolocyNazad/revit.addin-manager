@@ -26,4 +26,6 @@ public sealed record AddinEntry(
     string? ToolTipImage,
     // Порядок дочерних тегов как в исходнике + узлы, которые мы не знаем (чужие теги, комментарии).
     IReadOnlyList<string> TagOrder,
-    IReadOnlyList<XNode> UnknownNodes);
+    IReadOnlyList<XNode> UnknownNodes,
+    // Незнакомые атрибуты самого <AddIn> (кроме Type), сохраняются для честного round-trip.
+    IReadOnlyList<XAttribute>? Attributes = null);
