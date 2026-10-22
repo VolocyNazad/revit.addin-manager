@@ -38,14 +38,17 @@ public sealed class DesignListViewModel
     public string ScopeUserChipLabel { get; set; } = "User · 1";
     public string ScopeMachineChipLabel { get; set; } = "Machine · 1";
     public string? VersionFilter { get; set; }
-    public string VersionAllChipLabel { get; set; } = "Все версии · 2";
-    public string Version2021ChipLabel { get; set; } = "2021 · 0";
-    public string Version2022ChipLabel { get; set; } = "2022 · 0";
-    public string Version2023ChipLabel { get; set; } = "2023 · 0";
-    public string Version2024ChipLabel { get; set; } = "2024 · 0";
-    public string Version2025ChipLabel { get; set; } = "2025 · 2";
-    public string Version2026ChipLabel { get; set; } = "2026 · 0";
-    public string Version2027ChipLabel { get; set; } = "2027 · 0";
+    public List<FilterChipViewModel> VersionChips { get; } =
+    [
+        new("Все версии · 2", null) { IsActive = true },
+        new("2021 · 0", "2021"),
+        new("2022 · 0", "2022"),
+        new("2023 · 0", "2023"),
+        new("2024 · 0", "2024"),
+        new("2025 · 2", "2025"),
+        new("2026 · 0", "2026"),
+        new("2027 · 0", "2027"),
+    ];
     public EnabledFilter EnabledFilter { get; set; } = EnabledFilter.All;
     public string EnabledFilterLabel { get; set; } = "Состояние:";
     public string EnabledAllChipLabel { get; set; } = "Все · 2";
@@ -276,4 +279,97 @@ public sealed class DesignEditorViewModel
     public ICommand? SetEditorModeCommand { get; set; }
     public ICommand? SaveActiveCommand { get; set; }
     public ICommand? DiscardActiveCommand { get; set; }
+}
+
+public sealed class DesignConfirmDialogViewModel
+{
+    public string Message { get; set; } = "Удалить файл pyRevit.addin? Он будет перемещён в Корзину.";
+    public bool? Result { get; set; }
+    public string YesLabel { get; set; } = "Удалить";
+    public string NoLabel { get; set; } = "Отмена";
+    public ICommand? YesCommand { get; set; }
+    public ICommand? NoCommand { get; set; }
+}
+
+public sealed class DesignAddFileDialogViewModel
+{
+    public string FileNameLabel { get; set; } = "Имя файла";
+    public string FileName { get; set; } = "MyPlugin.addin";
+    public string ScopeLabel { get; set; } = "Область";
+    public AddinScope Scope { get; set; } = AddinScope.User;
+    public string VersionLabel { get; set; } = "Версия Revit";
+    public string DisabledLabel { get; set; } = "Создать отключённым";
+    public bool IsDisabled { get; set; }
+    public string? ErrorMessage { get; set; }
+    public string CancelButtonLabel { get; set; } = "Отмена";
+    public string AddButtonLabel { get; set; } = "Создать";
+    public bool? Result { get; set; }
+    public List<FilterChipViewModel> VersionChips { get; } =
+    [
+        new("2025", "2025"),
+        new("2026", "2026") { IsActive = true },
+        new("2027", "2027"),
+    ];
+    public ICommand? SetScopeCommand { get; set; }
+    public ICommand? SetVersionCommand { get; set; }
+    public ICommand? AddCommand { get; set; }
+    public ICommand? CancelCommand { get; set; }
+}
+
+public sealed class DesignAddEntryDialogViewModel
+{
+    public string TypeLabel { get; set; } = "Тип записи";
+    public AddinEntryType EntryType { get; set; } = AddinEntryType.Application;
+    public bool? Result { get; set; }
+    public string AddButtonLabel { get; set; } = "Добавить";
+    public string CancelButtonLabel { get; set; } = "Отмена";
+    public ICommand? SetEntryTypeCommand { get; set; }
+    public ICommand? AddCommand { get; set; }
+    public ICommand? CancelCommand { get; set; }
+}
+
+public sealed class DesignUpdateDialogViewModel
+{
+    public string TitleLabel { get; set; } = "Доступно обновление";
+    public string Message { get; set; } = "Revit.AddinManager 1.5.0 уже доступна. Скачать сейчас?";
+    public string DownloadLabel { get; set; } = "Скачать";
+    public string LaterLabel { get; set; } = "Позже";
+    public bool? Result { get; set; }
+    public ICommand? DownloadCommand { get; set; }
+    public ICommand? LaterCommand { get; set; }
+}
+
+public sealed class DesignMoveCopyDialogViewModel
+{
+    public string Title { get; set; } = "Переместить файл";
+    public string SourceLabel { get; set; } = "Источник";
+    public string FileName { get; set; } = "pyRevit.addin";
+    public string VersionLabel { get; set; } = "Версия Revit";
+    public List<FilterChipViewModel> VersionChips { get; } =
+    [
+        new("2025", "2025"),
+        new("2026", "2026") { IsActive = true },
+        new("2027", "2027"),
+    ];
+    public string ScopeLabel { get; set; } = "Область";
+    public AddinScope Scope { get; set; } = AddinScope.User;
+    public string EnableAfterLabel { get; set; } = "Включить после переноса";
+    public bool EnableAfter { get; set; } = true;
+    public string TargetLabel { get; set; } = "Целевой путь";
+    public string TargetPath { get; set; } =
+        @"C:\Users\you\AppData\Roaming\Autodesk\Revit\Addins\2026\pyRevit.addin";
+    public string? SameFolderError { get; set; }
+    public string? ConflictWarning { get; set; } = "Файл с таким именем уже есть в 2026 — он будет заменён.";
+    public string OverwriteLabel { get; set; } = "Заменить существующий файл";
+    public bool Overwrite { get; set; } = true;
+    public string? CrossVersionWarning { get; set; } = "Перенос между версиями Revit: проверьте совместимость сборки.";
+    public string? SettingsWarning { get; set; }
+    public string? ErrorMessage { get; set; }
+    public string ConfirmButtonLabel { get; set; } = "Переместить";
+    public string CancelButtonLabel { get; set; } = "Отмена";
+    public bool? Result { get; set; }
+    public ICommand? SetVersionCommand { get; set; }
+    public ICommand? SetScopeCommand { get; set; }
+    public ICommand? ConfirmCommand { get; set; }
+    public ICommand? CancelCommand { get; set; }
 }
