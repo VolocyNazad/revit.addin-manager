@@ -30,4 +30,28 @@ public static class ServiceCollectionExtensions
         });
         return services;
     }
+
+    /// <summary>
+    /// Регистрирует диалог: transient ViewModel, собираемый контейнером, и свой вид поверх неё.
+    /// Закрытое окно нельзя показать повторно, поэтому вид и модель создаются на каждый вызов,
+    /// а фабрика вида — Singleton (в неё попадает уже готовый экземпляр).
+    /// </summary>
+    /// <typeparam name="TViewModel">Модель диалога.</typeparam>
+    /// <typeparam name="TView">Окно диалога с конструктором без параметров.</typeparam>
+    public static IServiceCollection AddDialog<TViewModel, TView>(this IServiceCollection services)
+        where TViewModel : class
+        where TView : Window, new()
+    {
+        services.AddTransient<TViewModel>();
+        services.AddTransient(provider =>
+        {
+            var view = new TView
+            {
+                DataContext = provider.GetRequiredService<TViewModel>(),
+            };
+            return view;
+        });
+        services.AddSingleton<Func<TView>>(provider => () => provider.GetRequiredService<TView>());
+        return services;
+    }
 }

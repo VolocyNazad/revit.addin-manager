@@ -1,5 +1,4 @@
 using AddinManager.Launcher.Abstractions.Services;
-using AddinManager.Launcher.Services;
 
 namespace AddinManager.Launcher.Tests.TestDoubles;
 
@@ -13,10 +12,21 @@ public sealed class RecordingUiDispatcher : IUiDispatcher
     /// <summary>Сколько раз вызвали <see cref="Invoke"/>.</summary>
     public int InvokeCount { get; private set; }
 
+    /// <summary>Сколько раз вызвали <see cref="Post"/>.</summary>
+    public int PostCount { get; private set; }
+
     /// <inheritdoc />
     public void Invoke(Action action)
     {
         InvokeCount++;
+        action();
+    }
+
+    /// <inheritdoc />
+    public void Post(Action action)
+    {
+        // Очереди нет: выполняем сразу, чтобы тест увидел результат уведомления.
+        PostCount++;
         action();
     }
 }

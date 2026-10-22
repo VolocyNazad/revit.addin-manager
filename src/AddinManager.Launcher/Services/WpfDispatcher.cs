@@ -16,4 +16,19 @@ public sealed class WpfDispatcher : IUiDispatcher
         else
             dispatcher.Invoke(action);
     }
+
+    /// <inheritdoc />
+    public void Post(Action action)
+    {
+        var dispatcher = Application.Current?.Dispatcher;
+
+        if (dispatcher is null)
+        {
+            // Без приложения (тесты, дизайнер) откладывать некуда — ведём себя как Invoke.
+            action();
+            return;
+        }
+
+        dispatcher.BeginInvoke(action);
+    }
 }

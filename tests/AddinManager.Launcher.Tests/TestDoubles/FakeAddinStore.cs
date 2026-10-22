@@ -10,6 +10,10 @@ namespace AddinManager.Launcher.Tests.TestDoubles;
 /// <see cref="System.IO.FileSystemWatcher"/>/файловой системы, чтобы проверить именно логику
 /// ViewModel'я (кто кого дергает), а не поведение диска — то уже покрыто
 /// <c>AddinManager.Core.Tests</c> (другая сборка, отсюда без <c>cref</c>).
+/// Правило имени <c>.addin</c> берётся из общего <see cref="AddinFileNames"/>, а не копируется;
+/// коллизии/перезапись и identity-операции повторяют только те исходы контракта
+/// <see cref="IAddinStore"/>, которые утверждают тесты VM. Атомарность записи, Корзина и запрет
+/// при живом Revit — забота реального store и его тестов, здесь не имитируются.
 /// </summary>
 public sealed class FakeAddinStore : IAddinStore
 {
@@ -44,6 +48,15 @@ public sealed class FakeAddinStore : IAddinStore
     /// <summary>Сколько раз реально вызвали <see cref="Delete"/> (успешно или с броском).</summary>
     public int DeleteCallCount { get; private set; }
 
+    /// <summary>Сколько раз вызывали <see cref="Restore"/>.</summary>
+    public int RestoreCallCount { get; private set; }
+
+    /// <summary>Записи, переданные в <see cref="Restore"/> (путь и байты) — для проверок отмены.</summary>
+    public List<(string FullPath, byte[] Content)> RestoredFiles { get; } = [];
+
+    /// <summary>Когда задано, следующий вызов <see cref="Restore"/> бросает это исключение.</summary>
+    public Exception? ThrowOnNextRestore { get; set; }
+
     /// <summary>
     /// Когда задано, следующий вызов <see cref="CreateFile"/> бросает это исключение вместо
     /// создания — одноразовое, как <see cref="ThrowOnNextSetEnabled"/>.
@@ -58,9 +71,6 @@ public sealed class FakeAddinStore : IAddinStore
 
     /// <summary>Когда задано, следующий вызов <see cref="Rename"/> бросает это исключение.</summary>
     public Exception? ThrowOnNextRename { get; set; }
-
-    /// <summary>Удалять реальный файл по пути из записи (для теста отмены удаления).</summary>
-    public bool DeleteFromDisk { get; set; }
 
     /// <summary>Сколько раз вызывали <see cref="Move"/>.</summary>
     public int MoveCallCount { get; private set; }
@@ -139,7 +149,7 @@ public sealed class FakeAddinStore : IAddinStore
     private void RemoveFromVersion(AddinFile file)
     {
         foreach (var files in _byVersion.Values)
-            files.RemoveAll(item => item.FileName == file.FileName && item.Scope == file.Scope && item.Version == file.Version);
+            files.RemoveAll(item => item.Identity == file.Identity);
     }
 
     /// <inheritdoc />
@@ -163,7 +173,7 @@ public sealed class FakeAddinStore : IAddinStore
         var updated = file with { Enabled = enabled };
         foreach (var files in _byVersion.Values)
         {
-            var index = files.FindIndex(f => f.FileName == file.FileName && f.Scope == file.Scope && f.Version == file.Version);
+            var index = files.FindIndex(f => f.Identity == file.Identity);
             if (index >= 0)
                 files[index] = updated;
         }
@@ -183,16 +193,27 @@ public sealed class FakeAddinStore : IAddinStore
         }
 
         var content = Array.Empty<byte>();
-        if (DeleteFromDisk && File.Exists(file.FullPath))
-        {
-            content = File.ReadAllBytes(file.FullPath);
-            File.Delete(file.FullPath);
-        }
 
         foreach (var files in _byVersion.Values)
-            files.RemoveAll(f => f.FileName == file.FileName && f.Scope == file.Scope && f.Version == file.Version);
+            files.RemoveAll(f => f.Identity == file.Identity);
 
         return content;
+    }
+
+    /// <inheritdoc />
+    public void Restore(string fullPath, byte[] content)
+    {
+        RestoreCallCount++;
+
+        if (ThrowOnNextRestore is { } exception)
+        {
+            ThrowOnNextRestore = null;
+            throw exception;
+        }
+
+        // Fake остаётся в памяти: наличие диска и атомарность Restore проверяет
+        // FileSystemAddinStoreTests на реальном временном каталоге.
+        RestoredFiles.Add((fullPath, content));
     }
 
     /// <inheritdoc />
@@ -206,16 +227,16 @@ public sealed class FakeAddinStore : IAddinStore
             throw exception;
         }
 
-        var name = newFileName.Trim();
-        if (!name.EndsWith(".addin", StringComparison.OrdinalIgnoreCase))
-            name += ".addin";
+        var name = AddinFileNames.Normalize(newFileName);
+        if (name.Length == 0)
+            throw new IOException("File name is empty.");
 
         var targetPath = Path.Combine(Path.GetDirectoryName(file.FullPath) ?? string.Empty, name);
         var renamed = file with { FileName = name, FullPath = targetPath };
 
         foreach (var files in _byVersion.Values)
         {
-            var index = files.FindIndex(f => f.FileName == file.FileName && f.Scope == file.Scope && f.Version == file.Version);
+            var index = files.FindIndex(f => f.Identity == file.Identity);
             if (index >= 0)
                 files[index] = renamed;
         }
@@ -235,9 +256,9 @@ public sealed class FakeAddinStore : IAddinStore
             throw exception;
         }
 
-        var name = fileName.Trim();
-        if (!name.EndsWith(".addin", StringComparison.OrdinalIgnoreCase))
-            name += ".addin";
+        var name = AddinFileNames.Normalize(fileName);
+        if (name.Length == 0)
+            throw new ArgumentException("File name is empty.", nameof(fileName));
 
         var root = $@"C:\fake\{version}";
         var file = new AddinFile(

@@ -1,5 +1,4 @@
 using AddinManager.Core.Abstractions.Storage;
-using AddinManager.Core.Storage;
 
 namespace AddinManager.Launcher.Tests.TestDoubles;
 
