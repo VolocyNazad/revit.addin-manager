@@ -1,6 +1,6 @@
+using AddinManager.Core;
 using AddinManager.Core.Manifests;
 using AddinManager.Core.Storage;
-using AddinManager.Launcher.Composition;
 using Microsoft.Extensions.Logging.Abstractions;
 
 namespace AddinManager.Launcher.Tests.ViewModels;
@@ -79,7 +79,7 @@ public sealed class ListViewModelFilterTests
             NewFile("C.addin", AddinScope.User, enabled: true));
         var list = NewList(store);
 
-        Assert.Equal("2025 · 3", list.Version2025ChipLabel);
+        Assert.Equal("2025 · 3", list.VersionChips.Single(chip => chip.Value == "2025").Label);
         Assert.Equal("User · 2", list.ScopeUserChipLabel);
         Assert.Equal("Machine · 1", list.ScopeMachineChipLabel);
         Assert.EndsWith(" · 3", list.ScopeAllChipLabel);
@@ -87,23 +87,46 @@ public sealed class ListViewModelFilterTests
         Assert.EndsWith(" · 1", list.EnabledOffChipLabel);
     }
 
+    [Fact]
+    public void VersionChips_ComeFromCatalog_AndTrackActiveFilter()
+    {
+        var store = new FakeAddinStore();
+        store.SetFiles("2025", NewFile("A.addin", AddinScope.User, enabled: true));
+        var list = NewList(store);
+
+        Assert.Equal(RevitVersionCatalog.SupportedVersions.Count + 1, list.VersionChips.Count);
+        Assert.True(list.VersionChips[0].IsActive);
+
+        list.VersionFilter = "2025";
+
+        Assert.False(list.VersionChips[0].IsActive);
+        Assert.True(list.VersionChips.Single(chip => chip.Value == "2025").IsActive);
+        Assert.False(list.VersionChips.Single(chip => chip.Value == "2026").IsActive);
+    }
+
     private static string[] Names(ListViewModel list) =>
         [.. list.FilesView.Cast<AddinFileRowViewModel>().Select(row => row.FileName)];
 
-    private static ListViewModel NewList(FakeAddinStore store) =>
-        new(
-            store,
+    private static ListViewModel NewList(FakeAddinStore store)
+    {
+        var dialog = new FakeDialogService();
+        var toast = new FakeToastService();
+        var undo = ListViewModelFixture.CreateUndoService(store);
+        return new(
+            ListViewModelFixture.CreateOperations(store, dialog, undo),
             new FakeAddinChangeWatcher(),
             new RecordingUiDispatcher(),
             NullLogger<ListViewModel>.Instance,
             new FakeLocalizationService(),
             TestLocalization.For<ListViewModel>(),
-            new AddinFileRowViewModelFactory(store, NullLoggerFactory.Instance, TestLocalization.For<AddinFileRowViewModel>()),
-            new FakeToastService(),
+            ListViewModelFixture.CreateCatalog(store),
+            toast,
             new FakeRevitProcessGuard(),
-            new FakeDialogService(),
+            dialog,
             new FakeFolderOpener(),
-            new FakeClipboardService());
+            new FakeClipboardService(),
+            undo);
+    }
 
     private static AddinFile NewFile(string fileName, AddinScope scope, bool enabled) =>
         new(fileName, scope, "2025", enabled,

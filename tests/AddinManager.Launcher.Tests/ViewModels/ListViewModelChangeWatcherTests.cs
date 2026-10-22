@@ -2,9 +2,8 @@ using System.IO;
 using AddinManager.Core.Abstractions.Parsing;
 using AddinManager.Core.Parsing;
 using AddinManager.Core.Storage;
-using AddinManager.Launcher.Composition;
+using AddinManager.Launcher.Services;
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Logging.Abstractions;
 
 namespace AddinManager.Launcher.Tests.ViewModels;
 
@@ -109,13 +108,13 @@ public sealed class ListViewModelChangeWatcherTests
         var store = new FakeAddinStore();
         store.SetFiles("2025", NewFile("A.addin", "2025"));
         var watcher = new FakeAddinChangeWatcher();
-        var logger = new RecordingLogger<ListViewModel>();
+        var logger = new RecordingLogger<FileCatalog>();
 
-        _ = ListViewModelFixture.Create(store, changeWatcher: watcher, logger: logger);
+        _ = ListViewModelFixture.Create(store, changeWatcher: watcher, catalogLogger: logger);
 
         Assert.True(
             logger.HasEntry(LogLevel.Debug, "2025"),
-            "Найденные для конкретной версии файлы должны попадать в Debug-лог с номером версии.");
+            "Найденные для конкретной версии файлы должны попадать в Debug-лог каталога с номером версии.");
     }
 
     /// <summary>

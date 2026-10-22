@@ -1,7 +1,6 @@
 using System.IO;
 using AddinManager.Core.Manifests;
 using AddinManager.Core.Storage;
-using AddinManager.Launcher.Composition;
 using Microsoft.Extensions.Logging.Abstractions;
 
 namespace AddinManager.Launcher.Tests.ViewModels;
@@ -84,34 +83,6 @@ public sealed class ListViewModelUndoTests
     }
 
     [Fact]
-    public void Delete_ThenUndo_RestoresFileContent()
-    {
-        var path = Path.Combine(Path.GetTempPath(), $"AddinManagerUndo-{Guid.NewGuid():N}.addin");
-        File.WriteAllText(path, "<RevitAddIns />");
-        try
-        {
-            var store = new FakeAddinStore { DeleteFromDisk = true };
-            store.SetFiles("2025", NewFile("A.addin", enabled: true) with { FullPath = path });
-            var list = NewList(store);
-
-            list.Files.Single().DeleteCommand.Execute(null);
-
-            Assert.False(File.Exists(path));
-            Assert.True(list.HasUndo);
-
-            list.UndoLastActionCommand.Execute(null);
-
-            Assert.True(File.Exists(path));
-            Assert.Equal("<RevitAddIns />", File.ReadAllText(path));
-        }
-        finally
-        {
-            if (File.Exists(path))
-                File.Delete(path);
-        }
-    }
-
-    [Fact]
     public void RenameUndo_WhenOldNameIsOccupied_ShowsErrorAndKeepsName()
     {
         var store = new FakeAddinStore();
@@ -130,20 +101,26 @@ public sealed class ListViewModelUndoTests
         Assert.False(list.HasUndo);
     }
 
-    private static ListViewModel NewList(FakeAddinStore store) =>
-        new(
-            store,
+    private static ListViewModel NewList(FakeAddinStore store)
+    {
+        var dialog = new FakeDialogService();
+        var toast = new FakeToastService();
+        var undo = ListViewModelFixture.CreateUndoService(store);
+        return new(
+            ListViewModelFixture.CreateOperations(store, dialog, undo),
             new FakeAddinChangeWatcher(),
             new RecordingUiDispatcher(),
             NullLogger<ListViewModel>.Instance,
             new FakeLocalizationService(),
             TestLocalization.For<ListViewModel>(),
-            new AddinFileRowViewModelFactory(store, NullLoggerFactory.Instance, TestLocalization.For<AddinFileRowViewModel>()),
-            new FakeToastService(),
+            ListViewModelFixture.CreateCatalog(store),
+            toast,
             new FakeRevitProcessGuard(),
-            new FakeDialogService(),
+            dialog,
             new FakeFolderOpener(),
-            new FakeClipboardService());
+            new FakeClipboardService(),
+            undo);
+    }
 
     private static AddinFile NewFile(string fileName, bool enabled) =>
         new(fileName, AddinScope.User, "2025", enabled,

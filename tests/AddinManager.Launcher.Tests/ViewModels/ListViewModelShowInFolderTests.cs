@@ -1,5 +1,4 @@
 using AddinManager.Core.Storage;
-using AddinManager.Launcher.Composition;
 using Microsoft.Extensions.Logging.Abstractions;
 
 namespace AddinManager.Launcher.Tests.ViewModels;
@@ -50,19 +49,26 @@ public sealed class ListViewModelShowInFolderTests
         Assert.Equal([clicked.FullPath], opener.RevealedPaths);
     }
 
-    private static ListViewModel NewList(FakeAddinStore store, FakeFolderOpener opener) =>
-        new(
-            store,
+    private static ListViewModel NewList(FakeAddinStore store, FakeFolderOpener opener)
+    {
+        var dialog = new FakeDialogService();
+        var toast = new FakeToastService();
+        var undo = ListViewModelFixture.CreateUndoService(store);
+        return new(
+            ListViewModelFixture.CreateOperations(store, dialog, undo),
             new FakeAddinChangeWatcher(),
             new RecordingUiDispatcher(),
             NullLogger<ListViewModel>.Instance,
             new FakeLocalizationService(),
             TestLocalization.For<ListViewModel>(),
-            new AddinFileRowViewModelFactory(store, NullLoggerFactory.Instance, TestLocalization.For<AddinFileRowViewModel>()),
-            new FakeToastService(),
+            ListViewModelFixture.CreateCatalog(store),
+            toast,
             new FakeRevitProcessGuard(),
-            new FakeDialogService(),
-            opener, new FakeClipboardService());
+            dialog,
+            opener,
+            new FakeClipboardService(),
+            undo);
+    }
 
     private static AddinFile NewFile(string fileName, AddinScope scope, string version, bool enabled) =>
         new(fileName, scope, version, enabled,

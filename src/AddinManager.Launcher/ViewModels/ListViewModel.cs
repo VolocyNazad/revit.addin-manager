@@ -1,17 +1,13 @@
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.IO;
-using System.Windows.Data;
 using AddinManager.Core;
 using AddinManager.Core.Abstractions.Guard;
 using AddinManager.Core.Abstractions.Storage;
 using AddinManager.Core.Guard;
 using AddinManager.Core.Storage;
-using AddinManager.Launcher.Abstractions.Composition;
 using AddinManager.Launcher.Abstractions.Services;
-using AddinManager.Launcher.Composition;
 using AddinManager.Launcher.Services;
-using AddinManager.Localization;
 using AddinManager.Localization.Abstractions;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
@@ -26,32 +22,77 @@ public sealed partial class ListViewModel : ObservableObject, IFileSelection, IA
     /// <summary>Все версии, которые сканируем (план, раздел 2 — "all seven").</summary>
     public static readonly IReadOnlyList<string> RevitVersions = RevitVersionCatalog.SupportedVersions;
 
-    private readonly IAddinStore _store;
     private readonly IAddinChangeWatcher _changeWatcher;
     private readonly IUiDispatcher _dispatcher;
-    private IUndoRecord? _lastUndo;
+    private readonly IUndoService _undoService;
     private readonly ILocalizationService _localizationService;
     private readonly IStringLocalizer<ListViewModel> _localizer;
-    private readonly IAddinFileRowViewModelFactory _rowFactory;
+    private readonly FileCatalog _catalog;
+    private readonly IFileOperations _operations;
     private readonly IToastService _toastService;
     private readonly IClipboardService _clipboard;
     private readonly IRevitProcessGuard _guard;
     private readonly IDialogService _dialogService;
     private readonly IFolderOpener _folderOpener;
     private readonly IEditorDirtyState? _dirtyState;
-    private readonly ListCollectionView _filesView;
+    private readonly FileListViewState _viewState;
     private readonly ILogger<ListViewModel> _logger;
+    private AddinFileRowViewModel? _selectedFile;
 
     [ObservableProperty]
     private int _fileCount;
 
     /// <summary>
-    /// Выбранная кликом строка (план, раздел 6) — подпанель разметки (<see cref="MarkupViewModel"/>)
-    /// читает её напрямую конструкторной зависимостью, см. docs/architecture.md, раздел "Zone
-    /// dependencies". <see langword="null"/>, если ничего не выбрано.
+    /// Выбранная кликом строка (план, раздел 6) — единственная точка смены выбора для всех зон:
+    /// подпанели читают её через <see cref="IFileSelection"/>. Перед переходом на другой файл
+    /// спрашивает редактор о несохранённых правках (<see cref="EnsureCanLeaveSelectedFile"/>):
+    /// «Сохранить / Отбросить / Отмена»; отказ оставляет прежний выбор, а вид возвращается
+    /// к нему отложенным уведомлением (синхронное внутри обновления привязки WPF игнорируется).
+    /// <see langword="null"/>, если ничего не выбрано.
     /// </summary>
-    [ObservableProperty]
-    private AddinFileRowViewModel? _selectedFile;
+#pragma warning disable S4275 // Сеттер намеренно делегирует запись в SetSelectedFile: перед сменой выбора нужен вопрос о несохранённых правках.
+    public AddinFileRowViewModel? SelectedFile
+    {
+        get => _selectedFile;
+        set
+        {
+            if (ReferenceEquals(_selectedFile, value))
+                return;
+
+            if (!EnsureCanLeaveSelectedFile())
+            {
+                _logger.LogInformation(
+                    "Выбор файла: переход на {TargetFile} отменён — в редакторе остались несохранённые правки",
+                    value?.FileName ?? "-");
+                _dispatcher.Post(() => OnPropertyChanged(nameof(SelectedFile)));
+                return;
+            }
+
+            // Сохранение правок могло пересоздать строки (Refresh после Save), поэтому цель
+            // ищем заново по идентичности: старый экземпляр строки уже не входит в Files.
+            SetSelectedFile(value is null ? null : FindByIdentity(value.File) ?? value);
+        }
+    }
+#pragma warning restore S4275
+
+    /// <summary>
+    /// Меняет выбор без вопроса о несохранённых правках — для программных переходов, которые уже
+    /// прошли через <see cref="EnsureCanLeaveSelectedFile"/> или пересоздают строки (<see cref="Refresh"/>,
+    /// undo, переименование): спрашивать в этих путях нечего.
+    /// </summary>
+    private void SetSelectedFile(AddinFileRowViewModel? value)
+    {
+        if (ReferenceEquals(_selectedFile, value))
+            return;
+
+        _selectedFile = value;
+        OnPropertyChanged(nameof(SelectedFile));
+        ShowInFolderCommand.NotifyCanExecuteChanged();
+        BeginRenameCommand.NotifyCanExecuteChanged();
+        MoveToCommand.NotifyCanExecuteChanged();
+        CopyToCommand.NotifyCanExecuteChanged();
+        RefreshSnapshot();
+    }
 
     /// <summary>Revit запущен — удаление запрещено.</summary>
     [ObservableProperty]
@@ -105,7 +146,7 @@ public sealed partial class ListViewModel : ObservableObject, IFileSelection, IA
     /// сделанные не через это приложение (другой процесс, ручное редактирование в проводнике,
     /// вторая копия менеджера), тоже должны появляться в списке без ручного "Обновить".
     /// </summary>
-    /// <param name="store">Чтение файлов с диска и переключение enabled/disabled.</param>
+    /// <param name="operations">Создание, удаление, перемещение и копирование файлов (диалоги, store, undo).</param>
     /// <param name="changeWatcher">
     /// Уведомляет, что .addin-файлы могли измениться извне. Событие может прийти из любого
     /// потока — вот зачем <paramref name="dispatcher"/>, отдельно его не передают.
@@ -118,45 +159,49 @@ public sealed partial class ListViewModel : ObservableObject, IFileSelection, IA
     /// <param name="logger">Логгер зоны списка.</param>
     /// <param name="localizationService">Сервис языка — смена языка перечитывает строки через <see cref="Refresh"/>.</param>
     /// <param name="localizer">Строки тулбара списка.</param>
-    /// <param name="rowFactory">Создание строк списка (файлы известны только при сканировании).</param>
+    /// <param name="catalog">Каталог строк: сканирование, пересоздание строк и предупреждения.</param>
     /// <param name="toastService">Подтверждение ручного обновления тостом.</param>
     /// <param name="guard">Сторож запущенного Revit — тогглы строк гаснут, пока он жив.</param>
-    /// <param name="dialogService">Подтверждение удаления.</param>
+    /// <param name="dialogService">Подтверждение смены файла при несохранённых правках.</param>
     /// <param name="folderOpener">Показ файла в проводнике (контекстное меню строки).</param>
     /// <param name="clipboard">Буфер обмена для пунктов «Копировать путь/имя файла».</param>
-    /// <param name="dirtyState">Состояние несохранённых правок редактора для проверки перед переносом.</param>
+    /// <param name="undoService">Одноуровневый стек отмены: команда <c>Ctrl+Z</c> и её состояние.</param>
+    /// <param name="dirtyState">Состояние несохранённых правок редактора для проверки перед сменой файла.</param>
     public ListViewModel(
-        IAddinStore store,
+        IFileOperations operations,
         IAddinChangeWatcher changeWatcher,
         IUiDispatcher dispatcher,
         ILogger<ListViewModel> logger,
         ILocalizationService localizationService,
         IStringLocalizer<ListViewModel> localizer,
-        IAddinFileRowViewModelFactory rowFactory,
+        FileCatalog catalog,
         IToastService toastService,
         IRevitProcessGuard guard,
         IDialogService dialogService,
         IFolderOpener folderOpener,
         IClipboardService clipboard,
+        IUndoService undoService,
         IEditorDirtyState? dirtyState = null)
     {
-        _store = store;
+        _operations = operations;
         _changeWatcher = changeWatcher;
         _dispatcher = dispatcher;
         _logger = logger;
         _localizationService = localizationService;
         _localizer = localizer;
-        _rowFactory = rowFactory;
+        _catalog = catalog;
         _toastService = toastService;
         _clipboard = clipboard;
         _guard = guard;
         _dialogService = dialogService;
         _folderOpener = folderOpener;
+        _undoService = undoService;
         _dirtyState = dirtyState;
 
-        _filesView = (ListCollectionView)CollectionViewSource.GetDefaultView(Files);
-        _filesView.Filter = MatchesFilter;
-        _filesView.CustomSort = Comparer<object>.Create(CompareRows);
+        _viewState = new FileListViewState(Files);
+        VersionChips.Add(new FilterChipViewModel(string.Empty, null));
+        foreach (var version in RevitVersions)
+            VersionChips.Add(new FilterChipViewModel(version, version));
 
         Refresh();
 
@@ -170,66 +215,47 @@ public sealed partial class ListViewModel : ObservableObject, IFileSelection, IA
         // Событие сторожа может прийти не из потока UI — маршалим, как watcher выше.
         // Сам guard здесь не стартуем (владелец — MainViewModel), только читаем состояние.
         _guard.Changed += (_, _) => _dispatcher.Invoke(SyncEditLock);
+
+        // Стек отмены меняется только с UI-потока, но маршрут через dispatcher тот же, что у
+        // сторожа: команда и подпись HasUndo обновляются в одном месте.
+        _undoService.Changed += (_, _) => _dispatcher.Invoke(OnUndoStackChanged);
         SyncEditLock();
     }
 
     /// <summary>Сырые строки списка — всё, что прочитано с диска, без фильтра/сортировки/группировки.</summary>
-    public ObservableCollection<AddinFileRowViewModel> Files { get; } = [];
+    public ObservableCollection<AddinFileRowViewModel> Files => _catalog.Files;
 
     /// <summary>То, что реально показывает вид: <see cref="Files"/> с применённым фильтром, сортировкой и группировкой.</summary>
-    public ICollectionView FilesView => _filesView;
+    public ICollectionView FilesView => _viewState.View;
+
+    /// <summary>Чипсы версий Revit: «все» и поддерживаемые версии из каталога Core.</summary>
+    public ObservableCollection<FilterChipViewModel> VersionChips { get; } = [];
 
     /// <summary>Перечитывает файлы всех версий с диска (план, раздел 4 — событийный rescan).</summary>
     [RelayCommand]
     public void Refresh()
     {
-        _logger.LogDebug("Refresh: пересканирование всех версий начато");
         ErrorMessage = null;
 
-        // Refresh пересоздаёт все AddinFileRowViewModel — старый SelectedFile больше не входит в
-        // Files, восстанавливаем выбор по идентичности (FileName, Scope, Version), а не по ссылке.
-        // То же для пакетного выбора: набор отмеченных ключей переживает пересканирование.
-        var previousSelection = SelectedFile is { } selected
-            ? (selected.FileName, selected.Scope, selected.Version)
-            : ((string FileName, AddinScope Scope, string Version)?)null;
-        var previousBulkSelection = new HashSet<(string FileName, AddinScope Scope, string Version)>(
-            Files.Where(f => f.IsSelected).Select(f => (f.FileName, f.Scope, f.Version)));
-
-        foreach (var row in Files)
-            row.PropertyChanged -= OnRowPropertyChanged;
-        Files.Clear();
-        foreach (var version in RevitVersions)
-        {
-            var filesForVersion = _store.ScanVersion(version);
-            if (filesForVersion.Count > 0)
-                _logger.LogDebug("Refresh({Version}): {Count} файлов", version, filesForVersion.Count);
-
-            foreach (var file in filesForVersion)
-            {
-                var row = _rowFactory.Create(file);
-                row.DeleteRequested += OnRowDeleteRequested;
-                row.Renamed += OnRowRenamed;
-                row.Toggled += OnRowToggled;
-                row.PropertyChanged += OnRowPropertyChanged;
-                row.IsSelected = previousBulkSelection.Contains((row.FileName, row.Scope, row.Version));
-                Files.Add(row);
-            }
-        }
+        // Каталог пересоздаёт все AddinFileRowViewModel — старый SelectedFile больше не входит в
+        // Files, поэтому выбор восстанавливаем по идентичности (FileName, Scope, Version),
+        // а пакетную отметку каталог сохраняет сам.
+        var previousSelection = SelectedFile?.Identity;
+        _catalog.Refresh();
+        WireRows();
 
         FileCount = Files.Count;
-        UpdateRowWarnings();
         RefreshChipLabels();
-        _filesView.Refresh();
+        _viewState.Apply(CurrentQuery());
 
         // Восстановленного по идентичности файла нет — ни прежнего выбора не было (запуск
         // приложения), ни прежний файл не пережил пересканирование — выбираем первый в
         // отображаемом (отфильтрованном/отсортированном) порядке, а не оставляем список без
         // выделения.
-        var restored = previousSelection is { } key
-            ? Files.FirstOrDefault(f => f.FileName == key.FileName && f.Scope == key.Scope && f.Version == key.Version)
-            : null;
-        SelectedFile = restored ?? _filesView.Cast<AddinFileRowViewModel>().FirstOrDefault();
+        var restored = previousSelection is { } key ? FindByIdentity(key) : null;
+        SetSelectedFile(restored ?? _viewState.View.Cast<AddinFileRowViewModel>().FirstOrDefault());
         RefreshSelectionSnapshot();
+        SyncEditLock();
 
         if (previousSelection is { } previous)
         {
@@ -240,9 +266,24 @@ public sealed partial class ListViewModel : ObservableObject, IFileSelection, IA
                     "Refresh: прежний выбор {FileName} ({Scope}, {Version}) не пережил пересканирование, выбран {NewFileName}",
                     previous.FileName, previous.Scope, previous.Version, SelectedFile?.FileName ?? "-");
         }
-
-        _logger.LogInformation("Refresh: найдено {Count} файлов по всем версиям", FileCount);
     }
+
+    /// <summary>
+    /// Подписывает строки каталога на действия зоны списка. Строки пересоздаются при каждом
+    /// <see cref="Refresh"/>, поэтому подписки ставятся заново; старые строки уходят вместе с
+    /// коллекцией.
+    /// </summary>
+    private void WireRows()
+    {
+        foreach (var row in Files)
+        {
+            row.DeleteRequested += OnRowDeleteRequested;
+            row.Renamed += OnRowRenamed;
+            row.Toggled += OnRowToggled;
+            row.PropertyChanged += OnRowPropertyChanged;
+        }
+    }
+
     /// <summary>Устанавливает фильтр по scope (кнопки-чипсы в тулбаре списка).</summary>
     [RelayCommand]
     public void SetScopeFilter(ScopeFilter filter) => ScopeFilter = filter;
@@ -303,7 +344,7 @@ public sealed partial class ListViewModel : ObservableObject, IFileSelection, IA
 
     /// <summary>Строки, видимые после фильтра/сортировки — ось пакетного выбора.</summary>
     private IEnumerable<AddinFileRowViewModel> VisibleRows() =>
-        _filesView.Cast<AddinFileRowViewModel>();
+        _viewState.View.Cast<AddinFileRowViewModel>();
 
     private bool CanBulkEdit() => HasSelection && !IsLocked;
 
@@ -327,7 +368,7 @@ public sealed partial class ListViewModel : ObservableObject, IFileSelection, IA
         }
 
         if (toggles.Count > 0)
-            SetUndo(new UndoToggleGroup(toggles));
+            _undoService.Record(new UndoToggleGroup(toggles));
 
         RefreshSelectionSnapshot();
     }
@@ -337,41 +378,8 @@ public sealed partial class ListViewModel : ObservableObject, IFileSelection, IA
     /// файлов — в баннер над списком, удалённые уже не восстановить через <c>Refresh</c>.
     /// </summary>
     [RelayCommand(CanExecute = nameof(CanBulkEdit))]
-    public void DeleteSelected()
-    {
-        var targets = Files.Where(f => f.IsSelected).ToList();
-        if (targets.Count == 0)
-            return;
-
-        if (!_dialogService.Confirm(_localizer["DeleteMultipleConfirm", targets.Count]))
-            return;
-
-        _logger.LogInformation("BulkDelete: подтверждено удаление {Count} файлов", targets.Count);
-        string? firstError = null;
-        var backups = new List<DeletedFile>();
-        foreach (var row in targets)
-        {
-            try
-            {
-                var content = _store.Delete(row.File);
-                backups.Add(new DeletedFile(row.File, content));
-            }
-            catch (Exception ex) when (ex is IOException or RevitRunningException or UnauthorizedAccessException)
-            {
-                _logger.LogWarning(
-                    ex,
-                    "BulkDelete {FileName} ({Scope}, {Version}): не удалён",
-                    row.FileName, row.Scope, row.Version);
-                firstError ??= ex.Message;
-            }
-        }
-
-        if (backups.Count > 0)
-            SetUndo(new UndoDelete(backups));
-
-        ErrorMessage = firstError;
-        Refresh();
-    }
+    public void DeleteSelected() =>
+        ApplyOutcome(_operations.DeleteSelected(Files.Where(row => row.IsSelected).ToList()));
 
     private void OnRowPropertyChanged(object? sender, PropertyChangedEventArgs e)
     {
@@ -379,7 +387,7 @@ public sealed partial class ListViewModel : ObservableObject, IFileSelection, IA
         // переключателя "Включить/Выключить" и фильтр состояния.
         if (e.PropertyName == nameof(AddinFileRowViewModel.IsEnabled))
         {
-            _filesView.Refresh();
+            _viewState.Apply(CurrentQuery());
             RefreshChipLabels();
             RefreshSelectionSnapshot();
         }
@@ -398,14 +406,18 @@ public sealed partial class ListViewModel : ObservableObject, IFileSelection, IA
         OnPropertyChanged(nameof(ScopeAllChipLabel));
         OnPropertyChanged(nameof(ScopeUserChipLabel));
         OnPropertyChanged(nameof(ScopeMachineChipLabel));
-        OnPropertyChanged(nameof(VersionAllChipLabel));
-        OnPropertyChanged(nameof(Version2021ChipLabel));
-        OnPropertyChanged(nameof(Version2022ChipLabel));
-        OnPropertyChanged(nameof(Version2023ChipLabel));
-        OnPropertyChanged(nameof(Version2024ChipLabel));
-        OnPropertyChanged(nameof(Version2025ChipLabel));
-        OnPropertyChanged(nameof(Version2026ChipLabel));
-        OnPropertyChanged(nameof(Version2027ChipLabel));
+
+        // Версии приходят из каталога Core: чипсы пересчитывают подписи и признак выбора.
+        VersionChips[0].Label = WithCount(_localizer["VersionFilter_AllVersionsOption"], SearchMatchedCount);
+        VersionChips[0].IsActive = VersionFilter is null;
+        for (var index = 0; index < RevitVersions.Count; index++)
+        {
+            var version = RevitVersions[index];
+            var chip = VersionChips[index + 1];
+            chip.Label = WithCount(version, CountVersion(version));
+            chip.IsActive = VersionFilter == version;
+        }
+
         OnPropertyChanged(nameof(EnabledAllChipLabel));
         OnPropertyChanged(nameof(EnabledOnChipLabel));
         OnPropertyChanged(nameof(EnabledOffChipLabel));
@@ -430,160 +442,61 @@ public sealed partial class ListViewModel : ObservableObject, IFileSelection, IA
     /// Запоминает успешное переключение enabled/disabled как последнее действие для <c>Ctrl+Z</c>.
     /// </summary>
     private void OnRowToggled(object? sender, FileToggledEventArgs e) =>
-        SetUndo(new UndoToggle(e.After, e.Before.Enabled));
+        _undoService.Record(new UndoToggle(e.After, e.Before.Enabled));
 
     /// <summary>Можно ли отменить последнее действие (есть запись и не мешает живой Revit).</summary>
-    public bool HasUndo => _lastUndo is not null;
+    public bool HasUndo => _undoService.HasUndo;
 
-    private bool CanUndo() => _lastUndo is not null && !IsLocked;
+    private bool CanUndo() => _undoService.HasUndo && !IsLocked;
 
     /// <summary>
-    /// Отменяет последнее перемещение enabled/disabled или удаление файла: перенос возвращает
-    /// прежнее состояние, удаление — записывает сохранённые байты обратно на прежний путь.
+    /// Отменяет последнее действие через <see cref="IUndoService"/>: сервис выполняет мутации
+    /// store-а, список перечитывает диск и возвращает выбор туда, куда указал сервис.
     /// </summary>
     [RelayCommand(CanExecute = nameof(CanUndo))]
     public void UndoLastAction()
     {
-        if (_lastUndo is not { } undo)
+        if (!_undoService.HasUndo)
             return;
 
-        SetUndo(null);
         try
         {
-            switch (undo)
-            {
-                case UndoToggle toggle:
-                    var current = Files.FirstOrDefault(file =>
-                        file.FileName == toggle.After.FileName
-                        && file.Scope == toggle.After.Scope
-                        && file.Version == toggle.After.Version);
-                    if (current is null)
-                        throw new IOException(_localizer["UndoFileMissing"]);
-
-                    _store.SetEnabled(current.File, toggle.PreviousEnabled);
-                    Refresh();
-                    SelectByIdentity(toggle.After.FileName, toggle.After.Scope, toggle.After.Version);
-                    break;
-
-                case UndoToggleGroup group:
-                    foreach (var item in group.Toggles)
-                    {
-                        var currentFile = Files.FirstOrDefault(file =>
-                            file.FileName == item.After.FileName
-                            && file.Scope == item.After.Scope
-                            && file.Version == item.After.Version);
-                        if (currentFile is null)
-                            throw new IOException(_localizer["UndoFileMissing"]);
-
-                        _store.SetEnabled(currentFile.File, item.PreviousEnabled);
-                    }
-
-                    Refresh();
-                    var firstToggle = group.Toggles[0].After;
-                    SelectByIdentity(firstToggle.FileName, firstToggle.Scope, firstToggle.Version);
-                    break;
-
-                case UndoMove move:
-                    var moved = Files.FirstOrDefault(file =>
-                        file.FileName == move.Moved.FileName
-                        && file.Scope == move.Moved.Scope
-                        && file.Version == move.Moved.Version);
-                    if (moved is null)
-                        throw new IOException(_localizer["UndoFileMissing"]);
-
-                    _store.Move(moved.File, move.Original.Version, move.Original.Scope, move.Original.Enabled, overwrite: false);
-                    RestoreReplacedTarget(move.ReplacedPath, move.ReplacedContent);
-                    Refresh();
-                    SelectByIdentity(move.Original.FileName, move.Original.Scope, move.Original.Version);
-                    break;
-
-                case UndoCopy copy:
-                    var currentCopy = Files.FirstOrDefault(file =>
-                        file.FileName == copy.Copy.FileName
-                        && file.Scope == copy.Copy.Scope
-                        && file.Version == copy.Copy.Version);
-                    if (currentCopy is null)
-                        throw new IOException(_localizer["UndoFileMissing"]);
-
-                    _store.Delete(currentCopy.File);
-                    RestoreReplacedTarget(copy.ReplacedPath, copy.ReplacedContent);
-                    Refresh();
-                    SelectByIdentity(copy.Source.FileName, copy.Source.Scope, copy.Source.Version);
-                    break;
-
-                case UndoRename rename:
-                    var currentRenamed = Files.FirstOrDefault(file =>
-                        file.FileName == rename.After.FileName
-                        && file.Scope == rename.After.Scope
-                        && file.Version == rename.After.Version);
-                    if (currentRenamed is null)
-                        throw new IOException(_localizer["UndoFileMissing"]);
-
-                    _store.Rename(currentRenamed.File, rename.Before.FileName);
-                    Refresh();
-                    SelectByIdentity(rename.Before.FileName, rename.Before.Scope, rename.Before.Version);
-                    break;
-
-                case UndoDelete delete:
-                    foreach (var item in delete.Files)
-                    {
-                        if (File.Exists(item.File.FullPath))
-                            throw new IOException(_localizer["UndoFileExists", item.File.FileName]);
-
-                        var directory = Path.GetDirectoryName(item.File.FullPath);
-                        if (!string.IsNullOrEmpty(directory))
-                            Directory.CreateDirectory(directory);
-                        File.WriteAllBytes(item.File.FullPath, item.Content);
-                    }
-
-                    Refresh();
-                    var first = delete.Files[0].File;
-                    SelectByIdentity(first.FileName, first.Scope, first.Version);
-                    break;
-            }
-
+            AddinFileIdentity selection = _undoService.Undo(identity => FindByIdentity(identity)?.File);
+            Refresh();
+            SelectByIdentity(selection);
             _toastService.Show(_localizer["UndoDoneMessage"]);
         }
         catch (Exception ex) when (ex is IOException or RevitRunningException or UnauthorizedAccessException)
         {
-            _logger.LogWarning(ex, "Undo: последнее действие не удалось отменить");
+            // Сервис/store уже залогировали причину; наверх уходит только сообщение для баннера.
             ErrorMessage = ex.Message;
             _toastService.Show(_localizer["UndoFailedMessage"]);
         }
     }
 
-    private void SetUndo(IUndoRecord? undo)
+    /// <summary>Стек отмены изменился: подпись <see cref="HasUndo"/> и команда меняются вместе.</summary>
+    private void OnUndoStackChanged()
     {
-        _lastUndo = undo;
-        UndoLastActionCommand.NotifyCanExecuteChanged();
         OnPropertyChanged(nameof(HasUndo));
+        UndoLastActionCommand.NotifyCanExecuteChanged();
     }
 
-    private void SelectByIdentity(string fileName, AddinScope scope, string version)
+    /// <summary>Строка списка по идентичности файла <c>(FileName, Scope, Version)</c>.</summary>
+    private AddinFileRowViewModel? FindByIdentity(AddinFileIdentity identity) =>
+        Files.FirstOrDefault(row => row.Identity == identity);
+
+    /// <summary>Строка списка по текущей записи файла.</summary>
+    private AddinFileRowViewModel? FindByIdentity(AddinFile file) => FindByIdentity(file.Identity);
+
+    private void SelectByIdentity(AddinFileIdentity identity)
     {
-        var row = Files.FirstOrDefault(file =>
-            file.FileName == fileName && file.Scope == scope && file.Version == version);
+        var row = FindByIdentity(identity);
         if (row is null)
             return;
 
-        SelectedFile = row;
+        SetSelectedFile(row);
         row.IsSelected = true;
         RefreshSelectionSnapshot();
-    }
-
-    /// <summary>Возвращает заменённый целевой файл из сохранённых байтов после отмены перемещения/копирования.</summary>
-    private void RestoreReplacedTarget(string? path, byte[]? content)
-    {
-        if (path is null || content is null)
-            return;
-
-        if (File.Exists(path))
-            throw new IOException(_localizer["UndoFileExists", Path.GetFileName(path)]);
-
-        var directory = Path.GetDirectoryName(path);
-        if (!string.IsNullOrEmpty(directory))
-            Directory.CreateDirectory(directory);
-        File.WriteAllBytes(path, content);
     }
 
     /// <summary>
@@ -595,18 +508,15 @@ public sealed partial class ListViewModel : ObservableObject, IFileSelection, IA
         if (sender is not AddinFileRowViewModel)
             return;
 
-        SetUndo(new UndoRename(e.Before, e.After));
-        var renamedKey = (e.After.FileName, e.After.Scope, e.After.Version);
+        _undoService.Record(new UndoRename(e.Before, e.After));
+        var renamedIdentity = e.After.Identity;
         Refresh();
 
-        var renamed = Files.FirstOrDefault(file =>
-            file.FileName == renamedKey.FileName
-            && file.Scope == renamedKey.Scope
-            && file.Version == renamedKey.Version);
+        var renamed = FindByIdentity(renamedIdentity);
         if (renamed is null)
             return;
 
-        SelectedFile = renamed;
+        SetSelectedFile(renamed);
         renamed.IsSelected = true;
         RefreshSelectionSnapshot();
     }
@@ -636,60 +546,10 @@ public sealed partial class ListViewModel : ObservableObject, IFileSelection, IA
         BeginRenameCommand.NotifyCanExecuteChanged();
     }
 
-    /// <summary>
-    /// Пересчитывает предупреждения строк: дубли <c>AddInId</c> считаются только внутри одной
-    /// версии Revit (идентификатор в двух файлах разных версий — не конфликт: Revit грузит
-    /// версии независимо). Дубли внутри файла строка видит сама; сюда передаётся лишь множество
-    /// идентификаторов, встречающихся минимум в двух файлах версии.
-    /// </summary>
-    private void UpdateRowWarnings()
-    {
-        var duplicatedByVersion = FindCrossFileDuplicates(Files);
-        foreach (var row in Files)
-        {
-            duplicatedByVersion.TryGetValue(row.Version, out var duplicated);
-            row.UpdateWarnings(duplicated ?? (IReadOnlySet<Guid>)new HashSet<Guid>());
-        }
-    }
-
-    /// <summary>
-    /// Идентификаторы, встречающиеся минимум в двух разных файлах одной версии.
-    /// Дубль внутри одного файла без второго файла сюда не попадает (это не кросс-файловый).
-    /// </summary>
-    internal static Dictionary<string, HashSet<Guid>> FindCrossFileDuplicates(
-        IEnumerable<AddinFileRowViewModel> rows) =>
-        AddinFileDuplicates.FindDuplicatedByVersion(rows.Select(row => row.File));
-
     private void OnRowDeleteRequested(object? sender, EventArgs e)
     {
         if (sender is AddinFileRowViewModel row)
-            DeleteRow(row);
-    }
-
-    /// <summary>
-    /// Удаляет файл строки (после подтверждения) в Корзину. Ошибка (нет прав,
-    /// файл занят, живой Revit) — в сообщение под строкой, выбор не теряется. Байты файла
-    /// сохраняются для <c>Ctrl+Z</c>.
-    /// </summary>
-    private void DeleteRow(AddinFileRowViewModel row)
-    {
-        if (!_dialogService.Confirm(_localizer["DeleteConfirm", row.FileName]))
-            return;
-
-        DeletedFile backup;
-        try
-        {
-            var content = _store.Delete(row.File);
-            backup = new DeletedFile(row.File, content);
-        }
-        catch (Exception ex) when (ex is IOException or RevitRunningException or UnauthorizedAccessException)
-        {
-            row.ErrorMessage = ex.Message;
-            return;
-        }
-
-        SetUndo(new UndoDelete([backup]));
-        Refresh();
+            ApplyOutcome(_operations.DeleteRow(row));
     }
 
     /// <summary>Тултип кнопки добавления файла (хоткей: Ctrl+N).</summary>
@@ -702,24 +562,7 @@ public sealed partial class ListViewModel : ObservableObject, IFileSelection, IA
     /// в баннер над списком.
     /// </summary>
     [RelayCommand(CanExecute = nameof(CanAddFile))]
-    public void AddFile()
-    {
-        if (_dialogService.PromptNewFile() is not { } options)
-            return;
-
-        try
-        {
-            _store.CreateFile(options.FileName, options.Version, options.Scope, options.Disabled);
-            ErrorMessage = null;
-        }
-        catch (Exception ex) when (ex is IOException or RevitRunningException)
-        {
-            ErrorMessage = ex.Message;
-            return;
-        }
-
-        Refresh();
-    }
+    public void AddFile() => ApplyOutcome(_operations.AddFile());
 
     partial void OnIsLockedChanged(bool value)
     {
@@ -787,61 +630,56 @@ public sealed partial class ListViewModel : ObservableObject, IFileSelection, IA
 
     /// <summary>Открывает диалог цели и перемещает файл в другую версию/scope.</summary>
     [RelayCommand(CanExecute = nameof(CanMoveCopy))]
-    public void MoveTo(AddinFileRowViewModel? row) => MoveCopy(row ?? SelectedFile, MoveCopyKind.Move);
+    public void MoveTo(AddinFileRowViewModel? row)
+    {
+        if ((row ?? SelectedFile) is { } target)
+            ApplyOutcome(_operations.MoveCopy(target, MoveCopyKind.Move));
+    }
 
     /// <summary>Открывает диалог цели и копирует файл в другую версию/scope.</summary>
     [RelayCommand(CanExecute = nameof(CanMoveCopy))]
-    public void CopyTo(AddinFileRowViewModel? row) => MoveCopy(row ?? SelectedFile, MoveCopyKind.Copy);
-
-    private void MoveCopy(AddinFileRowViewModel? row, MoveCopyKind kind)
+    public void CopyTo(AddinFileRowViewModel? row)
     {
-        if (row is null)
-            return;
-
-        if (!EnsureEditorSaved())
-            return;
-
-        var options = _dialogService.PromptMoveCopy(new MoveCopyRequest(row.File, kind));
-        if (options is null)
-            return;
-
-        try
-        {
-            if (kind == MoveCopyKind.Move)
-            {
-                var result = _store.Move(row.File, options.Version, options.Scope, options.EnableAfter, options.Overwrite);
-                SetUndo(new UndoMove(result.File, row.File, result.ReplacedPath, result.ReplacedContent));
-                RevealTarget(result.File);
-                Refresh();
-                SelectByIdentity(result.File.FileName, result.File.Scope, result.File.Version);
-            }
-            else
-            {
-                var result = _store.Copy(row.File, options.Version, options.Scope, options.EnableAfter, options.Overwrite);
-                SetUndo(new UndoCopy(row.File, result.File, result.ReplacedPath, result.ReplacedContent));
-                Refresh();
-                _toastService.Show(_localizer["CopyDoneToMessage", result.File.Version, result.File.Scope]);
-            }
-        }
-        catch (Exception ex) when (ex is IOException or RevitRunningException or UnauthorizedAccessException)
-        {
-            row.ErrorMessage = ex.Message;
-        }
+        if ((row ?? SelectedFile) is { } target)
+            ApplyOutcome(_operations.MoveCopy(target, MoveCopyKind.Copy));
     }
 
     /// <summary>
-    /// Перед переносом не даёт молча потерять правки открытого файла: сохраняет видимую панель
-    /// или спрашивает подтверждение на отбрасывание; отказ отменяет операцию.
+    /// Не даёт молча потерять правки открытого файла перед сменой выбранного файла: сохраняет
+    /// видимую панель или спрашивает подтверждение на отбрасывание; отказ оставляет прежний выбор.
     /// </summary>
-    private bool EnsureEditorSaved()
+    private bool EnsureCanLeaveSelectedFile()
     {
         if (_dirtyState is not { IsDirty: true })
             return true;
 
-        if (_dialogService.Confirm(_localizer["SaveBeforeMoveConfirm"]))
+        if (_dialogService.Confirm(_localizer["SaveBeforeSwitchConfirm"]))
             return _dirtyState.TrySave();
 
-        return _dialogService.Confirm(_localizer["DiscardBeforeMoveConfirm"]);
+        return _dialogService.Confirm(_localizer["DiscardBeforeSwitchConfirm"]);
+    }
+
+    /// <summary>
+    /// Применяет результат файловой операции к виду: сначала фильтры (чтобы цель попала в
+    /// видимый набор), затем перечитывание, выбор, баннер и тост.
+    /// </summary>
+    /// <param name="outcome">Результат операции из <see cref="IFileOperations"/>.</param>
+    private void ApplyOutcome(FileOperationOutcome outcome)
+    {
+        if (outcome.RevealTarget is { } target)
+            RevealTarget(target);
+
+        if (outcome.RefreshNeeded)
+            Refresh();
+
+        if (outcome.SelectIdentity is { } identity)
+            SelectByIdentity(identity);
+
+        if (outcome.BannerError is { } error)
+            ErrorMessage = error;
+
+        if (outcome.Toast is { } toast)
+            _toastService.Show(toast);
     }
 
     /// <summary>Подстраивает scope/version/state фильтры, чтобы цель перемещения была видна; поиск не трогаем.</summary>
@@ -901,30 +739,6 @@ public sealed partial class ListViewModel : ObservableObject, IFileSelection, IA
 
     /// <summary>Чипс scope "Machine" со счётчиком.</summary>
     public string ScopeMachineChipLabel => WithCount("Machine", CountScope(AddinScope.Machine));
-
-    /// <summary>Чипс версий "все" со счётчиком.</summary>
-    public string VersionAllChipLabel => WithCount(_localizer["VersionFilter_AllVersionsOption"], SearchMatchedCount);
-
-    /// <summary>Чипс версии 2021 со счётчиком.</summary>
-    public string Version2021ChipLabel => WithCount("2021", CountVersion("2021"));
-
-    /// <summary>Чипс версии 2022 со счётчиком.</summary>
-    public string Version2022ChipLabel => WithCount("2022", CountVersion("2022"));
-
-    /// <summary>Чипс версии 2023 со счётчиком.</summary>
-    public string Version2023ChipLabel => WithCount("2023", CountVersion("2023"));
-
-    /// <summary>Чипс версии 2024 со счётчиком.</summary>
-    public string Version2024ChipLabel => WithCount("2024", CountVersion("2024"));
-
-    /// <summary>Чипс версии 2025 со счётчиком.</summary>
-    public string Version2025ChipLabel => WithCount("2025", CountVersion("2025"));
-
-    /// <summary>Чипс версии 2026 со счётчиком.</summary>
-    public string Version2026ChipLabel => WithCount("2026", CountVersion("2026"));
-
-    /// <summary>Чипс версии 2027 со счётчиком.</summary>
-    public string Version2027ChipLabel => WithCount("2027", CountVersion("2027"));
 
     /// <summary>Подпись "Состояние:" перед чипсами enabled/disabled.</summary>
     public string EnabledFilterLabel => _localizer["EnabledFilterLabel"];
@@ -992,41 +806,42 @@ public sealed partial class ListViewModel : ObservableObject, IFileSelection, IA
 #pragma warning disable S4144 // Одинаковые тела — общий шаг трёх независимых осей фильтра.
     partial void OnSearchTextChanged(string? value)
     {
-        _filesView.Refresh();
+        _viewState.Apply(CurrentQuery());
         RefreshChipLabels();
         RefreshSelectionSnapshot();
     }
 
     partial void OnScopeFilterChanged(ScopeFilter value)
     {
-        _filesView.Refresh();
+        _viewState.Apply(CurrentQuery());
         RefreshSelectionSnapshot();
     }
 
     partial void OnVersionFilterChanged(string? value)
     {
-        _filesView.Refresh();
+        _viewState.Apply(CurrentQuery());
+        RefreshChipLabels();
         RefreshSelectionSnapshot();
     }
 
     partial void OnEnabledFilterChanged(EnabledFilter value)
     {
-        _filesView.Refresh();
+        _viewState.Apply(CurrentQuery());
         RefreshSelectionSnapshot();
     }
 #pragma warning restore S4144
 
-    partial void OnSortOrderChanged(ListSortOrder value) => _filesView.Refresh();
+    partial void OnSortOrderChanged(ListSortOrder value) => _viewState.Apply(CurrentQuery());
 
-    partial void OnSortDescendingChanged(bool value) => _filesView.Refresh();
+    partial void OnSortDescendingChanged(bool value) => _viewState.Apply(CurrentQuery());
 
     partial void OnGroupByScopeChanged(bool value)
     {
-        // Взаимоисключающе: включение одного гасит другой, что само вызовет ApplyGrouping ниже по цепочке.
+        // Взаимоисключающе: включение одного гасит другой, чей OnChanged применит состояние.
         if (value && GroupByVersion)
             GroupByVersion = false;
         else
-            ApplyGrouping();
+            _viewState.Apply(CurrentQuery());
     }
 
     partial void OnGroupByVersionChanged(bool value)
@@ -1034,126 +849,23 @@ public sealed partial class ListViewModel : ObservableObject, IFileSelection, IA
         if (value && GroupByScope)
             GroupByScope = false;
         else
-            ApplyGrouping();
+            _viewState.Apply(CurrentQuery());
     }
 
-    /// <summary>Предикат <see cref="ICollectionView.Filter"/>: scope, версия, текст поиска по имени файла.</summary>
-    private bool MatchesFilter(object obj)
-    {
-        if (obj is not AddinFileRowViewModel row)
-            return false;
-
-        if (ScopeFilter != ScopeFilter.All)
-        {
-            var scope = ScopeFilter == ScopeFilter.User ? AddinScope.User : AddinScope.Machine;
-            if (row.Scope != scope)
-                return false;
-        }
-
-        if (VersionFilter is not null && row.Version != VersionFilter)
-            return false;
-
-        var enabled = EnabledFilter switch
-        {
-            EnabledFilter.Enabled => true,
-            EnabledFilter.Disabled => false,
-            _ => (bool?)null,
-        };
-        if (enabled is { } requiredEnabled && row.IsEnabled != requiredEnabled)
-            return false;
-
-        if (!string.IsNullOrWhiteSpace(SearchText) && !row.FileName.Contains(SearchText, StringComparison.OrdinalIgnoreCase))
-            return false;
-
-        return true;
-    }
-
-    /// <summary>
-    /// Компаратор <see cref="ListCollectionView.CustomSort"/> — по умолчанию имя; при
-    /// <see cref="ListSortOrder.Scope"/>/<see cref="ListSortOrder.Version"/> сначала своя ось, имя — как добавочный ключ.
-    /// </summary>
-    private int CompareRows(object? x, object? y)
-    {
-        var left = (AddinFileRowViewModel)x!;
-        var right = (AddinFileRowViewModel)y!;
-        var result = CompareRowsAscending(left, right);
-        return SortDescending ? -result : result;
-    }
-
-    private int CompareRowsAscending(AddinFileRowViewModel left, AddinFileRowViewModel right)
-    {
-        switch (SortOrder)
-        {
-            case ListSortOrder.Scope:
-                var byScope = left.Scope.CompareTo(right.Scope);
-                if (byScope != 0)
-                    return byScope;
-                break;
-
-            case ListSortOrder.Version:
-                var byVersion = string.Compare(left.Version, right.Version, StringComparison.Ordinal);
-                if (byVersion != 0)
-                    return byVersion;
-                break;
-        }
-
-        return string.Compare(left.FileName, right.FileName, StringComparison.OrdinalIgnoreCase);
-    }
-
-    /// <summary>
-    /// Переставляет <see cref="ICollectionView.GroupDescriptions"/> под <see cref="GroupByScope"/>/
-    /// <see cref="GroupByVersion"/> — оба выключены значит без группировки, включённым может быть
-    /// только один (см. их OnChanged-обработчики).
-    /// </summary>
-    private void ApplyGrouping()
-    {
-        _filesView.GroupDescriptions.Clear();
-
-        if (GroupByScope)
-            _filesView.GroupDescriptions.Add(new PropertyGroupDescription(nameof(AddinFileRowViewModel.Scope)));
-
-        if (GroupByVersion)
-            _filesView.GroupDescriptions.Add(new PropertyGroupDescription(nameof(AddinFileRowViewModel.Version)));
-    }
+    /// <summary>Снимок текущих осей фильтра/сортировки/группировки для <see cref="FileListViewState"/>.</summary>
+    private FileListQuery CurrentQuery() => new(
+        ScopeFilter,
+        VersionFilter,
+        EnabledFilter,
+        SearchText,
+        SortOrder,
+        SortDescending,
+        GroupByScope,
+        GroupByVersion);
 
     partial void OnFileCountChanged(int value) => RefreshSnapshot();
 
-    partial void OnSelectedFileChanged(AddinFileRowViewModel? value)
-    {
-        ShowInFolderCommand.NotifyCanExecuteChanged();
-        BeginRenameCommand.NotifyCanExecuteChanged();
-        MoveToCommand.NotifyCanExecuteChanged();
-        CopyToCommand.NotifyCanExecuteChanged();
-        RefreshSnapshot();
-    }
-
     private void RefreshSnapshot() => OnPropertyChanged((string?)null);
-
-    private interface IUndoRecord
-    {
-    }
-
-    private sealed record UndoToggle(AddinFile After, bool PreviousEnabled) : IUndoRecord;
-
-    private sealed record UndoToggleGroup(IReadOnlyList<UndoToggle> Toggles) : IUndoRecord;
-
-    private sealed record UndoDelete(IReadOnlyList<DeletedFile> Files) : IUndoRecord;
-
-    private sealed record UndoMove(
-        AddinFile Moved,
-        AddinFile Original,
-        string? ReplacedPath,
-        byte[]? ReplacedContent) : IUndoRecord;
-
-    private sealed record UndoCopy(
-        AddinFile Source,
-        AddinFile Copy,
-        string? ReplacedPath,
-        byte[]? ReplacedContent) : IUndoRecord;
-
-    private sealed record UndoRename(AddinFile Before, AddinFile After) : IUndoRecord;
-
-    private sealed record DeletedFile(AddinFile File, byte[] Content);
 
     /// <inheritdoc />
     public override string ToString() => $"List(Files={FileCount}, Selected={SelectedFile?.FileName ?? "-"}, Bulk={SelectedCount})";

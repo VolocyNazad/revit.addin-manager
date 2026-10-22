@@ -325,6 +325,12 @@ public sealed partial class AddinFileRowViewModel : ObservableObject
     /// <summary>User/Machine — входит в <see cref="MetaLine"/>, ось фильтра и группировки в списке.</summary>
     public AddinScope Scope => _file.Scope;
 
+    /// <summary>
+    /// Идентичность файла, переживающая пересоздание строки при пересканировании: по ней список
+    /// восстанавливает выбор и пакетную отметку. Не зависит от пути и состояния enabled/disabled.
+    /// </summary>
+    public AddinFileIdentity Identity => _file.Identity;
+
     /// <summary>Версия Revit ("2021".."2027") — входит в <see cref="MetaLine"/>, ось фильтра и группировки в списке.</summary>
     public string Version => _file.Version;
 

@@ -67,9 +67,6 @@
   <data name="AddFileTooltip" xml:space="preserve">
     <value>Добавить файл</value>
   </data>
-  <data name="DeleteConfirm" xml:space="preserve">
-    <value>Переместить '{0}' в Корзину?</value>
-  </data>
   <data name="ListRefreshed" xml:space="preserve">
     <value>Список обновлён</value>
   </data>
@@ -111,9 +108,6 @@
   </data>
   <data name="ClearSelectionLabel" xml:space="preserve">
     <value>Снять выбор</value>
-  </data>
-  <data name="DeleteMultipleConfirm" xml:space="preserve">
-    <value>Переместить {0} файлов в Корзину?</value>
   </data>
   <data name="ShowInFolderLabel" xml:space="preserve">
     <value>Показать в папке</value>
@@ -157,25 +151,16 @@
   <data name="UndoFailedMessage" xml:space="preserve">
     <value>Не удалось отменить последнее действие</value>
   </data>
-  <data name="UndoFileMissing" xml:space="preserve">
-    <value>Файл для отмены больше не существует.</value>
-  </data>
-  <data name="UndoFileExists" xml:space="preserve">
-    <value>Не удалось отменить: '{0}' уже существует.</value>
-  </data>
   <data name="MoveMenuLabel" xml:space="preserve">
     <value>Переместить в…</value>
   </data>
   <data name="CopyToMenuLabel" xml:space="preserve">
     <value>Копировать в…</value>
   </data>
-  <data name="CopyDoneToMessage" xml:space="preserve">
-    <value>Скопировано в {0} · {1}</value>
+  <data name="SaveBeforeSwitchConfirm" xml:space="preserve">
+    <value>В файле есть несохранённые изменения. Сохранить их перед переходом к другому файлу?</value>
   </data>
-  <data name="SaveBeforeMoveConfirm" xml:space="preserve">
-    <value>В файле есть несохранённые изменения. Сохранить их перед переносом/копированием?</value>
-  </data>
-  <data name="DiscardBeforeMoveConfirm" xml:space="preserve">
-    <value>Продолжить без сохранения изменений?</value>
+  <data name="DiscardBeforeSwitchConfirm" xml:space="preserve">
+    <value>Перейти к другому файлу без сохранения изменений?</value>
   </data>
 </root>

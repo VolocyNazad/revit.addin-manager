@@ -1,6 +1,5 @@
 using AddinManager.Core.Manifests;
 using AddinManager.Core.Storage;
-using AddinManager.Launcher.Composition;
 using AddinManager.Launcher.Services;
 using Microsoft.Extensions.Logging.Abstractions;
 
@@ -182,21 +181,26 @@ public sealed class ListViewModelMoveCopyTests
         FakeDialogService dialog,
         FakeToastService? toast = null,
         EditorDirtyState? dirty = null,
-        FakeRevitProcessGuard? guard = null) =>
-        new(
-            store,
+        FakeRevitProcessGuard? guard = null)
+    {
+        toast ??= new FakeToastService();
+        var undo = ListViewModelFixture.CreateUndoService(store);
+        return new(
+            ListViewModelFixture.CreateOperations(store, dialog, undo, dirty),
             new FakeAddinChangeWatcher(),
             new RecordingUiDispatcher(),
             NullLogger<ListViewModel>.Instance,
             new FakeLocalizationService(),
             TestLocalization.For<ListViewModel>(),
-            new AddinFileRowViewModelFactory(store, NullLoggerFactory.Instance, TestLocalization.For<AddinFileRowViewModel>()),
-            toast ?? new FakeToastService(),
+            ListViewModelFixture.CreateCatalog(store),
+            toast,
             guard ?? new FakeRevitProcessGuard(),
             dialog,
             new FakeFolderOpener(),
             new FakeClipboardService(),
+            undo,
             dirty);
+    }
 
     private static AddinFile NewFile(string fileName) =>
         new(fileName, AddinScope.User, "2025", Enabled: true,

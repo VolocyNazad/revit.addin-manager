@@ -1,7 +1,6 @@
 using AddinManager.Core.Abstractions.Storage;
 using AddinManager.Core.Storage;
 using AddinManager.Launcher.Abstractions.Composition;
-using AddinManager.Launcher.Composition;
 using Microsoft.Extensions.Logging.Abstractions;
 
 namespace AddinManager.Launcher.Tests.TestDoubles;
