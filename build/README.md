@@ -15,6 +15,11 @@ Build the launcher:
 dotnet run --project build/Revit.AddinManager.Build.csproj -c Release
 ```
 
+The first non-option argument selects the pipeline mode: `compile` (default), `pack`,
+`publish` or `version`; an unknown mode fails with exit code 2 instead of silently
+compiling. The source directory it hands to the installer contains runtime files only
+(no `.pdb`/`.xml`).
+
 Build the launcher and create the installer:
 
 ```powershell

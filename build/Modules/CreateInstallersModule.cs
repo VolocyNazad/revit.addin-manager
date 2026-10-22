@@ -18,7 +18,7 @@ public sealed class CreateInstallersModule(IOptions<BuildOptions> options) : Mod
         await context.DotNet().Build(new DotNetBuildOptions
         {
             ProjectSolution = BuildPaths.InstallerProject,
-            Configuration = "Release"
+            Configuration = BuildPaths.ReleaseConfiguration
         }, cancellationToken: cancellationToken);
 
         string installer = BuildPaths.GetInstallerExecutable();
@@ -41,9 +41,7 @@ public sealed class CreateInstallersModule(IOptions<BuildOptions> options) : Mod
                 ]
             }, cancellationToken: cancellationToken);
 
-        string msiPath = Path.Combine(
-            outputDirectory,
-            $"RevitAddinManager-{versioning.Version}.msi");
+        string msiPath = BuildPaths.MsiPath(outputDirectory, versioning.Version);
         File.Exists(msiPath).ShouldBeTrue($"MSI was not created: {msiPath}");
     }
 }

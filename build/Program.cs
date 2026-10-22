@@ -6,6 +6,8 @@ using ModularPipelines.Extensions;
 
 Environment.SetEnvironmentVariable("DOTNET_CLI_UI_LANGUAGE", "en");
 
+string mode = args.FirstOrDefault(argument => !argument.StartsWith('-'))?.ToLowerInvariant() ?? "compile";
+
 var builder = Pipeline.CreateBuilder();
 
 builder.Configuration.AddJsonFile("appsettings.json");
@@ -19,13 +21,26 @@ builder.Services
     .AddOptions<PublishOptions>()
     .Bind(builder.Configuration.GetSection("Publish"));
 
-if (args.Contains("publish", StringComparer.OrdinalIgnoreCase))
-    builder.Services.AddModule<PublishGithubModule>();
-else if (args.Contains("version", StringComparer.OrdinalIgnoreCase))
-    builder.Services.AddModule<ResolveVersioningModule>();
-else if (args.Contains("pack", StringComparer.OrdinalIgnoreCase))
-    builder.Services.AddModule<CreateInstallersModule>();
-else
-    builder.Services.AddModule<CompileProjectModule>();
+switch (mode)
+{
+    case "compile":
+        builder.Services.AddModule<CompileProjectModule>();
+        break;
+    case "pack":
+        builder.Services.AddModule<CreateInstallersModule>();
+        break;
+    case "publish":
+        builder.Services.AddModule<PublishGithubModule>();
+        break;
+    case "version":
+        builder.Services.AddModule<ResolveVersioningModule>();
+        break;
+    default:
+#pragma warning disable ConsoleUse // Контекстного логгера пайплайна ещё нет: ошибка режима — до его сборки.
+        Console.Error.WriteLine($"Unknown pipeline mode '{mode}'. Expected: compile (default), pack, publish or version.");
+#pragma warning restore ConsoleUse
+        Environment.ExitCode = 2;
+        return;
+}
 
 await (await builder.BuildAsync()).RunAsync();

@@ -20,12 +20,10 @@ public sealed class PublishGithubModule(
             .ShouldBeTrue($"GitHub releases require a stable version, but GitVersion produced '{versioning.Version}'");
 
         string outputDirectory = Path.GetFullPath(buildOptions.Value.OutputDirectory, BuildPaths.Root);
-        string installer = Path.Combine(
-            outputDirectory,
-            $"RevitAddinManager-{versioning.Version}.msi");
+        string installer = BuildPaths.MsiPath(outputDirectory, versioning.Version);
         File.Exists(installer).ShouldBeTrue($"MSI was not created: {installer}");
 
-        string notesPath = Path.Combine(outputDirectory, $"release-notes-{versioning.Version}.md");
+        string notesPath = BuildPaths.ReleaseNotesPath(outputDirectory, versioning.Version);
         await File.WriteAllTextAsync(
             notesPath,
             ReleaseNotes.Create(BuildPaths.Changelog, versioning.Version, GetRepositoryUrl()),

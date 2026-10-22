@@ -19,13 +19,16 @@ public sealed class CompileProjectModule : Module<string>
                 [
                     "build",
                     BuildPaths.LauncherProject,
-                    "--configuration", "Release",
+                    "--configuration", BuildPaths.ReleaseConfiguration,
                     "--nologo",
                     "--consoleLoggerParameters:ErrorsOnly;Summary",
-                    $"-p:Version={versioning.Version}"
+                    $"-p:Version={versioning.Version}",
+                    "-p:DebugType=None",
+                    "-p:DebugSymbols=false",
+                    "-p:GenerateDocumentationFile=false"
                 ]
             }, cancellationToken: cancellationToken);
 
-        return BuildPaths.GetLauncherOutput("Release");
+        return BuildPaths.GetLauncherOutput();
     }
 }
