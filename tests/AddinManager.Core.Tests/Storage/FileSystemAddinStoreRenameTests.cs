@@ -15,7 +15,7 @@ namespace AddinManager.Core.Tests.Storage;
 /// </summary>
 public sealed class FileSystemAddinStoreRenameTests : IDisposable
 {
-    private readonly List<string> _tempRoots = [];
+    private readonly TempDirectorySet _tempDirectories = new();
     private readonly IAddinManifestParser _parser =
         new LinqToXmlAddinManifestParser(TestLocalization.For<LinqToXmlAddinManifestParser>());
 
@@ -114,12 +114,7 @@ public sealed class FileSystemAddinStoreRenameTests : IDisposable
     private static string VersionDir(string baseDirectory, string version) =>
         Path.Combine(baseDirectory, "Autodesk", "Revit", "Addins", version);
 
-    private string NewRoot()
-    {
-        var root = Path.Combine(Path.GetTempPath(), "AddinManagerTests-" + Guid.NewGuid());
-        _tempRoots.Add(root);
-        return root;
-    }
+    private string NewRoot() => _tempDirectories.Create();
 
     private static string ValidAddinXml(string name) => $"""
         <RevitAddIns>
@@ -135,20 +130,6 @@ public sealed class FileSystemAddinStoreRenameTests : IDisposable
     /// <inheritdoc />
     public void Dispose()
     {
-        foreach (var root in _tempRoots)
-        {
-            try
-            {
-                Directory.Delete(root, recursive: true);
-            }
-            catch (IOException)
-            {
-                // Временная папка теста — не критично, если не удалилась.
-            }
-            catch (UnauthorizedAccessException)
-            {
-                // Временная папка теста — не критично, если не удалилась.
-            }
-        }
+        _tempDirectories.Dispose();
     }
 }

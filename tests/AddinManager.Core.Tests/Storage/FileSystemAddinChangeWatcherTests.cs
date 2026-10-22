@@ -15,7 +15,7 @@ public sealed class FileSystemAddinChangeWatcherTests : IDisposable
 {
     private static readonly TimeSpan WaitTimeout = TimeSpan.FromSeconds(5);
 
-    private readonly List<string> _tempRoots = [];
+    private readonly TempDirectorySet _tempDirectories = new();
     private readonly List<IDisposable> _watchers = [];
 
     [Fact]
@@ -210,12 +210,7 @@ public sealed class FileSystemAddinChangeWatcherTests : IDisposable
         </RevitAddIns>
         """;
 
-    private string NewRoot()
-    {
-        var root = Path.Combine(Path.GetTempPath(), "AddinManagerTests-" + Guid.NewGuid());
-        _tempRoots.Add(root);
-        return root;
-    }
+    private string NewRoot() => _tempDirectories.Create();
 
     /// <inheritdoc />
     public void Dispose()
@@ -223,20 +218,6 @@ public sealed class FileSystemAddinChangeWatcherTests : IDisposable
         foreach (var watcher in _watchers)
             watcher.Dispose();
 
-        foreach (var root in _tempRoots)
-        {
-            try
-            {
-                Directory.Delete(root, recursive: true);
-            }
-            catch (IOException)
-            {
-                // Временная папка теста — не критично, если не удалилась.
-            }
-            catch (UnauthorizedAccessException)
-            {
-                // Временная папка теста — не критично, если не удалилась.
-            }
-        }
+        _tempDirectories.Dispose();
     }
 }
