@@ -1,5 +1,6 @@
 using System.Windows;
 using System.Windows.Media;
+using AddinManager.Core.Diagnostics;
 using AddinManager.Launcher.ViewModels;
 using ICSharpCode.AvalonEdit.Document;
 using ICSharpCode.AvalonEdit.Rendering;
@@ -15,22 +16,45 @@ namespace AddinManager.Launcher.Views.Highlighting;
 /// </summary>
 public sealed class DiagnosticBackgroundRenderer : IBackgroundRenderer
 {
-    private static readonly Pen MarkerPen = CreateMarkerPen();
+    private static readonly Brush FallbackErrorBrush = CreateFallbackBrush();
+    private static Brush? _errorBrush;
+    private static Pen? _markerPen;
 
-    private static Pen CreateMarkerPen()
+    private static Brush CreateFallbackBrush()
     {
-        var pen = new Pen(new SolidColorBrush(Color.FromRgb(0xE5, 0x48, 0x4D)), 1.2);
-        pen.Freeze();
-        return pen;
+        var brush = new SolidColorBrush(Color.FromRgb(0xE5, 0x48, 0x4D));
+        brush.Freeze();
+        return brush;
     }
 
-    private IReadOnlyList<TextSpan> _spans = [];
+    /// <summary>
+    /// Перо берёт цвет из токена темы <c>ErrorBrush</c>: тема может смениться, а рендерер живёт
+    /// весь запуск, поэтому перо пересобирается при смене кисти. Резервный цвет — тот же
+    /// красный ошибок на случай, если ресурс ещё не подключён.
+    /// </summary>
+    private static Pen MarkerPen
+    {
+        get
+        {
+            Brush brush = Application.Current?.TryFindResource("ErrorBrush") as Brush ?? FallbackErrorBrush;
+            if (_markerPen is null || !ReferenceEquals(brush, _errorBrush))
+            {
+                _errorBrush = brush;
+                _markerPen = new Pen(brush, 1.2);
+                _markerPen.Freeze();
+            }
+
+            return _markerPen;
+        }
+    }
+
+    private IReadOnlyList<MarkupSpan> _spans = [];
 
     /// <inheritdoc />
     public KnownLayer Layer => KnownLayer.Selection;
 
     /// <summary>Заменяет срезы (вызывает вид при новых <see cref="MarkupViewModel.DiagnosticSpans"/>).</summary>
-    public void SetSpans(IEnumerable<TextSpan> spans) => _spans = spans.ToList();
+    public void SetSpans(IEnumerable<MarkupSpan> spans) => _spans = spans.ToList();
 
     /// <inheritdoc />
     public void Draw(TextView textView, DrawingContext drawingContext)
