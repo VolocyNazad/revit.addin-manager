@@ -1,7 +1,5 @@
 using AddinManager.Core.Abstractions.Guard;
-using AddinManager.Core.Guard;
 using AddinManager.Launcher.Abstractions.Services;
-using AddinManager.Launcher.Services;
 using AddinManager.Localization;
 using AddinManager.Localization.Abstractions;
 using AddinManager.Theming;
