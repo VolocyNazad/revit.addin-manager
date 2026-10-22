@@ -1,5 +1,3 @@
-using AddinManager.Theming;
-
 namespace AddinManager.Theming.Abstractions;
 
 /// <summary>

@@ -1,0 +1,14 @@
+<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <!--
+        Единая карточка предупреждения/ошибки: баннеры панелей, строчная ошибка списка,
+        баннер Revit и предупреждения диалогов. Виды задают только свою геометрию
+        (Margin/Padding/CornerRadius/Visibility), цвета — из токенов темы.
+    -->
+    <Style x:Key="WarningCardStyle" TargetType="Border">
+        <Setter Property="Padding" Value="10,6" />
+        <Setter Property="Background" Value="{DynamicResource WarningBackgroundBrush}" />
+        <Setter Property="BorderBrush" Value="{DynamicResource WarningBorderBrush}" />
+        <Setter Property="BorderThickness" Value="1" />
+        <Setter Property="CornerRadius" Value="8" />
+    </Style>
+</ResourceDictionary>

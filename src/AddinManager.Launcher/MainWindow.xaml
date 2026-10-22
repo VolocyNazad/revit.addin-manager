@@ -20,7 +20,6 @@
     WindowStyle="None"
     mc:Ignorable="d">
     <Window.Resources>
-        <BooleanToVisibilityConverter x:Key="BoolToVisibility" />
         <Style x:Key="CaptionButton" TargetType="Button">
             <Setter Property="Background" Value="Transparent" />
             <Setter Property="BorderThickness" Value="0" />
@@ -50,7 +49,7 @@
             TargetType="Button">
             <Style.Triggers>
                 <Trigger Property="IsMouseOver" Value="True">
-                    <Setter Property="Background" Value="#C42B1C" />
+                    <Setter Property="Background" Value="{DynamicResource CaptionCloseHoverBrush}" />
                     <Setter Property="Foreground" Value="White" />
                 </Trigger>
             </Style.Triggers>
@@ -190,9 +189,6 @@
                     Style="{StaticResource LayoutIconButton}"
                     ToolTip="{Binding ListOnlyTooltip}">
                     <controls:PackIcon
-                        Width="{StaticResource IconSize}"
-                        Height="{StaticResource IconSize}"
-                        Focusable="False"
                         Kind="List" />
                 </Button>
                 <Button
@@ -203,9 +199,6 @@
                     Style="{StaticResource LayoutIconButton}"
                     ToolTip="{Binding SplitTooltip}">
                     <controls:PackIcon
-                        Width="{StaticResource IconSize}"
-                        Height="{StaticResource IconSize}"
-                        Focusable="False"
                         Kind="Split" />
                 </Button>
                 <Button
@@ -216,9 +209,6 @@
                     Style="{StaticResource LayoutIconButton}"
                     ToolTip="{Binding EditorOnlyTooltip}">
                     <controls:PackIcon
-                        Width="{StaticResource IconSize}"
-                        Height="{StaticResource IconSize}"
-                        Focusable="False"
                         Kind="Editor" />
                 </Button>
                 <Button
@@ -228,9 +218,6 @@
                     Style="{StaticResource LayoutIconButton}"
                     ToolTip="{Binding ThemeButtonTooltip}">
                     <controls:PackIcon
-                        Width="{StaticResource IconSize}"
-                        Height="{StaticResource IconSize}"
-                        Focusable="False"
                         Kind="Theme" />
                 </Button>
                 <Button
@@ -240,9 +227,6 @@
                     Style="{StaticResource LayoutIconButton}"
                     ToolTip="{Binding LanguageButtonTooltip}">
                     <controls:PackIcon
-                        Width="{StaticResource IconSize}"
-                        Height="{StaticResource IconSize}"
-                        Focusable="False"
                         Kind="Language" />
                 </Button>
                 <Button
@@ -252,9 +236,6 @@
                     Style="{StaticResource LayoutIconButton}"
                     ToolTip="{Binding UpdateButtonTooltip}">
                     <controls:PackIcon
-                        Width="{StaticResource IconSize}"
-                        Height="{StaticResource IconSize}"
-                        Focusable="False"
                         Kind="Update" />
                 </Button>
                 <Button
@@ -264,9 +245,6 @@
                     Style="{StaticResource LayoutIconButton}"
                     ToolTip="{Binding SupportButtonTooltip}">
                     <controls:PackIcon
-                        Width="{StaticResource IconSize}"
-                        Height="{StaticResource IconSize}"
-                        Focusable="False"
                         Kind="Support" />
                 </Button>
                 <Button
@@ -276,9 +254,6 @@
                     Style="{StaticResource LayoutIconButton}"
                     ToolTip="{Binding SponsorButtonTooltip}">
                     <controls:PackIcon
-                        Width="{StaticResource IconSize}"
-                        Height="{StaticResource IconSize}"
-                        Focusable="False"
                         Kind="Sponsor" />
                 </Button>
             </StackPanel>
@@ -342,10 +317,8 @@
                 VerticalAlignment="Top">
                 <Border
                     Padding="14,8"
-                    Background="{DynamicResource WarningBackgroundBrush}"
-                    BorderBrush="{DynamicResource WarningBorderBrush}"
-                    BorderThickness="1"
                     CornerRadius="10"
+                    Style="{StaticResource WarningCardStyle}"
                     Visibility="{Binding ShowRevitWarning, Converter={StaticResource BoolToVisibility}}">
                     <StackPanel Orientation="Horizontal">
                         <TextBlock

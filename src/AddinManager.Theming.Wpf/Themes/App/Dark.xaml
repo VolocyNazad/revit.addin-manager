@@ -7,4 +7,8 @@
     <SolidColorBrush x:Key="MarkupAttributeNameBrush" Color="#C9A26D" />
     <SolidColorBrush x:Key="MarkupAttributeValueBrush" Color="#8FBF9F" />
     <SolidColorBrush x:Key="MarkupMetaBrush" Color="#8A8A8A" />
+
+    <!--  Прикладные акценты: ошибки и иконка предупреждения. Ключи один в один с Light.xaml.  -->
+    <SolidColorBrush x:Key="ErrorBrush" Color="#F06A6A" />
+    <SolidColorBrush x:Key="WarningIconBrush" Color="#E6A700" />
 </ResourceDictionary>

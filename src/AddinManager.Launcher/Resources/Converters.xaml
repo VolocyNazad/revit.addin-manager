@@ -1,0 +1,13 @@
+<ResourceDictionary
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:converters="clr-namespace:AddinManager.Launcher.Converters">
+    <!--  Конвертеры объявлены один раз: виды ссылаются на них по стабильным ключам.  -->
+    <converters:BoolToVisibilityConverter x:Key="BoolToVisibility" />
+    <converters:NullOrEmptyToVisibilityConverter x:Key="NullOrEmptyToVisibility" />
+    <converters:EmptyToVisibilityConverter x:Key="EmptyToVisibility" />
+    <converters:NullToVisibilityConverter x:Key="HasSelection" />
+    <converters:EnumEqualsToOpacityConverter x:Key="ActiveOpacity" />
+    <converters:NullableBoolStateToOpacityConverter x:Key="UseRevitContextOpacity" />
+    <converters:EditorModeToVisibilityConverter x:Key="EditorModeVisibilityConverter" />
+</ResourceDictionary>

@@ -4,7 +4,6 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:composition="clr-namespace:AddinManager.Launcher.Composition"
     xmlns:controls="clr-namespace:AddinManager.Launcher.Controls"
-    xmlns:converters="clr-namespace:AddinManager.Launcher.Converters"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:design="clr-namespace:AddinManager.Launcher.Design"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
@@ -15,12 +14,6 @@
     d:DesignWidth="750"
     TextElement.Foreground="{DynamicResource AppForegroundBrush}"
     mc:Ignorable="d">
-    <UserControl.Resources>
-        <converters:EnumEqualsToOpacityConverter x:Key="ActiveModeOpacityConverter" />
-        <converters:EditorModeToVisibilityConverter x:Key="EditorModeVisibilityConverter" />
-        <converters:NullToVisibilityConverter x:Key="HasSelectedFile" />
-        <BooleanToVisibilityConverter x:Key="BoolToVisibility" />
-    </UserControl.Resources>
     <Grid>
         <Border
             x:Name="EditorAccent"
@@ -40,79 +33,55 @@
                 <Button
                     Command="{Binding SetEditorModeCommand}"
                     CommandParameter="{x:Static viewmodels:EditorMode.Entries}"
-                    Opacity="{Binding Mode, Converter={StaticResource ActiveModeOpacityConverter}, ConverterParameter={x:Static viewmodels:EditorMode.Entries}}"
+                    Opacity="{Binding Mode, Converter={StaticResource ActiveOpacity}, ConverterParameter={x:Static viewmodels:EditorMode.Entries}}"
                     Style="{StaticResource LayoutIconButton}"
                     ToolTip="{Binding EntriesTooltip}">
-                    <controls:PackIcon
-                        Width="{StaticResource IconSize}"
-                        Height="{StaticResource IconSize}"
-                        Focusable="False"
-                        Kind="List" />
+                    <controls:PackIcon Kind="List" />
                 </Button>
                 <Button
                     Margin="2,0,0,0"
                     Command="{Binding SetEditorModeCommand}"
                     CommandParameter="{x:Static viewmodels:EditorMode.Form}"
-                    Opacity="{Binding Mode, Converter={StaticResource ActiveModeOpacityConverter}, ConverterParameter={x:Static viewmodels:EditorMode.Form}}"
+                    Opacity="{Binding Mode, Converter={StaticResource ActiveOpacity}, ConverterParameter={x:Static viewmodels:EditorMode.Form}}"
                     Style="{StaticResource LayoutIconButton}"
                     ToolTip="{Binding FormTooltip}">
-                    <controls:PackIcon
-                        Width="{StaticResource IconSize}"
-                        Height="{StaticResource IconSize}"
-                        Focusable="False"
-                        Kind="Form" />
+                    <controls:PackIcon Kind="Form" />
                 </Button>
                 <Button
                     Margin="2,0,0,0"
                     Command="{Binding SetEditorModeCommand}"
                     CommandParameter="{x:Static viewmodels:EditorMode.Markup}"
-                    Opacity="{Binding Mode, Converter={StaticResource ActiveModeOpacityConverter}, ConverterParameter={x:Static viewmodels:EditorMode.Markup}}"
+                    Opacity="{Binding Mode, Converter={StaticResource ActiveOpacity}, ConverterParameter={x:Static viewmodels:EditorMode.Markup}}"
                     Style="{StaticResource LayoutIconButton}"
                     ToolTip="{Binding MarkupTooltip}">
-                    <controls:PackIcon
-                        Width="{StaticResource IconSize}"
-                        Height="{StaticResource IconSize}"
-                        Focusable="False"
-                        Kind="Markup" />
+                    <controls:PackIcon Kind="Markup" />
                 </Button>
                 <Button
                     Margin="8,0,0,0"
                     Command="{Binding SetEditorModeCommand}"
                     CommandParameter="{x:Static viewmodels:EditorMode.EntriesForm}"
-                    Opacity="{Binding Mode, Converter={StaticResource ActiveModeOpacityConverter}, ConverterParameter={x:Static viewmodels:EditorMode.EntriesForm}}"
+                    Opacity="{Binding Mode, Converter={StaticResource ActiveOpacity}, ConverterParameter={x:Static viewmodels:EditorMode.EntriesForm}}"
                     Style="{StaticResource LayoutIconButton}"
                     ToolTip="{Binding EntriesFormTooltip}">
-                    <controls:PackIcon
-                        Width="{StaticResource IconSize}"
-                        Height="{StaticResource IconSize}"
-                        Focusable="False"
-                        Kind="EntriesForm" />
+                    <controls:PackIcon Kind="EntriesForm" />
                 </Button>
                 <Button
                     Margin="2,0,0,0"
                     Command="{Binding SetEditorModeCommand}"
                     CommandParameter="{x:Static viewmodels:EditorMode.EntriesMarkup}"
-                    Opacity="{Binding Mode, Converter={StaticResource ActiveModeOpacityConverter}, ConverterParameter={x:Static viewmodels:EditorMode.EntriesMarkup}}"
+                    Opacity="{Binding Mode, Converter={StaticResource ActiveOpacity}, ConverterParameter={x:Static viewmodels:EditorMode.EntriesMarkup}}"
                     Style="{StaticResource LayoutIconButton}"
                     ToolTip="{Binding EntriesMarkupTooltip}">
-                    <controls:PackIcon
-                        Width="{StaticResource IconSize}"
-                        Height="{StaticResource IconSize}"
-                        Focusable="False"
-                        Kind="EntriesMarkup" />
+                    <controls:PackIcon Kind="EntriesMarkup" />
                 </Button>
                 <Button
                     Margin="8,0,0,0"
                     Command="{Binding SetEditorModeCommand}"
                     CommandParameter="{x:Static viewmodels:EditorMode.Settings}"
-                    Opacity="{Binding Mode, Converter={StaticResource ActiveModeOpacityConverter}, ConverterParameter={x:Static viewmodels:EditorMode.Settings}}"
+                    Opacity="{Binding Mode, Converter={StaticResource ActiveOpacity}, ConverterParameter={x:Static viewmodels:EditorMode.Settings}}"
                     Style="{StaticResource LayoutIconButton}"
                     ToolTip="{Binding SettingsTooltip}">
-                    <controls:PackIcon
-                        Width="{StaticResource IconSize}"
-                        Height="{StaticResource IconSize}"
-                        Focusable="False"
-                        Kind="Settings" />
+                    <controls:PackIcon Kind="Settings" />
                 </Button>
             </StackPanel>
             <Grid Grid.Row="1" Margin="8,0,8,8">
@@ -129,7 +98,7 @@
                 <StackPanel
                     Grid.Row="0"
                     Margin="12,12,12,10"
-                    Visibility="{Binding SelectedFile, Converter={StaticResource HasSelectedFile}}">
+                    Visibility="{Binding SelectedFile, Converter={StaticResource HasSelection}}">
                     <Grid>
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="*" />
@@ -176,11 +145,7 @@
 
                     <Border
                         Margin="0,8,0,0"
-                        Padding="10,6"
-                        Background="{DynamicResource WarningBackgroundBrush}"
-                        BorderBrush="{DynamicResource WarningBorderBrush}"
-                        BorderThickness="1"
-                        CornerRadius="8"
+                        Style="{StaticResource WarningCardStyle}"
                         Visibility="{Binding HasHeaderError, Converter={StaticResource BoolToVisibility}}">
                         <TextBlock
                             FontSize="11"

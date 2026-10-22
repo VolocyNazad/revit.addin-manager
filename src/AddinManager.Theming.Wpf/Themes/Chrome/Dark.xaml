@@ -9,6 +9,7 @@
     <SolidColorBrush x:Key="AppBackgroundBrush" Color="#202020" />
     <SolidColorBrush x:Key="EditorAccentBrush" Color="#454545" />
     <SolidColorBrush x:Key="CaptionHoverBrush" Color="#2D2D2D" />
+    <SolidColorBrush x:Key="CaptionCloseHoverBrush" Color="#C42B1C" />
 
     <!--  Подписи полей тултипа — сплошным цветом: гашение через Opacity даёт "смазанные" края.  -->
     <SolidColorBrush x:Key="TooltipLabelBrush" Color="#ABABAB" />

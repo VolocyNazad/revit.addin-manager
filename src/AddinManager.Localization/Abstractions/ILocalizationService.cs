@@ -1,5 +1,4 @@
 using System.Globalization;
-using AddinManager.Localization;
 
 namespace AddinManager.Localization.Abstractions;
 

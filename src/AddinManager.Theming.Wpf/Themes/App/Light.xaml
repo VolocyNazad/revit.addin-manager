@@ -7,4 +7,8 @@
     <SolidColorBrush x:Key="MarkupAttributeNameBrush" Color="#8A6425" />
     <SolidColorBrush x:Key="MarkupAttributeValueBrush" Color="#3F7A55" />
     <SolidColorBrush x:Key="MarkupMetaBrush" Color="#8A8A8A" />
+
+    <!--  Прикладные акценты: ошибки и иконка предупреждения. Ключи один в один с Dark.xaml.  -->
+    <SolidColorBrush x:Key="ErrorBrush" Color="#E5484D" />
+    <SolidColorBrush x:Key="WarningIconBrush" Color="#E6A700" />
 </ResourceDictionary>

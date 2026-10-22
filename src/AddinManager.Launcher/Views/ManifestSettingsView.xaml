@@ -2,7 +2,6 @@
     x:Class="AddinManager.Launcher.Views.ManifestSettingsView"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-    xmlns:converters="clr-namespace:AddinManager.Launcher.Converters"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:design="clr-namespace:AddinManager.Launcher.Design"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
@@ -18,9 +17,6 @@
         <KeyBinding Key="Escape" Command="{Binding DiscardCommand}" />
     </UserControl.InputBindings>
     <UserControl.Resources>
-        <converters:NullToVisibilityConverter x:Key="HasSelection" />
-        <converters:NullableBoolStateToOpacityConverter x:Key="UseRevitContextOpacity" />
-        <converters:BoolToVisibilityConverter x:Key="BoolToVisibility" />
 
         <!--  Довесок общего ChipButtonStyle: чипс гаснет за Revit (плюс CanExecute команды).  -->
         <Style

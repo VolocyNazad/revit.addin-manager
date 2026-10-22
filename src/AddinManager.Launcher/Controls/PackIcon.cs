@@ -6,7 +6,8 @@ namespace AddinManager.Launcher.Controls;
 /// <summary>
 /// Иконка из общего словаря <c>Resources/Icons.xaml</c>: вид задаётся <see cref="Kind"/>
 /// (шаблон подтягивается по ключу <c>Icon.{Kind}</c>), цвет — через обычный
-/// <c>Foreground</c> носителя. Неизвестному виду соответствует пустое место.
+/// <c>Foreground</c> носителя. Неизвестному виду соответствует заметный placeholder
+/// <c>Icon.Fallback</c>, а не пустое место: опечатку в Kind видно сразу.
 /// </summary>
 public sealed class PackIcon : Control
 {
@@ -40,7 +41,11 @@ public sealed class PackIcon : Control
 
     private void UpdateTemplate()
     {
-        if (GetTemplateChild("PART_Icon") is ContentControl host)
-            host.Template = TryFindResource("Icon." + Kind) as ControlTemplate;
+        if (GetTemplateChild("PART_Icon") is not ContentControl host)
+            return;
+
+        host.Template = TryFindResource("Icon." + Kind) as ControlTemplate
+            ?? TryFindResource("Icon.Fallback") as ControlTemplate;
     }
 }
+

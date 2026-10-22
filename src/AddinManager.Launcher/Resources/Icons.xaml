@@ -325,7 +325,7 @@
                 Width="24"
                 Height="24"
                 Background="Transparent">
-                <Path Data="M12,2L1,21H23M12,6L19.53,19H4.47M11,10V14H13V10M11,16V18H13,16Z" Fill="#E6A700" />
+                <Path Data="M12,2L1,21H23M12,6L19.53,19H4.47M11,10V14H13V10M11,16V18H13,16Z" Fill="{DynamicResource WarningIconBrush}" />
             </Grid>
         </Viewbox>
     </ControlTemplate>
@@ -361,6 +361,26 @@
                     Stroke="{TemplateBinding Foreground}"
                     StrokeLineJoin="Round"
                     StrokeThickness="1" />
+            </Grid>
+        </Viewbox>
+    </ControlTemplate>
+
+    <!--  Заметный placeholder для неизвестного Kind: опечатка не превращается в пустое место.  -->
+    <ControlTemplate x:Key="Icon.Fallback" TargetType="ContentControl">
+        <Viewbox Stretch="Uniform">
+            <Grid Width="{StaticResource IconSize}" Height="{StaticResource IconSize}">
+                <Rectangle
+                    Opacity="0.6"
+                    RadiusX="{StaticResource IconOutlineRadius}"
+                    RadiusY="{StaticResource IconOutlineRadius}"
+                    Stroke="{DynamicResource AppForegroundBrush}"
+                    StrokeThickness="{StaticResource IconStrokeThickness}" />
+                <TextBlock
+                    HorizontalAlignment="Center"
+                    VerticalAlignment="Center"
+                    FontSize="11"
+                    Foreground="{DynamicResource AppForegroundBrush}"
+                    Text="?" />
             </Grid>
         </Viewbox>
     </ControlTemplate>

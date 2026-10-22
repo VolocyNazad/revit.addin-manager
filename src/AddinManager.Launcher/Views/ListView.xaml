@@ -4,7 +4,6 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:behaviors="clr-namespace:AddinManager.Launcher.Behaviors"
     xmlns:controls="clr-namespace:AddinManager.Launcher.Controls"
-    xmlns:converters="clr-namespace:AddinManager.Launcher.Converters"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:design="clr-namespace:AddinManager.Launcher.Design"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
@@ -15,10 +14,6 @@
     d:DesignWidth="400"
     mc:Ignorable="d">
     <UserControl.Resources>
-        <converters:NullOrEmptyToVisibilityConverter x:Key="NullOrEmptyToVisibility" />
-        <converters:EmptyToVisibilityConverter x:Key="EmptyToVisibility" />
-        <converters:BoolToVisibilityConverter x:Key="BoolToVisibility" />
-        <converters:EnumEqualsToOpacityConverter x:Key="ActiveOpacity" />
 
         <!--
             Карточка вместо системного ToolTip (тот же вид, что подпанели редактора).
@@ -57,20 +52,12 @@
                             Command="{Binding CopyToCommand}"
                             CommandParameter="{Binding PlacementTarget.DataContext, RelativeSource={RelativeSource AncestorType=ContextMenu}}"
                             Header="{Binding CopyToMenuLabel}" />
-                        <MenuItem
-                            Command="{Binding ToggleSelectedCommand}"
-                            Header="{Binding ToggleSelectedLabel}" />
+                        <MenuItem Command="{Binding ToggleSelectedCommand}" Header="{Binding ToggleSelectedLabel}" />
                         <Separator />
-                        <MenuItem
-                            Command="{Binding CopyPathsCommand}"
-                            Header="{Binding CopyPathsMenuLabel}" />
-                        <MenuItem
-                            Command="{Binding CopyFileNamesCommand}"
-                            Header="{Binding CopyFileNamesMenuLabel}" />
+                        <MenuItem Command="{Binding CopyPathsCommand}" Header="{Binding CopyPathsMenuLabel}" />
+                        <MenuItem Command="{Binding CopyFileNamesCommand}" Header="{Binding CopyFileNamesMenuLabel}" />
                         <Separator />
-                        <MenuItem
-                            Command="{Binding DeleteSelectedCommand}"
-                            Header="{Binding DeleteSelectedLabel}" />
+                        <MenuItem Command="{Binding DeleteSelectedCommand}" Header="{Binding DeleteSelectedLabel}" />
                     </ContextMenu>
                 </Border.ContextMenu>
                 <Border.Style>
@@ -279,10 +266,8 @@
                             <Border
                                 Margin="0,4,0,0"
                                 Padding="8,5"
-                                Background="{DynamicResource WarningBackgroundBrush}"
-                                BorderBrush="{DynamicResource WarningBorderBrush}"
-                                BorderThickness="1"
                                 CornerRadius="6"
+                                Style="{StaticResource WarningCardStyle}"
                                 Visibility="{Binding ErrorMessage, Converter={StaticResource NullOrEmptyToVisibility}}">
                                 <TextBlock
                                     FontSize="11"
@@ -303,22 +288,14 @@
                             CommandParameter="{Binding}"
                             Style="{StaticResource LayoutIconButton}"
                             ToolTip="{Binding RelativeSource={RelativeSource AncestorType=ListBox}, Path=DataContext.ShowInFolderLabel}">
-                            <controls:PackIcon
-                                Width="{StaticResource IconSize}"
-                                Height="{StaticResource IconSize}"
-                                Focusable="False"
-                                Kind="Folder" />
+                            <controls:PackIcon Kind="Folder" />
                         </Button>
                         <Button
                             Margin="4,0,0,0"
                             Command="{Binding DeleteCommand}"
                             Style="{StaticResource LayoutIconButton}"
                             ToolTip="{Binding DeleteButtonTooltip}">
-                            <controls:PackIcon
-                                Width="{StaticResource IconSize}"
-                                Height="{StaticResource IconSize}"
-                                Focusable="False"
-                                Kind="Close" />
+                            <controls:PackIcon Kind="Close" />
                         </Button>
                     </StackPanel>
                 </Grid>
@@ -330,7 +307,7 @@
         <KeyBinding Key="F2" Command="{Binding BeginRenameCommand}" />
     </UserControl.InputBindings>
 
-    <DockPanel Margin="8 8 0 8" LastChildFill="True">
+    <DockPanel Margin="8,8,0,8" LastChildFill="True">
         <StackPanel DockPanel.Dock="Top">
             <Grid Margin="0,0,0,8">
                 <Grid.ColumnDefinitions>
@@ -357,22 +334,14 @@
                         Command="{Binding AddFileCommand}"
                         Style="{StaticResource LayoutIconButton}"
                         ToolTip="{Binding AddFileTooltip}">
-                        <controls:PackIcon
-                            Width="{StaticResource IconSize}"
-                            Height="{StaticResource IconSize}"
-                            Focusable="False"
-                            Kind="Add" />
+                        <controls:PackIcon Kind="Add" />
                     </Button>
                     <Button
                         Margin="4,0,0,0"
                         Command="{Binding RefreshManualCommand}"
                         Style="{StaticResource LayoutIconButton}"
                         ToolTip="{Binding RefreshTooltip}">
-                        <controls:PackIcon
-                            Width="{StaticResource IconSize}"
-                            Height="{StaticResource IconSize}"
-                            Focusable="False"
-                            Kind="Refresh" />
+                        <controls:PackIcon Kind="Refresh" />
                     </Button>
                 </StackPanel>
             </Grid>
@@ -398,56 +367,22 @@
                     Style="{StaticResource ChipButtonStyle}" />
             </StackPanel>
 
-            <WrapPanel Margin="0,0,0,6">
-                <Button
-                    Command="{Binding SetVersionFilterCommand}"
-                    CommandParameter="{x:Null}"
-                    Content="{Binding VersionAllChipLabel}"
-                    Opacity="{Binding VersionFilter, Converter={StaticResource ActiveOpacity}, ConverterParameter={x:Null}}"
-                    Style="{StaticResource VersionChipButtonStyle}" />
-                <Button
-                    Command="{Binding SetVersionFilterCommand}"
-                    CommandParameter="2021"
-                    Content="{Binding Version2021ChipLabel}"
-                    Opacity="{Binding VersionFilter, Converter={StaticResource ActiveOpacity}, ConverterParameter=2021}"
-                    Style="{StaticResource VersionChipButtonStyle}" />
-                <Button
-                    Command="{Binding SetVersionFilterCommand}"
-                    CommandParameter="2022"
-                    Content="{Binding Version2022ChipLabel}"
-                    Opacity="{Binding VersionFilter, Converter={StaticResource ActiveOpacity}, ConverterParameter=2022}"
-                    Style="{StaticResource VersionChipButtonStyle}" />
-                <Button
-                    Command="{Binding SetVersionFilterCommand}"
-                    CommandParameter="2023"
-                    Content="{Binding Version2023ChipLabel}"
-                    Opacity="{Binding VersionFilter, Converter={StaticResource ActiveOpacity}, ConverterParameter=2023}"
-                    Style="{StaticResource VersionChipButtonStyle}" />
-                <Button
-                    Command="{Binding SetVersionFilterCommand}"
-                    CommandParameter="2024"
-                    Content="{Binding Version2024ChipLabel}"
-                    Opacity="{Binding VersionFilter, Converter={StaticResource ActiveOpacity}, ConverterParameter=2024}"
-                    Style="{StaticResource VersionChipButtonStyle}" />
-                <Button
-                    Command="{Binding SetVersionFilterCommand}"
-                    CommandParameter="2025"
-                    Content="{Binding Version2025ChipLabel}"
-                    Opacity="{Binding VersionFilter, Converter={StaticResource ActiveOpacity}, ConverterParameter=2025}"
-                    Style="{StaticResource VersionChipButtonStyle}" />
-                <Button
-                    Command="{Binding SetVersionFilterCommand}"
-                    CommandParameter="2026"
-                    Content="{Binding Version2026ChipLabel}"
-                    Opacity="{Binding VersionFilter, Converter={StaticResource ActiveOpacity}, ConverterParameter=2026}"
-                    Style="{StaticResource VersionChipButtonStyle}" />
-                <Button
-                    Command="{Binding SetVersionFilterCommand}"
-                    CommandParameter="2027"
-                    Content="{Binding Version2027ChipLabel}"
-                    Opacity="{Binding VersionFilter, Converter={StaticResource ActiveOpacity}, ConverterParameter=2027}"
-                    Style="{StaticResource VersionChipButtonStyle}" />
-            </WrapPanel>
+            <ItemsControl ItemsSource="{Binding VersionChips}">
+                <ItemsControl.ItemsPanel>
+                    <ItemsPanelTemplate>
+                        <WrapPanel Margin="0,0,0,6" />
+                    </ItemsPanelTemplate>
+                </ItemsControl.ItemsPanel>
+                <ItemsControl.ItemTemplate>
+                    <DataTemplate>
+                        <Button
+                            Command="{Binding DataContext.SetVersionFilterCommand, RelativeSource={RelativeSource AncestorType=ItemsControl}}"
+                            CommandParameter="{Binding Value}"
+                            Content="{Binding Label}"
+                            Style="{StaticResource VersionChipButtonStyle}" />
+                    </DataTemplate>
+                </ItemsControl.ItemTemplate>
+            </ItemsControl>
 
             <StackPanel Margin="0,0,0,6" Orientation="Horizontal">
                 <TextBlock
@@ -529,12 +464,8 @@
 
         <Border
             Margin="4"
-            Padding="10,6"
-            Background="{DynamicResource WarningBackgroundBrush}"
-            BorderBrush="{DynamicResource WarningBorderBrush}"
-            BorderThickness="1"
-            CornerRadius="8"
             DockPanel.Dock="Top"
+            Style="{StaticResource WarningCardStyle}"
             Visibility="{Binding ErrorMessage, Converter={StaticResource NullOrEmptyToVisibility}}">
             <TextBlock
                 FontSize="11"
@@ -573,6 +504,7 @@
 
         <ListBox
             Padding="0,0,12,0"
+            behaviors:RightClickSelectionBehavior.Enabled="True"
             Background="Transparent"
             BorderThickness="0"
             ItemTemplate="{StaticResource RowTemplate}"
@@ -580,20 +512,17 @@
             ScrollViewer.HorizontalScrollBarVisibility="Disabled"
             ScrollViewer.VerticalScrollBarVisibility="Auto"
             SelectedItem="{Binding SelectedFile, Mode=TwoWay}"
-            SelectionMode="Extended"
-            behaviors:RightClickSelectionBehavior.Enabled="True">
+            SelectionMode="Extended">
             <ListBox.ContextMenu>
                 <ContextMenu DataContext="{Binding PlacementTarget.DataContext, RelativeSource={RelativeSource Self}}">
-                    <MenuItem
-                        Command="{Binding RefreshManualCommand}"
-                        Header="{Binding RefreshMenuLabel}" />
-                    <MenuItem
-                        Command="{Binding AddFileCommand}"
-                        Header="{Binding AddFileMenuLabel}" />
+                    <MenuItem Command="{Binding RefreshManualCommand}" Header="{Binding RefreshMenuLabel}" />
+                    <MenuItem Command="{Binding AddFileCommand}" Header="{Binding AddFileMenuLabel}" />
                 </ContextMenu>
             </ListBox.ContextMenu>
-            <!--  Контекстные хоткеи списка: висят на самом ListBox, а не на окне, — фокус в поиске
-                  и фильтрах их не ловит, фокус в записях уходит аналогам EntriesView.  -->
+            <!--
+                Контекстные хоткеи списка: висят на самом ListBox, а не на окне, — фокус в поиске
+                и фильтрах их не ловит, фокус в записях уходит аналогам EntriesView.
+            -->
             <ListBox.InputBindings>
                 <KeyBinding Key="Delete" Command="{Binding DeleteSelectedCommand}" />
                 <KeyBinding

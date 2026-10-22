@@ -3,7 +3,6 @@ using System.Windows;
 using System.Windows.Controls.Primitives;
 using AddinManager.Launcher.Composition;
 using AddinManager.Launcher.ViewModels;
-using AddinManager.Theming;
 using AddinManager.Theming.Abstractions;
 using AddinManager.Theming.Wpf;
 using Microsoft.Extensions.DependencyInjection;

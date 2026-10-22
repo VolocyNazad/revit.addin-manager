@@ -1,0 +1,23 @@
+<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <!--
+        Хром диалоговых окон: общая рамка и поведение окна. Виды задают только свои
+        Title/MinWidth/MaxWidth и при необходимости WindowStartupLocation.
+    -->
+    <Style x:Key="DialogWindowStyle" TargetType="Window">
+        <Setter Property="AllowsTransparency" Value="True" />
+        <Setter Property="Background" Value="Transparent" />
+        <Setter Property="Foreground" Value="{DynamicResource AppForegroundBrush}" />
+        <Setter Property="ResizeMode" Value="NoResize" />
+        <Setter Property="ShowInTaskbar" Value="False" />
+        <Setter Property="SizeToContent" Value="WidthAndHeight" />
+        <Setter Property="WindowStyle" Value="None" />
+    </Style>
+
+    <Style x:Key="DialogCardStyle" TargetType="Border">
+        <Setter Property="Padding" Value="20,16" />
+        <Setter Property="Background" Value="{DynamicResource AppBackgroundBrush}" />
+        <Setter Property="BorderBrush" Value="{DynamicResource CaptionHoverBrush}" />
+        <Setter Property="BorderThickness" Value="1" />
+        <Setter Property="CornerRadius" Value="10" />
+    </Style>
+</ResourceDictionary>
