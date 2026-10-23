@@ -16,7 +16,7 @@ Commit messages follow Conventional Commits (`<type>(<scope>): <description>`, e
 
 Do not `git push` — commit locally and leave the push to the user, unless they explicitly ask you to push.
 
-Keep `CHANGELOG.md` up to date, in [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) format — add an entry under `## [Unreleased]` (in the appropriate category: Added/Changed/Fixed/Removed/...) as part of the same change, not as a separate follow-up later.
+Do not update `CHANGELOG.md` with every change — leave `## [Unreleased]` empty during regular development. The release section is composed once when a release is prepared, from the changes since the previous stable tag (see the [release changelog](#release-changelog)). `CHANGELOG.md` keeps the [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) format.
 
 All services live behind abstractions: domain and headless contracts are owned by Core (`AddinManager.Core.Abstractions`); UI-specific contracts (dialogs, clipboard, folder opener, editor dirty state) live in the owning UI project's `Abstractions/` tree (`AddinManager.Launcher.Abstractions.Services`) and may use Core types. Core must not reference WPF or Windows-only UI APIs. Consumers depend only on interfaces, implementations are resolved through DI and are swappable without touching consumers. `new` on an implementation is allowed only in the composition root and in tests.
 
@@ -56,7 +56,7 @@ Use `global using` sparingly and rationally: a namespace belongs in a project-le
 
 ## Release changelog
 
-Before creating a release tag `vMAJOR.MINOR.PATCH`, move the content of `## [Unreleased]` in `CHANGELOG.md` into a new `## [MAJOR.MINOR.PATCH] - YYYY-MM-DD` section directly below it and leave `## [Unreleased]` empty. Commit that change and create the tag on that commit, so the changelog at the tagged commit names the released version and carries no unreleased entries. While moving the entries, review them against the previous release: keep changes a user of that release can observe, merge related entries, and drop fixes for behavior that was never released. The publish-release workflow enforces this before building: it refuses to publish when `## [Unreleased]` contains any entry or when the changelog has no section for the tagged version. Empty category headings under `Unreleased` are tolerated. The version section is published verbatim as the GitHub release description, so write it for users.
+Before creating a release tag `vMAJOR.MINOR.PATCH`, compose a new `## [MAJOR.MINOR.PATCH] - YYYY-MM-DD` section directly below the (empty) `## [Unreleased]`, from the changes since the previous stable tag (for example `git log <previous-tag>..HEAD`, using the Conventional Commit types and scopes). Commit that change and create the tag on that commit, so the changelog at the tagged commit names the released version and carries no unreleased entries. While composing the section, keep changes a user of that release can observe, merge related entries, and drop fixes for behavior that was never released. The publish-release workflow enforces this before building: it refuses to publish when `## [Unreleased]` contains any entry or when the changelog has no section for the tagged version. Empty category headings under `Unreleased` are tolerated. The version section is published verbatim as the GitHub release description, so write it for users.
 
 ## .NET SDK selection
 
