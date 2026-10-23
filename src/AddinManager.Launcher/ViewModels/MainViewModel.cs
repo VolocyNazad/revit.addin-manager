@@ -58,13 +58,6 @@ public sealed partial class MainViewModel : ObservableObject
     [ObservableProperty]
     private bool _isRevitWarningDismissed;
 
-    partial void OnListFractionChanged(double value)
-    {
-        var clamped = double.IsNaN(value) ? 0.6 : Math.Clamp(value, 0.1, 0.9);
-        if (Math.Abs(clamped - value) > 0.0001 || double.IsNaN(value))
-            ListFraction = clamped;
-    }
-
     /// <summary>Создает модель.</summary>
     /// <param name="themeService">Сервис темы.</param>
     /// <param name="localizationService">Сервис языка.</param>
@@ -300,6 +293,13 @@ public sealed partial class MainViewModel : ObservableObject
     /// <summary>Открывает страницу спонсорства в браузере.</summary>
     [RelayCommand]
     private void OpenSponsor() => _urlOpener.Open(SponsorUrl);
+
+    partial void OnListFractionChanged(double value)
+    {
+        var clamped = double.IsNaN(value) ? 0.6 : Math.Clamp(value, 0.1, 0.9);
+        if (Math.Abs(clamped - value) > 0.0001 || double.IsNaN(value))
+            ListFraction = clamped;
+    }
 
     partial void OnIsRevitRunningChanged(bool value) => RefreshSnapshot();
 
