@@ -78,6 +78,8 @@ removed managed files.
 
 Keep the root `.editorconfig` in the solution and apply its repository-wide encoding, line-ending and trailing-whitespace rules. Update the file deliberately when formatting conventions change; do not replace specialized rules with the shared minimum.
 
+Private fields follow one grouping rule: fields of the same logical group (constants, injected dependencies, mutable state, caches) stay contiguous with no blank lines between them, while exactly one blank line separates the groups and precedes a field's XML-doc/attribute block; never leave a blank line immediately after `{` or before `}`. The Roslyn formatter does not enforce this, so treat it as a review convention and follow the existing classes (`MainViewModel`, `FileSystemAddinStore`, `FileSystemAddinChangeWatcher`) as the reference.
+
 ## Warnings
 
 Treat compiler and analyzer warnings as errors-in-waiting: do not leave new warnings in code you touch. Fix them as part of the same change; when a warning is a deliberate false positive, suppress it explicitly with a nearby comment explaining why rather than letting it accumulate silently. CI builds with `-warnaserror`, so a new warning blocks the build; treat a local warning the same way.
