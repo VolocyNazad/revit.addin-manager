@@ -14,7 +14,7 @@ Detailed behavior is defined in [FEATURES.md](FEATURES.md).
 
 - `Revit.AddinManager.slnx` — solution (`src/` + `tests/`; `sandbox/`, `installer/` and
   `build/` each keep their own solution, like the gallery does)
-- `src/` — projects (`AddinManager.Core`: manifest parsing, disk scanning, the headless text-search engine and Revit process guard, UI-framework-agnostic; `AddinManager.Localization`: interface language choice (`System`/`Russian`/`English`) persistence and culture application, UI-framework-agnostic; `AddinManager.Theming`: theme choice persistence, UI-framework-agnostic; `AddinManager.Theming.Wpf`: WPF theme resource dictionaries and the dictionary-switching helper; `AddinManager.Launcher`: WPF shell on the built-in Fluent theme, including the Markup editor and its find bar)
+- `src/` — projects (`AddinManager.Core`: manifest parsing, disk scanning, the headless text-search engine and Revit process guard, UI-framework-agnostic, plus `Abstractions/ProductIdentity` with the vendor, product, GitHub, MSI and synchronization names shared by the launcher, build pipeline and installer via source link; `AddinManager.Localization`: interface language choice (`System`/`Russian`/`English`) persistence and culture application, UI-framework-agnostic; `AddinManager.Theming`: theme choice persistence, UI-framework-agnostic; `AddinManager.Theming.Wpf`: WPF theme resource dictionaries and the dictionary-switching helper; `AddinManager.Launcher`: WPF shell on the built-in Fluent theme, including the Markup editor and its find bar)
 - `tests/` — headless tests (`*.Tests`); `tests/Shared/` holds the helpers linked into both
   test projects (`TestCulture` pinning both UI cultures, `TestLocalization`, the structured
   `RecordingLogger`, `TempDirectorySet`, `TestManifestXml`), so a helper has one source
@@ -126,5 +126,6 @@ GitVersion resolves the version from the tag, the pipeline builds the launcher w
 `-p:Version`, packs the single `RevitAddinManager-<version>.msi` and publishes it as
 the release asset (see `build/README.md`). The tagged commit must already contain the
 release section in `CHANGELOG.md` with an empty `Unreleased` section above it; the
+release section is composed from the commits since the previous stable tag. The
 publish-release workflow stops otherwise, and the pipeline publishes that section as the
 GitHub release description. See the [release changelog policy](policies/development.md#release-changelog).

@@ -1,3 +1,4 @@
+using AddinManager.Core.Abstractions;
 using AddinManager.Launcher.Abstractions.Services;
 
 namespace AddinManager.Launcher.Services;
@@ -8,9 +9,6 @@ namespace AddinManager.Launcher.Services;
 /// </summary>
 public sealed class SingleInstanceGuard : ISingleInstanceGuard
 {
-    private const string MutexName = @"Local\Volocy.Revit.AddinManager.SingleInstance";
-    private const string ActivationEventName = @"Local\Volocy.Revit.AddinManager.ShowFirstInstance";
-
     private readonly string _mutexName;
     private readonly string _activationEventName;
     private readonly Mutex? _mutex;
@@ -20,7 +18,7 @@ public sealed class SingleInstanceGuard : ISingleInstanceGuard
 
     /// <summary>Создаёт защиту с именами объектов по умолчанию для приложения.</summary>
     public SingleInstanceGuard()
-        : this(MutexName, ActivationEventName)
+        : this(ProductIdentity.MutexName, ProductIdentity.ActivationEventName)
     {
     }
 

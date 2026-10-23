@@ -13,6 +13,9 @@
     <PackageReference Include="Shouldly" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="..\src\AddinManager.Core\Abstractions\ProductIdentity.cs" Link="ProductIdentity.cs" />
+  </ItemGroup>
+  <ItemGroup>
     <None Update="appsettings.json" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 </Project>

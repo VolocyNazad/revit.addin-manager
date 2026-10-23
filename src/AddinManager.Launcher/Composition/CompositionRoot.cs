@@ -1,5 +1,7 @@
 using System.Globalization;
+using System.IO;
 using System.Net.Http;
+using AddinManager.Core.Abstractions;
 using AddinManager.Core.Abstractions.Guard;
 using AddinManager.Core.Abstractions.Manifests;
 using AddinManager.Core.Abstractions.Parsing;
@@ -40,11 +42,19 @@ public static class CompositionRoot
         // remark: resx лежат рядом с классами: пустой ResourcesPath оставляет базовым именем
         // полное имя типа — IStringLocalizer{Class} резолвится без соглашений.
         services.AddLocalization(options => options.ResourcesPath = string.Empty);
-        var localizationService = new LocalizationService(() => CultureInfo.CurrentUICulture);
+        string settingsDirectory = Path.Combine(
+            Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
+            ProductIdentity.CompanyDirectoryName,
+            ProductIdentity.ProductDirectoryName);
+        var localizationService = new LocalizationService(
+            () => CultureInfo.CurrentUICulture,
+            Path.Combine(settingsDirectory, ProductIdentity.LanguageFileName));
         localizationService.ApplyCurrentCulture();
         services.AddSingleton<ILocalizationService>(localizationService);
         // Темы
-        services.AddSingleton<IThemeService>(_ => new ThemeService(ThemeHelper.IsSystemDark));
+        services.AddSingleton<IThemeService>(_ => new ThemeService(
+            ThemeHelper.IsSystemDark,
+            Path.Combine(settingsDirectory, ProductIdentity.ThemeFileName)));
         services.AddSingleton<IAddinManifestParser, LinqToXmlAddinManifestParser>();
         services.AddSingleton<IFileRecycler, ShellFileRecycler>();
         services.AddSingleton<IAddinStore, FileSystemAddinStore>();

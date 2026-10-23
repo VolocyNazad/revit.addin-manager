@@ -6,9 +6,10 @@
     xmlns:controls="clr-namespace:AddinManager.Launcher.Controls"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:design="clr-namespace:AddinManager.Launcher.Design"
+    xmlns:identity="clr-namespace:AddinManager.Core.Abstractions;assembly=AddinManager.Core"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:viewmodels="clr-namespace:AddinManager.Launcher.ViewModels"
-    Title="Revit Addin Manager"
+    Title="{x:Static identity:ProductIdentity.DisplayName}"
     Width="1250"
     Height="720"
     d:DataContext="{d:DesignInstance Type=design:DesignMainViewModel,

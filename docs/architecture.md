@@ -22,6 +22,7 @@ This document records stable architectural rules. Implementation details belong 
 - Runtime views expose parameterless design-time constructors and `d:DataContext` over `Design*` stubs; design-time data lives in `AddinManager.Launcher.Design`, and every composed view with bindings carries it (see the development policy).
 - Rows and option view models are created through DI factories because their data is runtime-specific.
 - UI-specific contracts (dialogs, clipboard, folder opener, editor dirty state) live in the launcher's `Abstractions/Services` tree and may use Core types; Core stays WPF- and Windows-UI-free.
+- Product-wide names and destinations (vendor, product directory, GitHub URLs, MSI asset, mutex/event names) live in `ProductIdentity` in `AddinManager.Core.Abstractions`. The launcher references Core normally; the build pipeline and installer compile the same file by source link because they are separate build units. Each module composes its own file-system paths from those segments.
 - Dialogs are transient and created through `IDialogService`; composition registers them with `AddDialog<TViewModel, TView>()` (transient view model and view plus a `Func<TView>` factory), and views use `DialogResultBehavior` and bindings instead of code-behind state.
 
 ## Themes

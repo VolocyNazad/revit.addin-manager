@@ -2,6 +2,7 @@ using System.Net;
 using System.Net.Http;
 using System.Reflection;
 using System.Text.Json;
+using AddinManager.Core.Abstractions;
 using AddinManager.Launcher.Abstractions.Services;
 using Microsoft.Extensions.Logging;
 
@@ -13,8 +14,6 @@ namespace AddinManager.Launcher.Services;
 /// </summary>
 public sealed class GitHubUpdateChecker(HttpClient httpClient, ILogger<GitHubUpdateChecker> logger) : IUpdateChecker
 {
-    private const string Repository = "VolocyNazad/revit.addin-manager";
-
     /// <inheritdoc />
     public async Task<UpdateCheckResult> CheckAsync(CancellationToken cancellationToken = default)
     {
@@ -22,7 +21,7 @@ public sealed class GitHubUpdateChecker(HttpClient httpClient, ILogger<GitHubUpd
         try
         {
             using var response = await httpClient.GetAsync(
-                $"https://api.github.com/repos/{Repository}/releases/latest",
+                ProductIdentity.LatestReleaseApiUrl,
                 cancellationToken);
 
             // 404 — релизов ещё нет: это не ошибка, а просто "обновлений нет".
