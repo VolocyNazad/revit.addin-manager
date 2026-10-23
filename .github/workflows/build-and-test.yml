@@ -57,3 +57,26 @@ jobs:
               throw "Tests failed for $($project.FullName) with exit code $LASTEXITCODE."
             }
           }
+
+  build-tooling:
+    name: Build release tooling
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v5
+        with:
+          global-json-file: global.json
+
+      - name: Build pipeline
+        shell: pwsh
+        run: dotnet build build/Revit.AddinManager.Build.slnx --configuration Release /nologo -warnaserror
+
+      - name: Build installer generator
+        shell: pwsh
+        run: dotnet build installer/Revit.AddinManager.Installer.slnx --configuration Release /nologo -warnaserror
