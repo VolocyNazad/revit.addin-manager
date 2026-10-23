@@ -40,6 +40,10 @@ Avoid code-behind in WPF views: prefer bindings, converters and DynamicResource 
 - Design stubs are only for `d:DesignInstance` and must never be referenced from runtime code. They may suppress `CS1591` only inside the design-data file, because their members exist for the designer rather than the application API.
 - A trivial pass-through view without its own bindings may stay without design data until it grows bindings. Split the design-data file by zone (`Design/List/`, `Design/Dialogs/`, ...) once one file stops being readable.
 
+### Observable properties
+
+- `[ObservableProperty]` fields stay together with the rest of the state; the matching `partial void On…Changed` handlers live in one block after the commands and regular methods, in the same order as their fields. Do not interleave handlers with fields — the source generator already places the generated property half next to the field, and a block of handlers is easier to scan than field/method alternation.
+
 Do not repeat the XAML-declared base type in code-behind: the `x:Class` root element already fixes the base (`Window`, `UserControl`, `Application`), so `public partial class Foo` suffices — `: Window` in `.xaml.cs` is redundant.
 
 Prefer Blend behaviors (`Microsoft.Xaml.Behaviors.Wpf`) over code-behind for view mechanics repeated across views (borderless-window drag, dialog-result mirroring): one behavior declared in XAML instead of copy-pasted handlers. Single-use mechanics intimate to one view (splitter sync, editor caret timing, caption buttons) stay in code-behind.
