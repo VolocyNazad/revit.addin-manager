@@ -21,12 +21,15 @@
   </Folder>
   <Folder Name="/docs/policies/">
     <File Path="docs/policies/development.md" />
+    <File Path="docs/policies/branching.md" />
   </Folder>
   <Folder Name="/scripts/">
     <File Path="scripts/Clear-BuildOutput.ps1" />
     <File Path="scripts/Validate-Repository.ps1" />
   </Folder>
-  <Folder Name="/.github/" />
+  <Folder Name="/.github/">
+    <File Path=".github/pull_request_template.md" />
+  </Folder>
   <Folder Name="/.github/workflows/">
     <File Path=".github/workflows/build-and-test.yml" />
     <File Path=".github/workflows/repository-policy.yml" />

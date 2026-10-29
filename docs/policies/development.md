@@ -16,6 +16,10 @@ Commit messages follow Conventional Commits (`<type>(<scope>): <description>`, e
 
 Do not `git push` — commit locally and leave the push to the user, unless they explicitly ask you to push.
 
+Branching follows the [branching policy](branching.md): `main` holds the released state,
+`dev` integrates the next release, and every change reaches them through a short-lived
+branch and a pull request.
+
 Do not update `CHANGELOG.md` with every change — leave `## [Unreleased]` empty during regular development. The release section is composed once when a release is prepared, from the changes since the previous stable tag (see the [release changelog](#release-changelog)). `CHANGELOG.md` keeps the [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) format.
 
 All services live behind abstractions: domain and headless contracts are owned by Core (`AddinManager.Core.Abstractions`); UI-specific contracts (dialogs, clipboard, folder opener, editor dirty state) live in the owning UI project's `Abstractions/` tree (`AddinManager.Launcher.Abstractions.Services`) and may use Core types. Core must not reference WPF or Windows-only UI APIs. Consumers depend only on interfaces, implementations are resolved through DI and are swappable without touching consumers. `new` on an implementation is allowed only in the composition root and in tests.
