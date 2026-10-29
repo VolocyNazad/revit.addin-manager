@@ -3,6 +3,7 @@ using System.ComponentModel;
 using System.IO;
 using AddinManager.Core;
 using AddinManager.Core.Abstractions.Guard;
+using AddinManager.Core.Abstractions.Installations;
 using AddinManager.Core.Abstractions.Storage;
 using AddinManager.Core.Guard;
 using AddinManager.Core.Storage;
@@ -19,15 +20,13 @@ namespace AddinManager.Launcher.ViewModels;
 /// <summary>Зона списка: файлы всех версий Revit — поиск, фильтр и группировка по scope/версии (план, раздел 6).</summary>
 public sealed partial class ListViewModel : ObservableObject, IFileSelection, IAddinFileCatalog
 {
-    /// <summary>Все версии, которые сканируем (план, раздел 2 — "all seven").</summary>
-    public static readonly IReadOnlyList<string> RevitVersions = RevitVersionCatalog.SupportedVersions;
-
     private readonly IAddinChangeWatcher _changeWatcher;
     private readonly IUiDispatcher _dispatcher;
     private readonly IUndoService _undoService;
     private readonly ILocalizationService _localizationService;
     private readonly IStringLocalizer<ListViewModel> _localizer;
     private readonly FileCatalog _catalog;
+    private readonly IInstalledRevitVersions _installedVersions;
     private readonly IFileOperations _operations;
     private readonly IToastService _toastService;
     private readonly IClipboardService _clipboard;
@@ -37,6 +36,7 @@ public sealed partial class ListViewModel : ObservableObject, IFileSelection, IA
     private readonly IEditorDirtyState? _dirtyState;
     private readonly FileListViewState _viewState;
     private readonly ILogger<ListViewModel> _logger;
+    private IReadOnlyList<string> _visibleVersions = [];
     private AddinFileRowViewModel? _selectedFile;
 
     [ObservableProperty]
@@ -116,7 +116,7 @@ public sealed partial class ListViewModel : ObservableObject, IFileSelection, IA
     [ObservableProperty]
     private ScopeFilter _scopeFilter = ScopeFilter.All;
 
-    /// <summary><see langword="null"/> — все версии; иначе одна из <see cref="RevitVersions"/>.</summary>
+    /// <summary><see langword="null"/> — все версии; иначе одна из версий в <see cref="VersionChips"/>.</summary>
     [ObservableProperty]
     private string? _versionFilter;
 
@@ -160,6 +160,7 @@ public sealed partial class ListViewModel : ObservableObject, IFileSelection, IA
     /// <param name="localizationService">Сервис языка — смена языка перечитывает строки через <see cref="Refresh"/>.</param>
     /// <param name="localizer">Строки тулбара списка.</param>
     /// <param name="catalog">Каталог строк: сканирование, пересоздание строк и предупреждения.</param>
+    /// <param name="installedVersions">Установленные на ПК версии Revit: только их (и версии с файлами-остатками) показывает фильтр.</param>
     /// <param name="toastService">Подтверждение ручного обновления тостом.</param>
     /// <param name="guard">Сторож запущенного Revit — тогглы строк гаснут, пока он жив.</param>
     /// <param name="dialogService">Подтверждение смены файла при несохранённых правках.</param>
@@ -175,6 +176,7 @@ public sealed partial class ListViewModel : ObservableObject, IFileSelection, IA
         ILocalizationService localizationService,
         IStringLocalizer<ListViewModel> localizer,
         FileCatalog catalog,
+        IInstalledRevitVersions installedVersions,
         IToastService toastService,
         IRevitProcessGuard guard,
         IDialogService dialogService,
@@ -190,6 +192,7 @@ public sealed partial class ListViewModel : ObservableObject, IFileSelection, IA
         _localizationService = localizationService;
         _localizer = localizer;
         _catalog = catalog;
+        _installedVersions = installedVersions;
         _toastService = toastService;
         _clipboard = clipboard;
         _guard = guard;
@@ -199,9 +202,6 @@ public sealed partial class ListViewModel : ObservableObject, IFileSelection, IA
         _dirtyState = dirtyState;
 
         _viewState = new FileListViewState(Files);
-        VersionChips.Add(new FilterChipViewModel(string.Empty, null));
-        foreach (var version in RevitVersions)
-            VersionChips.Add(new FilterChipViewModel(version, version));
 
         Refresh();
 
@@ -228,7 +228,10 @@ public sealed partial class ListViewModel : ObservableObject, IFileSelection, IA
     /// <summary>То, что реально показывает вид: <see cref="Files"/> с применённым фильтром, сортировкой и группировкой.</summary>
     public ICollectionView FilesView => _viewState.View;
 
-    /// <summary>Чипсы версий Revit: «все» и поддерживаемые версии из каталога Core.</summary>
+    /// <summary>
+    /// Чипсы версий Revit: «все», установленные на ПК версии и версии, в которых остались файлы
+    /// (например, после удаления Revit). Порядок — каталога Core.
+    /// </summary>
     public ObservableCollection<FilterChipViewModel> VersionChips { get; } = [];
 
     /// <summary>Перечитывает файлы всех версий с диска (план, раздел 4 — событийный rescan).</summary>
@@ -242,6 +245,7 @@ public sealed partial class ListViewModel : ObservableObject, IFileSelection, IA
         // а пакетную отметку каталог сохраняет сам.
         var previousSelection = SelectedFile?.Identity;
         _catalog.Refresh();
+        RefreshVersionChips();
         WireRows();
 
         FileCount = Files.Count;
@@ -407,12 +411,12 @@ public sealed partial class ListViewModel : ObservableObject, IFileSelection, IA
         OnPropertyChanged(nameof(ScopeUserChipLabel));
         OnPropertyChanged(nameof(ScopeMachineChipLabel));
 
-        // Версии приходят из каталога Core: чипсы пересчитывают подписи и признак выбора.
+        // Версии отфильтрованы до установленных на ПК: чипсы пересчитывают подписи и признак выбора.
         VersionChips[0].Label = WithCount(_localizer["VersionFilter_AllVersionsOption"], SearchMatchedCount);
         VersionChips[0].IsActive = VersionFilter is null;
-        for (var index = 0; index < RevitVersions.Count; index++)
+        for (var index = 0; index < _visibleVersions.Count; index++)
         {
-            var version = RevitVersions[index];
+            var version = _visibleVersions[index];
             var chip = VersionChips[index + 1];
             chip.Label = WithCount(version, CountVersion(version));
             chip.IsActive = VersionFilter == version;
@@ -421,6 +425,33 @@ public sealed partial class ListViewModel : ObservableObject, IFileSelection, IA
         OnPropertyChanged(nameof(EnabledAllChipLabel));
         OnPropertyChanged(nameof(EnabledOnChipLabel));
         OnPropertyChanged(nameof(EnabledOffChipLabel));
+    }
+
+    /// <summary>
+    /// Пересобирает чипсы версий: установленные на ПК версии плюс версии, в которых после
+    /// сканирования остались файлы (остатки после удаления Revit — их всё ещё можно отфильтровать
+    /// и удалить). Коллекция пересоздаётся только при изменении набора, чтобы каждый
+    /// <see cref="Refresh"/> не сбрасывал выделение чипса.
+    /// </summary>
+    private void RefreshVersionChips()
+    {
+        var candidates = new HashSet<string>(_installedVersions.GetVersions(), StringComparer.Ordinal);
+        candidates.UnionWith(Files.Select(row => row.Version));
+        List<string> visible = [.. RevitVersionCatalog.SupportedVersions.Where(candidates.Contains)];
+
+        if (VersionChips.Count > 0 && visible.SequenceEqual(_visibleVersions, StringComparer.Ordinal))
+            return;
+
+        _visibleVersions = visible;
+        VersionChips.Clear();
+        VersionChips.Add(new FilterChipViewModel(string.Empty, null));
+        foreach (var version in visible)
+            VersionChips.Add(new FilterChipViewModel(version, version));
+
+        // Выбранная версия пропала из фильтра (Revit удалён и файлов не осталось) — сбрасываем
+        // на «все», иначе вид остался бы отфильтрованным по невидимому чипсу.
+        if (VersionFilter is not null && !candidates.Contains(VersionFilter))
+            VersionFilter = null;
     }
 
     private IEnumerable<AddinFileRowViewModel> SearchMatchedRows =>

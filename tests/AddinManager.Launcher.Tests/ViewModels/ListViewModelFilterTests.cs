@@ -1,4 +1,3 @@
-using AddinManager.Core;
 using AddinManager.Core.Manifests;
 using AddinManager.Core.Storage;
 using Microsoft.Extensions.Logging.Abstractions;
@@ -88,13 +87,13 @@ public sealed class ListViewModelFilterTests
     }
 
     [Fact]
-    public void VersionChips_ComeFromCatalog_AndTrackActiveFilter()
+    public void VersionChips_TrackActiveFilter()
     {
         var store = new FakeAddinStore();
         store.SetFiles("2025", NewFile("A.addin", AddinScope.User, enabled: true));
-        var list = NewList(store);
+        var list = NewList(store, new FakeInstalledRevitVersions("2025", "2026"));
 
-        Assert.Equal(RevitVersionCatalog.SupportedVersions.Count + 1, list.VersionChips.Count);
+        Assert.Equal([null, "2025", "2026"], list.VersionChips.Select(chip => chip.Value));
         Assert.True(list.VersionChips[0].IsActive);
 
         list.VersionFilter = "2025";
@@ -104,10 +103,53 @@ public sealed class ListViewModelFilterTests
         Assert.False(list.VersionChips.Single(chip => chip.Value == "2026").IsActive);
     }
 
+    [Fact]
+    public void VersionChips_ShowInstalledVersionsAndVersionsWithFiles()
+    {
+        var store = new FakeAddinStore();
+        store.SetFiles("2025", NewFile("A.addin", AddinScope.User, enabled: true));
+        store.SetFiles("2024", NewFile("Leftover.addin", AddinScope.User, enabled: true, version: "2024"));
+        var installed = new FakeInstalledRevitVersions("2021", "2025");
+        var list = NewList(store, installed);
+
+        Assert.Equal([null, "2021", "2024", "2025"], list.VersionChips.Select(chip => chip.Value));
+    }
+
+    [Fact]
+    public void Refresh_DropsChipAndResetsFilter_WhenUninstalledVersionLosesItsFiles()
+    {
+        var store = new FakeAddinStore();
+        store.SetFiles("2024", NewFile("Leftover.addin", AddinScope.User, enabled: true, version: "2024"));
+        var installed = new FakeInstalledRevitVersions("2025");
+        var list = NewList(store, installed);
+        list.VersionFilter = "2024";
+        Assert.NotNull(list.VersionFilter);
+
+        store.SetFiles("2024");
+        list.Refresh();
+
+        Assert.DoesNotContain(list.VersionChips, chip => chip.Value == "2024");
+        Assert.Null(list.VersionFilter);
+    }
+
+    [Fact]
+    public void Refresh_AddsChip_WhenVersionGetsInstalled()
+    {
+        var store = new FakeAddinStore();
+        var installed = new FakeInstalledRevitVersions("2025");
+        var list = NewList(store, installed);
+        Assert.DoesNotContain(list.VersionChips, chip => chip.Value == "2026");
+
+        installed.Versions = ["2025", "2026"];
+        list.Refresh();
+
+        Assert.Contains(list.VersionChips, chip => chip.Value == "2026");
+    }
+
     private static string[] Names(ListViewModel list) =>
         [.. list.FilesView.Cast<AddinFileRowViewModel>().Select(row => row.FileName)];
 
-    private static ListViewModel NewList(FakeAddinStore store)
+    private static ListViewModel NewList(FakeAddinStore store, FakeInstalledRevitVersions? installedVersions = null)
     {
         var dialog = new FakeDialogService();
         var toast = new FakeToastService();
@@ -120,6 +162,7 @@ public sealed class ListViewModelFilterTests
             new FakeLocalizationService(),
             TestLocalization.For<ListViewModel>(),
             ListViewModelFixture.CreateCatalog(store),
+            installedVersions ?? new FakeInstalledRevitVersions(),
             toast,
             new FakeRevitProcessGuard(),
             dialog,
@@ -128,9 +171,10 @@ public sealed class ListViewModelFilterTests
             undo);
     }
 
-    private static AddinFile NewFile(string fileName, AddinScope scope, bool enabled) =>
-        new(fileName, scope, "2025", enabled,
-            FullPath: $@"C:\fake\2025\{fileName}",
-            VersionRootDirectory: @"C:\fake\2025",
+    private static AddinFile NewFile(
+        string fileName, AddinScope scope, bool enabled, string version = "2025") =>
+        new(fileName, scope, version, enabled,
+            FullPath: $@"C:\fake\{version}\{fileName}",
+            VersionRootDirectory: $@"C:\fake\{version}",
             Manifest: new AddinManifest([], null, null, null, null, [], [], []));
 }

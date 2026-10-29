@@ -1,4 +1,5 @@
 using AddinManager.Core.Abstractions.Guard;
+using AddinManager.Core.Abstractions.Installations;
 using AddinManager.Core.Abstractions.Storage;
 using AddinManager.Launcher.Abstractions.Composition;
 using AddinManager.Launcher.Abstractions.Services;
@@ -28,7 +29,8 @@ internal static class ListViewModelFixture
         ILocalizationService? localizationService = null,
         IUndoService? undoService = null,
         ILogger<FileCatalog>? catalogLogger = null,
-        IEditorDirtyState? dirtyState = null)
+        IEditorDirtyState? dirtyState = null,
+        IInstalledRevitVersions? installedVersions = null)
     {
         dialogService ??= new FakeDialogService();
         toastService ??= new FakeToastService();
@@ -43,6 +45,7 @@ internal static class ListViewModelFixture
             localizationService ?? new FakeLocalizationService(),
             TestLocalization.For<ListViewModel>(),
             catalog,
+            installedVersions ?? new FakeInstalledRevitVersions(),
             toastService,
             guard ?? new FakeRevitProcessGuard(),
             dialogService,
