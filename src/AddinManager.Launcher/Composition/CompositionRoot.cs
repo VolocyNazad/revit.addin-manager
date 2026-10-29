@@ -3,6 +3,7 @@ using System.IO;
 using System.Net.Http;
 using AddinManager.Core.Abstractions;
 using AddinManager.Core.Abstractions.Guard;
+using AddinManager.Core.Abstractions.Installations;
 using AddinManager.Core.Abstractions.Manifests;
 using AddinManager.Core.Abstractions.Parsing;
 using AddinManager.Core.Abstractions.Storage;
@@ -22,6 +23,7 @@ using AddinManager.Localization.Abstractions;
 using AddinManager.Theming;
 using AddinManager.Theming.Abstractions;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 
 namespace AddinManager.Launcher.Composition;
 
@@ -58,6 +60,10 @@ public static class CompositionRoot
         services.AddSingleton<IAddinManifestParser, LinqToXmlAddinManifestParser>();
         services.AddSingleton<IFileRecycler, ShellFileRecycler>();
         services.AddSingleton<IAddinStore, FileSystemAddinStore>();
+        // Установленные версии Revit: чипсы фильтра и выбор версии в диалогах показывают только их
+        // (см. IInstalledRevitVersions), а не весь поддерживаемый каталог.
+        services.AddSingleton<IInstalledRevitVersions>(provider => new RegistryInstalledRevitVersions(
+            provider.GetRequiredService<ILogger<RegistryInstalledRevitVersions>>()));
         services.AddSingleton<IAddinMarkupService, FileAddinMarkupService>();
         services.AddSingleton<IManifestSchema, RevitManifestSchema>();
         // Каталог строк списка: сканирование диска, пересоздание строк и кросс-файловые
