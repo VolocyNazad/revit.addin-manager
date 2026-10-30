@@ -23,6 +23,7 @@
     <File Path="docs/policies/development.md" />
     <File Path="docs/policies/branching.md" />
     <File Path="docs/policies/commits.md" />
+    <File Path="docs/policies/changelog.md" />
   </Folder>
   <Folder Name="/scripts/">
     <File Path="scripts/Clear-BuildOutput.ps1" />
