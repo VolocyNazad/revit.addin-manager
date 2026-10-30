@@ -64,6 +64,8 @@ Tests follow the [testing policy](testing.md): what needs a test, which configur
 covered and how the test projects are laid out. Performance work follows the
 [benchmark policy](benchmarks.md).
 
+Documentation published as the GitHub wiki follows the [wiki policy](wiki.md).
+
 ## .NET SDK selection
 
 Use the repository-root `global.json` for local builds and CI: SDK `10.0.100` or a later stable SDK in the `10.0` major/minor line (`rollForward: latestFeature`, `allowPrerelease: false`). Do not roll forward to another major/minor line without updating this policy and `global.json` together. GitHub Actions setup steps must read `global-json-file: global.json` after checkout. The `test` section of `global.json` selects the Microsoft.Testing.Platform runner for `dotnet test`.

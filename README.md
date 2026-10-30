@@ -28,6 +28,7 @@ Single MSI and releases: [build/README.md](build/README.md).
 - [Changelog policy](docs/policies/changelog.md)
 - [Testing policy](docs/policies/testing.md)
 - [Benchmark policy](docs/policies/benchmarks.md)
+- [Wiki policy](docs/policies/wiki.md)
 
 ## Contributing
 
