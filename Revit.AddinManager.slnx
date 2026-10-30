@@ -24,6 +24,8 @@
     <File Path="docs/policies/branching.md" />
     <File Path="docs/policies/commits.md" />
     <File Path="docs/policies/changelog.md" />
+    <File Path="docs/policies/testing.md" />
+    <File Path="docs/policies/benchmarks.md" />
   </Folder>
   <Folder Name="/scripts/">
     <File Path="scripts/Clear-BuildOutput.ps1" />
