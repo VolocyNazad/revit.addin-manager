@@ -1,5 +1,6 @@
 using System.Windows;
 using System.Windows.Controls;
+using VolocyNazad.Wpf.DependencyProperties;
 
 namespace AddinManager.Launcher.Controls;
 
@@ -9,23 +10,12 @@ namespace AddinManager.Launcher.Controls;
 /// <c>Foreground</c> носителя. Неизвестному виду соответствует заметный placeholder
 /// <c>Icon.Fallback</c>, а не пустое место: опечатку в Kind видно сразу.
 /// </summary>
-public sealed class PackIcon : Control
+[GenerateDependencyProperty<PackIconKind>(
+    "Kind",
+    XmlDocumentation = "Какая иконка показана.",
+    PropertyXmlDocumentation = "Какая иконка показана.")]
+public sealed partial class PackIcon : Control
 {
-    /// <summary>Какая иконка показана.</summary>
-    public static readonly DependencyProperty KindProperty =
-        DependencyProperty.Register(
-            nameof(Kind),
-            typeof(PackIconKind),
-            typeof(PackIcon),
-            new PropertyMetadata(default(PackIconKind), OnKindChanged));
-
-    /// <summary>Какая иконка показана.</summary>
-    public PackIconKind Kind
-    {
-        get => (PackIconKind)GetValue(KindProperty);
-        set => SetValue(KindProperty, value);
-    }
-
     /// <inheritdoc />
     public override void OnApplyTemplate()
     {
@@ -48,4 +38,3 @@ public sealed class PackIcon : Control
             ?? TryFindResource("Icon.Fallback") as ControlTemplate;
     }
 }
-

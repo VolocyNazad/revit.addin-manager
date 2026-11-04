@@ -52,6 +52,8 @@ Do not repeat the XAML-declared base type in code-behind: the `x:Class` root ele
 
 Prefer Blend behaviors (`Microsoft.Xaml.Behaviors.Wpf`) over code-behind for view mechanics repeated across views (borderless-window drag, dialog-result mirroring): one behavior declared in XAML instead of copy-pasted handlers. Single-use mechanics intimate to one view (splitter sync, editor caret timing, caption buttons) stay in code-behind.
 
+Declare a WPF dependency property through `VolocyNazad.Wpf.DependencyPropertyGenerator` (`[GenerateDependencyProperty<T>]` on a control or behavior, `[GenerateAttachedDependencyProperty<T>]` on a static class) instead of a hand-written `DependencyProperty.Register` call: the generator emits the registration, the CLR property or the `Get`/`Set` accessors, the XML documentation and the callback wiring, and a callback with no supported signature fails the build. Keep hand-written what the generator cannot express: `AddOwner`, `OverrideMetadata`, private properties that only hold state for another property, and a type's own `OnPropertyChanged` override.
+
 XML documentation is mandatory for public APIs (`CS1591` is an error); test projects are exempt (`NoWarn`).
 
 Do not abbreviate words in identifiers, file names, or documentation — write `ViewModel`, not `VM`; `Configuration`, not `Config`; and so on for any other term, unless the abbreviation is itself the established, unambiguous full name of a real-world thing (e.g. `Xml`, `Guid`, `Id`, `Uri`) rather than a shortening the author chose for brevity.

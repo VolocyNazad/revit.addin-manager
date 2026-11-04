@@ -1,5 +1,6 @@
 using System.Windows;
 using Microsoft.Xaml.Behaviors;
+using VolocyNazad.Wpf.DependencyProperties;
 
 namespace AddinManager.Launcher.Behaviors;
 
@@ -9,23 +10,12 @@ namespace AddinManager.Launcher.Behaviors;
 /// property. Установка закрывает модальное окно — та же семантика, что у ручного переноса
 /// из code-behind.
 /// </summary>
-public sealed class DialogResultBehavior : Behavior<Window>
+[GenerateDependencyProperty<bool?>(
+    "DialogResult",
+    XmlDocumentation = "Dependency property для <see cref=\"DialogResult\"/>.",
+    PropertyXmlDocumentation = "Результат из модели; установка закрывает окно.")]
+public sealed partial class DialogResultBehavior : Behavior<Window>
 {
-    /// <summary>Результат из модели; установка закрывает окно.</summary>
-    public bool? DialogResult
-    {
-        get => (bool?)GetValue(DialogResultProperty);
-        set => SetValue(DialogResultProperty, value);
-    }
-
-    /// <summary>Dependency property для <see cref="DialogResult"/>.</summary>
-    public static readonly DependencyProperty DialogResultProperty =
-        DependencyProperty.Register(
-            nameof(DialogResult),
-            typeof(bool?),
-            typeof(DialogResultBehavior),
-            new PropertyMetadata(null, OnDialogResultChanged));
-
     private static void OnDialogResultChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
     {
         if (d is DialogResultBehavior behavior
