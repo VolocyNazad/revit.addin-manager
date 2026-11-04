@@ -4,6 +4,7 @@ using AddinManager.Core.Diagnostics;
 using AddinManager.Launcher.Views.Highlighting;
 using ICSharpCode.AvalonEdit;
 using ICSharpCode.AvalonEdit.Highlighting;
+using VolocyNazad.Wpf.DependencyProperties;
 
 namespace AddinManager.Launcher.Behaviors;
 
@@ -13,7 +14,25 @@ namespace AddinManager.Launcher.Behaviors;
 /// маркеров диагностики, тема-зависимая палитра подсветки и фокус при появлении режима.
 /// Всё это — свойство редактора, а не состояние вида, поэтому вынесено из code-behind.
 /// </summary>
-public static class AvalonEditMarkupBehavior
+[GenerateAttachedDependencyProperty<string>(
+    "Text",
+    IsNullable = true,
+    Options = FrameworkPropertyMetadataOptions.BindsTwoWayByDefault,
+    XmlDocumentation = "Текст редактора; изменение с любой стороны синхронизируется с моделью.",
+    GetterXmlDocumentation = "<summary>Читает текст редактора.</summary>",
+    SetterXmlDocumentation = "<summary>Задаёт текст редактора.</summary>")]
+[GenerateAttachedDependencyProperty<MarkupSpan?>(
+    "SelectedEntrySpan",
+    XmlDocumentation = "Срез блока выбранной записи для выделения в редакторе.",
+    GetterXmlDocumentation = "<summary>Читает срез блока выбранной записи.</summary>",
+    SetterXmlDocumentation = "<summary>Задаёт срез блока выбранной записи.</summary>")]
+[GenerateAttachedDependencyProperty<IReadOnlyList<MarkupSpan>>(
+    "DiagnosticSpans",
+    IsNullable = true,
+    XmlDocumentation = "Срезы диагностики для волнистого подчёркивания.",
+    GetterXmlDocumentation = "<summary>Читает срезы диагностики.</summary>",
+    SetterXmlDocumentation = "<summary>Задаёт срезы диагностики.</summary>")]
+public static partial class AvalonEditMarkupBehavior
 {
     /// <summary>
     /// Встроенные именованные цвета AvalonEdit-подсветки XML (см. XML-Mode.xshd в самой
@@ -34,57 +53,11 @@ public static class AvalonEditMarkupBehavior
         ["BrokenEntity"] = "MarkupMetaBrush",
     };
 
-    /// <summary>Текст редактора; изменение с любой стороны синхронизируется с моделью.</summary>
-    public static readonly DependencyProperty TextProperty = DependencyProperty.RegisterAttached(
-        "Text",
-        typeof(string),
-        typeof(AvalonEditMarkupBehavior),
-        new FrameworkPropertyMetadata(
-            null,
-            FrameworkPropertyMetadataOptions.BindsTwoWayByDefault,
-            OnTextChanged));
-
-    /// <summary>Срез блока выбранной записи для выделения в редакторе.</summary>
-    public static readonly DependencyProperty SelectedEntrySpanProperty = DependencyProperty.RegisterAttached(
-        "SelectedEntrySpan",
-        typeof(MarkupSpan?),
-        typeof(AvalonEditMarkupBehavior),
-        new PropertyMetadata(null, OnSelectedEntrySpanChanged));
-
-    /// <summary>Срезы диагностики для волнистого подчёркивания.</summary>
-    public static readonly DependencyProperty DiagnosticSpansProperty = DependencyProperty.RegisterAttached(
-        "DiagnosticSpans",
-        typeof(IReadOnlyList<MarkupSpan>),
-        typeof(AvalonEditMarkupBehavior),
-        new PropertyMetadata(null, OnDiagnosticSpansChanged));
-
     private static readonly DependencyProperty StateProperty = DependencyProperty.RegisterAttached(
         "State",
         typeof(EditorState),
         typeof(AvalonEditMarkupBehavior),
         new PropertyMetadata(null));
-
-    /// <summary>Читает текст редактора.</summary>
-    public static string? GetText(DependencyObject element) => (string?)element.GetValue(TextProperty);
-
-    /// <summary>Задаёт текст редактора.</summary>
-    public static void SetText(DependencyObject element, string? value) => element.SetValue(TextProperty, value);
-
-    /// <summary>Читает срез блока выбранной записи.</summary>
-    public static MarkupSpan? GetSelectedEntrySpan(DependencyObject element) =>
-        (MarkupSpan?)element.GetValue(SelectedEntrySpanProperty);
-
-    /// <summary>Задаёт срез блока выбранной записи.</summary>
-    public static void SetSelectedEntrySpan(DependencyObject element, MarkupSpan? value) =>
-        element.SetValue(SelectedEntrySpanProperty, value);
-
-    /// <summary>Читает срезы диагностики.</summary>
-    public static IReadOnlyList<MarkupSpan>? GetDiagnosticSpans(DependencyObject element) =>
-        (IReadOnlyList<MarkupSpan>?)element.GetValue(DiagnosticSpansProperty);
-
-    /// <summary>Задаёт срезы диагностики.</summary>
-    public static void SetDiagnosticSpans(DependencyObject element, IReadOnlyList<MarkupSpan>? value) =>
-        element.SetValue(DiagnosticSpansProperty, value);
 
     private static void OnTextChanged(DependencyObject dependencyObject, DependencyPropertyChangedEventArgs e)
     {

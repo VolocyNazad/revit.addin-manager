@@ -38,6 +38,11 @@ Detailed behavior is defined in [FEATURES.md](FEATURES.md).
 - `Microsoft.Extensions.*` (DependencyInjection, Hosting, Localization, Logging.Abstractions) for composition
 - `CommunityToolkit.Mvvm` for view models (`MainViewModel`: layout, theme/language switching, toasts, update check and Revit-guard commands)
 - `Microsoft.Xaml.Behaviors.Wpf` for view mechanics shared across views (window drag, dialog-result mirroring)
+- `VolocyNazad.Wpf.DependencyPropertyGenerator` for the dependency properties of the launcher's Markup
+  editor behaviors, `DialogResultBehavior` and `PackIcon`: the registration, the CLR wrapper or the
+  `Get`/`Set` accessors, the XML documentation and the change callback wiring are generated from
+  `[GenerateDependencyProperty<T>]` and `[GenerateAttachedDependencyProperty<T>]`; only the launcher
+  references the package, since it is the only project that declares WPF dependency properties
 - Serilog (`Serilog.Extensions.Hosting`, `Serilog.Sinks.File`) for structured logging to size- and
   day-rolled files under `%LOCALAPPDATA%\Volocy\Revit.AddinManager\logs\`, retaining at most
   14 files of up to 20 MB each
