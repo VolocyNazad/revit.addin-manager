@@ -1,7 +1,10 @@
 using System.ComponentModel;
+using System.Runtime.InteropServices;
 using System.Windows;
 using System.Windows.Controls.Primitives;
+using System.Windows.Interop;
 using AddinManager.Launcher.Composition;
+using AddinManager.Launcher.Interop;
 using AddinManager.Launcher.ViewModels;
 using AddinManager.Theming.Abstractions;
 using AddinManager.Theming.Wpf;
@@ -13,8 +16,13 @@ namespace AddinManager.Launcher;
 /// <summary>Главное окно: хром и зоны. Состояние раскладки — в <see cref="MainViewModel"/>.</summary>
 public partial class MainWindow
 {
+    private const int WmGetMinMaxInfo = 0x0024;
+    private const uint MonitorDefaultToNearest = 0x00000002;
+
     private readonly MainViewModel _viewModel;
     private readonly IThemeService _themeService;
+
+    private HwndSource? _windowSource;
 
     /// <summary>
     /// Создает окно (только для окна разметки: без модели, зоны пустые). Рантайм всегда идёт
@@ -49,12 +57,26 @@ public partial class MainWindow
         Closed += OnClosed;
     }
 
+    /// <summary>
+    /// Механика вида: окно с <c>WindowStyle="None"</c> разворачивается на весь монитор, включая
+    /// панель задач, и нижняя полоса окна уходила под неё. Здесь окно подписывается на сообщение
+    /// максимизации, чтобы ограничить её рабочей областью текущего монитора.
+    /// </summary>
+    protected override void OnSourceInitialized(EventArgs e)
+    {
+        base.OnSourceInitialized(e);
+        _windowSource = PresentationSource.FromVisual(this) as HwndSource;
+        _windowSource?.AddHook(WindowChromeHook);
+    }
+
     private void OnClosed(object? sender, EventArgs e)
     {
         _viewModel.PropertyChanged -= OnViewModelPropertyChanged;
         SystemEvents.UserPreferenceChanged -= OnUserPreferenceChanged;
         Activated -= OnActivated;
         Loaded -= OnLoaded;
+        _windowSource?.RemoveHook(WindowChromeHook);
+        _windowSource = null;
     }
 
     /// <summary>Механика вида: первая загрузка окна — тихая проверка обновлений (см. MainViewModel).</summary>
@@ -124,6 +146,95 @@ public partial class MainWindow
     // Перетаскивание за TitleBar обрабатывает сам WindowChrome (зона не помечена
     // IsHitTestVisibleInChrome) — обработчики мыши не нужны. Если чего-то не хватит —
     // возвращать MouseLeftButtonDown/Up на TitleBar.
+
+    /// <summary>
+    /// Механика вида: окно с <c>WindowStyle="None"</c> разворачивается на весь монитор, включая
+    /// панель задач, поэтому нижняя полоса списка оказывалась под ней. Возвращает максимизацию в
+    /// рабочую область текущего монитора.
+    /// </summary>
+    private static IntPtr WindowChromeHook(IntPtr hwnd, int message, IntPtr wParam, IntPtr lParam, ref bool handled)
+    {
+        if (message == WmGetMinMaxInfo)
+        {
+            ApplyMonitorWorkArea(hwnd, lParam);
+        }
+
+        return IntPtr.Zero;
+    }
+
+    private static void ApplyMonitorWorkArea(IntPtr hwnd, IntPtr lParam)
+    {
+        var monitor = MonitorFromWindow(hwnd, MonitorDefaultToNearest);
+        if (monitor == IntPtr.Zero)
+        {
+            return;
+        }
+
+        var monitorInfo = new MonitorInfo { Size = Marshal.SizeOf<MonitorInfo>() };
+        if (!GetMonitorInfo(monitor, ref monitorInfo))
+        {
+            return;
+        }
+
+        var bounds = MaximizedBounds.FromMonitor(
+            ToRect(monitorInfo.Monitor),
+            ToRect(monitorInfo.WorkArea));
+        var minMaxInfo = Marshal.PtrToStructure<MinMaxInfo>(lParam);
+        minMaxInfo.MaxSize.X = bounds.Width;
+        minMaxInfo.MaxSize.Y = bounds.Height;
+        minMaxInfo.MaxPosition.X = bounds.X;
+        minMaxInfo.MaxPosition.Y = bounds.Y;
+        Marshal.StructureToPtr(minMaxInfo, lParam, false);
+    }
+
+    private static Int32Rect ToRect(NativeRect rect) =>
+        new(rect.Left, rect.Top, rect.Right - rect.Left, rect.Bottom - rect.Top);
+
+#pragma warning disable SYSLIB1054 // DllImport оставлен осознанно: сигнатуры простые, LibraryImport потребовал бы unsafe.
+    [DllImport("user32.dll")]
+    private static extern IntPtr MonitorFromWindow(IntPtr hwnd, uint flags);
+
+    [DllImport("user32.dll")]
+    [return: MarshalAs(UnmanagedType.Bool)]
+    private static extern bool GetMonitorInfo(IntPtr monitor, ref MonitorInfo monitorInfo);
+#pragma warning restore SYSLIB1054
+
+#pragma warning disable CS0649 // Поля заполняет Marshal: компилятор не видит присваиваний.
+    [StructLayout(LayoutKind.Sequential)]
+    private struct NativePoint
+    {
+        public int X;
+        public int Y;
+    }
+
+    [StructLayout(LayoutKind.Sequential)]
+    private struct NativeRect
+    {
+        public int Left;
+        public int Top;
+        public int Right;
+        public int Bottom;
+    }
+
+    [StructLayout(LayoutKind.Sequential)]
+    private struct MinMaxInfo
+    {
+        public NativePoint Reserved;
+        public NativePoint MaxSize;
+        public NativePoint MaxPosition;
+        public NativePoint MinTrackSize;
+        public NativePoint MaxTrackSize;
+    }
+
+    [StructLayout(LayoutKind.Sequential)]
+    private struct MonitorInfo
+    {
+        public int Size;
+        public NativeRect Monitor;
+        public NativeRect WorkArea;
+        public uint Flags;
+    }
+#pragma warning restore CS0649
 
     private void ToggleMaximize() =>
         WindowState = WindowState == WindowState.Maximized ? WindowState.Normal : WindowState.Maximized;

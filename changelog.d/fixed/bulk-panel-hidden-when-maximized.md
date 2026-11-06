@@ -1,0 +1,1 @@
+The bulk panel of the list and entries zones stays visible when the window is maximized: a maximized window now covers the monitor work area instead of the whole screen, so the panel is no longer hidden behind the Windows taskbar.
