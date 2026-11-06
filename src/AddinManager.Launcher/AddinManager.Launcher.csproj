@@ -37,6 +37,10 @@
   </ItemGroup>
 
   <ItemGroup>
+    <InternalsVisibleTo Include="AddinManager.Launcher.Tests" />
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\AddinManager.Core\AddinManager.Core.csproj" />
     <ProjectReference Include="..\AddinManager.Localization\AddinManager.Localization.csproj" />
     <ProjectReference Include="..\AddinManager.Theming\AddinManager.Theming.csproj" />
