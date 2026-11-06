@@ -124,6 +124,7 @@ public sealed partial class ManifestSettingsViewModel : ObservableObject, ISavab
     {
         SelectedFile = file;
         _originalSettings = file?.File.Manifest.Settings;
+        SyncEditLock();
 
         _loading = true;
         try
@@ -232,8 +233,9 @@ public sealed partial class ManifestSettingsViewModel : ObservableObject, ISavab
         SetUseRevitContextCommand.NotifyCanExecuteChanged();
     }
 
-    /// <summary>Разносит <see cref="IRevitProcessGuard.IsRunning"/> на себя.</summary>
-    private void SyncEditLock() => IsLocked = _guard.IsRunning;
+    /// <summary>Разносит <see cref="IRevitProcessGuard.IsRunning"/> и недоступность файла по правам на себя.</summary>
+    private void SyncEditLock() =>
+        IsLocked = _guard.IsRunning || SelectedFile?.IsReadOnly == true;
 
     private void RefreshSnapshot() => OnPropertyChanged((string?)null);
 

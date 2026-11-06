@@ -112,4 +112,7 @@
   <data name="WarningDuplicateAcrossFiles" xml:space="preserve">
     <value>Повторяющийся AddInId в других файлах (Revit {0})</value>
   </data>
+  <data name="ReadOnlyMessage" xml:space="preserve">
+    <value>Файл находится в машинной области (ProgramData). Перезапустите приложение от имени администратора, чтобы изменить его.</value>
+  </data>
 </root>

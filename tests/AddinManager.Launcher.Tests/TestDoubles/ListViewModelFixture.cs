@@ -67,7 +67,8 @@ internal static class ListViewModelFixture
         new(
             store,
             rowFactory ?? new AddinFileRowViewModelFactory(
-                store, NullLoggerFactory.Instance, TestLocalization.For<AddinFileRowViewModel>()),
+                store, NullLoggerFactory.Instance, TestLocalization.For<AddinFileRowViewModel>(),
+                new FileMutationPolicy(isElevated: true)),
             logger ?? NullLogger<FileCatalog>.Instance);
 
     /// <summary>Файловые операции поверх тех же фейков, что получает модель.</summary>

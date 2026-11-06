@@ -274,6 +274,7 @@ public sealed partial class EntriesViewModel : ObservableObject, IEntrySelection
         var previousBulkSelection = new HashSet<Guid>(Entries.Where(e => e.IsSelected).Select(e => e.Entry.AddInId));
 
         SelectedFile = file;
+        SyncEditLock();
         foreach (var row in Entries)
             row.PropertyChanged -= OnRowPropertyChanged;
         Entries.Clear();
@@ -339,8 +340,9 @@ public sealed partial class EntriesViewModel : ObservableObject, IEntrySelection
     private HashSet<Guid> FindCrossFileIds(AddinFileRowViewModel file) =>
         AddinFileDuplicates.FindInOtherFiles(file.File, _fileCatalog.Files.Select(row => row.File));
 
-    /// <summary>Разносит <see cref="IRevitProcessGuard.IsRunning"/> на себя.</summary>
-    private void SyncEditLock() => IsLocked = _guard.IsRunning;
+    /// <summary>Разносит <see cref="IRevitProcessGuard.IsRunning"/> и недоступность файла по правам на себя.</summary>
+    private void SyncEditLock() =>
+        IsLocked = _guard.IsRunning || SelectedFile?.IsReadOnly == true;
 
     /// <summary>Приглашение выбрать файл, когда ничего не выбрано.</summary>
     public string EmptySelectionPrompt => _localizer["EmptySelection_FilePrompt"];

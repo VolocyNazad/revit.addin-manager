@@ -110,6 +110,15 @@ public sealed partial class ListViewModel : ObservableObject, IFileSelection, IA
     [ObservableProperty]
     private string? _errorMessage;
 
+    /// <summary>
+    /// Есть файлы, которые текущий процесс не может изменить (машинная область без прав
+    /// администратора) — баннер с предложением перезапуска над списком.
+    /// </summary>
+    public bool ShowElevationHint => Files.Any(file => file.IsReadOnly);
+
+    /// <summary>Текст баннера <see cref="ShowElevationHint"/>.</summary>
+    public string ElevationHint => _localizer["ElevationHint"];
+
     [ObservableProperty]
     private string? _searchText;
 
@@ -350,7 +359,7 @@ public sealed partial class ListViewModel : ObservableObject, IFileSelection, IA
     private IEnumerable<AddinFileRowViewModel> VisibleRows() =>
         _viewState.View.Cast<AddinFileRowViewModel>();
 
-    private bool CanBulkEdit() => HasSelection && !IsLocked;
+    private bool CanBulkEdit() => HasSelection && !IsLocked && !HasReadOnlySelection();
 
     /// <summary>
     /// Переключает все отмеченные файлы: есть хоть один выключенный — включает все,
@@ -566,7 +575,12 @@ public sealed partial class ListViewModel : ObservableObject, IFileSelection, IA
         OnPropertyChanged(nameof(SelectionSummary));
         OnPropertyChanged(nameof(ToggleSelectedLabel));
         OnPropertyChanged(nameof(SelectAllToggleLabel));
+        OnPropertyChanged(nameof(ShowElevationHint));
+        OnPropertyChanged(nameof(ElevationHint));
     }
+
+    /// <summary>Среди отмеченных строк есть недоступная для изменения — bulk-команды блокируются.</summary>
+    private bool HasReadOnlySelection() => Files.Any(file => file.IsSelected && file.IsReadOnly);
 
     /// <summary>Разносит <see cref="IRevitProcessGuard.IsRunning"/> по строкам (тогглы гаснут).</summary>
     private void SyncEditLock()
@@ -642,7 +656,8 @@ public sealed partial class ListViewModel : ObservableObject, IFileSelection, IA
     /// <summary>Пункт контекстного меню строки "Переименовать" (хоткей: F2).</summary>
     public string RenameMenuLabel => $"{_localizer["RenameMenuLabel"]} (F2)";
 
-    private bool CanBeginRename(AddinFileRowViewModel? row) => !IsLocked && (row ?? SelectedFile) is not null;
+    private bool CanBeginRename(AddinFileRowViewModel? row) =>
+        !IsLocked && (row ?? SelectedFile) is { IsReadOnly: false };
 
     /// <summary>
     /// Начинает встроенное переименование строки. Параметр — строка под курсором из контекстного
@@ -659,8 +674,12 @@ public sealed partial class ListViewModel : ObservableObject, IFileSelection, IA
 
     private bool CanMoveCopy(AddinFileRowViewModel? row) => !IsLocked && (row ?? SelectedFile) is not null;
 
+    /// <summary>Перенос меняет исходный файл — для недоступной строки команда недоступна; копирование остаётся.</summary>
+    private bool CanMove(AddinFileRowViewModel? row) =>
+        !IsLocked && (row ?? SelectedFile) is { IsReadOnly: false };
+
     /// <summary>Открывает диалог цели и перемещает файл в другую версию/scope.</summary>
-    [RelayCommand(CanExecute = nameof(CanMoveCopy))]
+    [RelayCommand(CanExecute = nameof(CanMove))]
     public void MoveTo(AddinFileRowViewModel? row)
     {
         if ((row ?? SelectedFile) is { } target)

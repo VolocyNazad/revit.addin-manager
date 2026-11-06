@@ -60,6 +60,9 @@ public static class CompositionRoot
         services.AddSingleton<IAddinManifestParser, LinqToXmlAddinManifestParser>();
         services.AddSingleton<IFileRecycler, ShellFileRecycler>();
         services.AddSingleton<IAddinStore, FileSystemAddinStore>();
+        // Права на изменение файла: машинная область (%PROGRAMDATA%) без прав администратора
+        // доступна только для чтения — операции заранее блокируются, а не падают после попытки.
+        services.AddSingleton<IFileMutationPolicy, FileMutationPolicy>();
         // Установленные версии Revit: чипсы фильтра и выбор версии в диалогах показывают только их
         // (см. IInstalledRevitVersions), а не весь поддерживаемый каталог.
         services.AddSingleton<IInstalledRevitVersions>(provider => new RegistryInstalledRevitVersions(
