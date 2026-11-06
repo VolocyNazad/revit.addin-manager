@@ -466,6 +466,17 @@
             Margin="4"
             DockPanel.Dock="Top"
             Style="{StaticResource WarningCardStyle}"
+            Visibility="{Binding ShowElevationHint, Converter={StaticResource BoolToVisibility}}">
+            <TextBlock
+                FontSize="11"
+                Text="{Binding ElevationHint}"
+                TextWrapping="Wrap" />
+        </Border>
+
+        <Border
+            Margin="4"
+            DockPanel.Dock="Top"
+            Style="{StaticResource WarningCardStyle}"
             Visibility="{Binding ErrorMessage, Converter={StaticResource NullOrEmptyToVisibility}}">
             <TextBlock
                 FontSize="11"

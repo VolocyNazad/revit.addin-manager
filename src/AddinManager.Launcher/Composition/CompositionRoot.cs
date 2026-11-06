@@ -1,6 +1,9 @@
 using System.Globalization;
+using System.IO;
 using System.Net.Http;
+using AddinManager.Core.Abstractions;
 using AddinManager.Core.Abstractions.Guard;
+using AddinManager.Core.Abstractions.Installations;
 using AddinManager.Core.Abstractions.Manifests;
 using AddinManager.Core.Abstractions.Parsing;
 using AddinManager.Core.Abstractions.Storage;
@@ -20,6 +23,7 @@ using AddinManager.Localization.Abstractions;
 using AddinManager.Theming;
 using AddinManager.Theming.Abstractions;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 
 namespace AddinManager.Launcher.Composition;
 
@@ -40,14 +44,29 @@ public static class CompositionRoot
         // remark: resx лежат рядом с классами: пустой ResourcesPath оставляет базовым именем
         // полное имя типа — IStringLocalizer{Class} резолвится без соглашений.
         services.AddLocalization(options => options.ResourcesPath = string.Empty);
-        var localizationService = new LocalizationService(() => CultureInfo.CurrentUICulture);
+        string settingsDirectory = Path.Combine(
+            Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
+            ProductIdentity.CompanyDirectoryName,
+            ProductIdentity.ProductDirectoryName);
+        var localizationService = new LocalizationService(
+            () => CultureInfo.CurrentUICulture,
+            Path.Combine(settingsDirectory, ProductIdentity.LanguageFileName));
         localizationService.ApplyCurrentCulture();
         services.AddSingleton<ILocalizationService>(localizationService);
         // Темы
-        services.AddSingleton<IThemeService>(_ => new ThemeService(ThemeHelper.IsSystemDark));
+        services.AddSingleton<IThemeService>(_ => new ThemeService(
+            ThemeHelper.IsSystemDark,
+            Path.Combine(settingsDirectory, ProductIdentity.ThemeFileName)));
         services.AddSingleton<IAddinManifestParser, LinqToXmlAddinManifestParser>();
         services.AddSingleton<IFileRecycler, ShellFileRecycler>();
         services.AddSingleton<IAddinStore, FileSystemAddinStore>();
+        // Права на изменение файла: машинная область (%PROGRAMDATA%) без прав администратора
+        // доступна только для чтения — операции заранее блокируются, а не падают после попытки.
+        services.AddSingleton<IFileMutationPolicy, FileMutationPolicy>();
+        // Установленные версии Revit: чипсы фильтра и выбор версии в диалогах показывают только их
+        // (см. IInstalledRevitVersions), а не весь поддерживаемый каталог.
+        services.AddSingleton<IInstalledRevitVersions>(provider => new RegistryInstalledRevitVersions(
+            provider.GetRequiredService<ILogger<RegistryInstalledRevitVersions>>()));
         services.AddSingleton<IAddinMarkupService, FileAddinMarkupService>();
         services.AddSingleton<IManifestSchema, RevitManifestSchema>();
         // Каталог строк списка: сканирование диска, пересоздание строк и кросс-файловые

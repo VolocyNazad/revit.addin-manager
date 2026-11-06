@@ -21,15 +21,22 @@ files and edit their manifests — everything happens before Revit starts.
 - Each `.addin` file is one row with a toggle: on means the file sits in the version root,
   off means it sits in `disabled/`. Toggling moves the file immediately.
 - Search by file name; filter chips for scope (`All`/`User`/`Machine`) and version;
-  sorting (`Name`/`Scope`/`Version`); grouping by scope or version.
+  sorting (`Name`/`Scope`/`Version`); grouping by scope or version. Version chips appear only
+  for the Revit versions installed on this PC (detected from
+  `HKLM\SOFTWARE\Autodesk\Revit`); a version that is no longer installed keeps its chip while
+  `.addin` files remain in its folders, so such leftovers can still be filtered and cleaned up.
 - Hovering a row shows a card with the full path, version, scope, entry types, vendor
   and one line per manifest entry.
 - Refresh button re-reads the disk. External changes (another process, Explorer, a second
   copy of the manager) are also picked up automatically through a file-system watcher —
   no manual refresh needed. After every rescan the previous selection is restored by file
   identity, falling back to the first visible row.
-- A toggle that fails (e.g. no administrator rights for a Machine-scope file, or a locked
-  file) rolls the checkbox back and shows the reason right under the row instead of crashing.
+- A toggle that still fails (e.g. the file is locked by another process) rolls the checkbox
+  back and shows the reason right under the row instead of crashing.
+- Machine-scope rows are read-only when the launcher runs without administrator rights:
+  toggling, deleting, renaming, moving and saving edits are disabled up front, and a banner
+  above the list explains that a restart as administrator is required. Copying such a file
+  into a user scope remains available.
 - Rows with problems carry a yellow warning badge next to the name (a card tooltip with a title, a separator and the reasons explains why):
   a file with no entries, empty `Assembly`/`FullClassName`, unknown entry `Type`, or a
   duplicate `AddInId` within the file or in other files of the same Revit version.
@@ -42,7 +49,8 @@ files and edit their manifests — everything happens before Revit starts.
   a copy removes the created copy (and restores a replaced target), and a rename returns the old
   name.
 - The + button creates a new `.addin` file: name, scope (`User`/`Machine`), version and
-  the `disabled` flag are asked in a dialog; the file starts as an empty manifest.
+  the `disabled` flag are asked in a dialog; only installed Revit versions are offered and
+  the newest one is preselected. The file starts as an empty manifest.
 - Right-click a row for the Explorer-style context menu: show in folder, rename, enable/disable
   the marked rows, copy path, copy file name and delete. Right-click selects an unselected
   row first (like Explorer) and keeps an existing multi-selection; right-click on the empty
@@ -52,9 +60,10 @@ files and edit their manifests — everything happens before Revit starts.
   rejected in the row; the file keeps its scope/version and enabled/disabled folder.
 - "Move to…" and "Copy to…" in the row menu open a target dialog (version, scope, target path,
   enable-after checkbox) with warnings for cross-version moves, unsupported `ManifestSettings`
-  and unsaved editor changes. Existing target files must be explicitly replaced (they go to
-  the Recycle Bin); missing folders are created, Machine permissions are reported clearly, and
-  a successful move is undoable with `Ctrl+Z`.
+  and unsaved editor changes. Only installed Revit versions are offered, plus the file's own
+  version even when it is no longer installed. Existing target files must be explicitly replaced
+  (they go to the Recycle Bin); missing folders are created, Machine permissions are reported
+  clearly, and a successful move is undoable with `Ctrl+Z`.
 - Sorting chips behave like Explorer columns: clicking the active field once more flips
   ascending/descending, and the arrow button next to them flips it explicitly. A state row
   filters all/enabled/disabled files, and the scope, version and state chips show counts

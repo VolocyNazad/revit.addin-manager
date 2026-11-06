@@ -1,5 +1,6 @@
 using System.Collections.ObjectModel;
 using AddinManager.Core;
+using AddinManager.Core.Abstractions.Installations;
 using AddinManager.Core.Abstractions.Manifests;
 using AddinManager.Core.Abstractions.Storage;
 using AddinManager.Core.Storage;
@@ -20,26 +21,31 @@ public sealed partial class MoveCopyDialogViewModel : ObservableObject
     private readonly IAddinStore _store;
     private readonly IManifestSchema _schema;
     private readonly IStringLocalizer<MoveCopyDialogViewModel> _localizer;
+    private readonly IInstalledRevitVersions _installedVersions;
     private AddinFile? _file;
 
     /// <summary>Создает модель диалога.</summary>
     /// <param name="store">Даёт путь цели и наличие конфликта.</param>
     /// <param name="schema">Поддерживает ли целевая версия ManifestSettings.</param>
     /// <param name="localizer">Подписи и предупреждения.</param>
+    /// <param name="installedVersions">Установленные на ПК версии Revit — из них выбирается цель.</param>
     public MoveCopyDialogViewModel(
         IAddinStore store,
         IManifestSchema schema,
-        IStringLocalizer<MoveCopyDialogViewModel> localizer)
+        IStringLocalizer<MoveCopyDialogViewModel> localizer,
+        IInstalledRevitVersions installedVersions)
     {
         _store = store;
         _schema = schema;
         _localizer = localizer;
-        foreach (var version in RevitVersionCatalog.SupportedVersions)
-            VersionChips.Add(new FilterChipViewModel(version, version));
-        RefreshVersionChips();
+        _installedVersions = installedVersions;
+        var versions = installedVersions.GetVersions();
+        if (versions.Count > 0)
+            _version = versions[^1];
+        RebuildVersionChips();
     }
 
-    /// <summary>Чипсы версий Revit — из каталога Core, без хардкода в XAML.</summary>
+    /// <summary>Чипсы версий Revit — установленные на ПК плюс версия исходного файла, без хардкода в XAML.</summary>
     public ObservableCollection<FilterChipViewModel> VersionChips { get; } = [];
 
     /// <summary>Версия Revit, куда переносим/копируем.</summary>
@@ -141,6 +147,7 @@ public sealed partial class MoveCopyDialogViewModel : ObservableObject
     {
         _file = request.File;
         IsMove = request.Kind == MoveCopyKind.Move;
+        RebuildVersionChips();
         Version = request.File.Version;
         Scope = request.File.Scope;
         EnableAfter = request.File.Enabled;
@@ -196,6 +203,22 @@ public sealed partial class MoveCopyDialogViewModel : ObservableObject
     {
         ErrorMessage = null;
         ConfirmCommand.NotifyCanExecuteChanged();
+    }
+
+    /// <summary>
+    /// Пересобирает чипсы версий: установленные на ПК плюс версия исходного файла — её нужно
+    /// видеть, даже если Revit этой версии уже удалён, а .addin-файл остался.
+    /// </summary>
+    private void RebuildVersionChips()
+    {
+        var candidates = new HashSet<string>(_installedVersions.GetVersions(), StringComparer.Ordinal);
+        if (_file is not null)
+            candidates.Add(_file.Version);
+
+        VersionChips.Clear();
+        foreach (var version in RevitVersionCatalog.SupportedVersions.Where(candidates.Contains))
+            VersionChips.Add(new FilterChipViewModel(version, version));
+        RefreshVersionChips();
     }
 
     private void RefreshVersionChips()

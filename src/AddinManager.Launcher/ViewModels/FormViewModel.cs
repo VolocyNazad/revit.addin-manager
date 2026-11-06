@@ -256,6 +256,7 @@ public sealed partial class FormViewModel : ObservableObject, ISavablePane
         }
 
         RefreshValidation();
+        SyncEditLock();
     }
 
     private void ApplyEntry(AddinEntry? entry)
@@ -481,10 +482,10 @@ public sealed partial class FormViewModel : ObservableObject, ISavablePane
         GenerateAddInIdCommand.NotifyCanExecuteChanged();
     }
 
-    /// <summary>Разносит <see cref="IRevitProcessGuard.IsRunning"/> по себе и пунктам.</summary>
+    /// <summary>Разносит <see cref="IRevitProcessGuard.IsRunning"/> и недоступность файла по правам на себя и пункты.</summary>
     private void SyncEditLock()
     {
-        IsLocked = _guard.IsRunning;
+        IsLocked = _guard.IsRunning || SelectedFile?.IsReadOnly == true;
         foreach (var option in VisibilityModeOptions.Concat(DisciplineOptions))
             option.IsLocked = IsLocked;
     }

@@ -1,6 +1,7 @@
 using System.Collections.ObjectModel;
 using System.IO;
 using AddinManager.Core;
+using AddinManager.Core.Abstractions.Installations;
 using AddinManager.Core.Storage;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
@@ -15,16 +16,22 @@ public sealed partial class AddFileDialogViewModel : ObservableObject
 
     /// <summary>Создает модель с именем по умолчанию.</summary>
     /// <param name="localizer">Подписи и ошибки диалога.</param>
-    public AddFileDialogViewModel(IStringLocalizer<AddFileDialogViewModel> localizer)
+    /// <param name="installedVersions">Установленные на ПК версии Revit — только они доступны для выбора.</param>
+    public AddFileDialogViewModel(
+        IStringLocalizer<AddFileDialogViewModel> localizer,
+        IInstalledRevitVersions installedVersions)
     {
         _localizer = localizer;
         FileName = _localizer["DefaultFileName"];
-        foreach (var version in RevitVersionCatalog.SupportedVersions)
+        var versions = installedVersions.GetVersions();
+        if (versions.Count > 0)
+            _version = versions[^1];
+        foreach (var version in versions)
             VersionChips.Add(new FilterChipViewModel(version, version));
         RefreshVersionChips();
     }
 
-    /// <summary>Чипсы версий Revit — из каталога Core, без хардкода в XAML.</summary>
+    /// <summary>Чипсы версий Revit — только установленные на ПК, без хардкода в XAML.</summary>
     public ObservableCollection<FilterChipViewModel> VersionChips { get; } = [];
 
     /// <summary>Имя файла (суффикс <c>.addin</c> допишет стор).</summary>

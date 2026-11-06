@@ -20,29 +20,53 @@
     <File Path="docs/WIKI.md" />
   </Folder>
   <Folder Name="/docs/policies/">
+    <File Path="docs/policies/README.md" />
     <File Path="docs/policies/development.md" />
+    <File Path="docs/policies/documentation.md" />
+    <File Path="docs/policies/repository-maintenance.md" />
+    <File Path="docs/policies/build.md" />
+    <File Path="docs/policies/branching.md" />
+    <File Path="docs/policies/commits.md" />
+    <File Path="docs/policies/pull-requests.md" />
+    <File Path="docs/policies/changelog.md" />
+    <File Path="docs/policies/releases.md" />
+    <File Path="docs/policies/testing.md" />
+    <File Path="docs/policies/benchmarks.md" />
+    <File Path="docs/policies/logging.md" />
+    <File Path="docs/policies/wiki.md" />
   </Folder>
   <Folder Name="/scripts/">
     <File Path="scripts/Clear-BuildOutput.ps1" />
+    <File Path="scripts/Invoke-HeadlessTests.ps1" />
+    <File Path="scripts/Update-Changelog.ps1" />
     <File Path="scripts/Validate-Repository.ps1" />
+    <File Path="scripts/Verify-Release.ps1" />
   </Folder>
-  <Folder Name="/.github/" />
+  <Folder Name="/.github/">
+    <File Path=".github/dependabot.yml" />
+    <File Path=".github/pull_request_template.md" />
+  </Folder>
   <Folder Name="/.github/workflows/">
     <File Path=".github/workflows/build-and-test.yml" />
-    <File Path=".github/workflows/repository-policy.yml" />
+    <File Path=".github/workflows/codeql.yml" />
+    <File Path=".github/workflows/dependency-review.yml" />
     <File Path=".github/workflows/publish-release.yml" />
     <File Path=".github/workflows/publish-wiki.yml" />
+    <File Path=".github/workflows/repository-policy.yml" />
   </Folder>
   <Folder Name="/solutionItems/">
     <File Path="README.md" />
+    <File Path="TODO.md" />
     <File Path="AGENTS.md" />
     <File Path="CHANGELOG.md" />
     <File Path="CONTRIBUTING.md" />
+    <File Path="GLOSSARY.md" />
     <File Path="LICENSE" />
     <File Path="global.json" />
     <File Path="nuget.config" />
     <File Path="GitVersion.yml" />
     <File Path=".gitignore" />
+    <File Path=".gitattributes" />
     <File Path=".editorconfig" />
     <File Path="Directory.Build.props" />
     <File Path="Directory.Packages.props" />

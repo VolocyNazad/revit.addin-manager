@@ -85,6 +85,7 @@ public sealed class ListViewModelAddFileTests
             new FakeLocalizationService(),
             TestLocalization.For<ListViewModel>(),
             ListViewModelFixture.CreateCatalog(store),
+            new FakeInstalledRevitVersions(),
             toast,
             guard ?? new FakeRevitProcessGuard(),
             dialog,

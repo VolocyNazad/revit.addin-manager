@@ -6,57 +6,22 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+## [1.5.0] - 2026-11-06
+
 ### Added
 
-- Every composed view now has design-time data: the five dialogs gained `Design*` stubs (realistic messages, version chips, warnings) and `d:DataContext`/`mc:Ignorable` in XAML; the development policy has a `Design-time data` section, and a test enforces that every view with bindings references an existing design stub. `ToolbarView` stays exempt while it has no bindings of its own.
-- `scripts/Clear-BuildOutput.ps1` removes the `bin`/`obj` directories inside the repository without touching sources; it is listed in the solution's `scripts` folder.
-
-### Fixed
-
-- Opening a dialog no longer throws `XamlParseException` ("Setter.Property cannot be undefined"): `Window.WindowStartupLocation` is a plain CLR property, not a `DependencyProperty`, so it cannot live in `DialogWindowStyle`. The style no longer sets it, each dialog sets `WindowStartupLocation` itself (`CenterScreen`, move/copy keeps `CenterOwner`), and a WPF smoke test constructs all five dialogs over the real application resources so this class of BAML-only failure is caught headlessly. The redundant attached `TextElement.Foreground` setter (covered by the inherited `Foreground`) was removed as well.
-- Saving an edited manifest no longer reshuffles the file: the round trip keeps the original root child order (entries, `ManifestSettings` and unknown nodes/comments may interleave), preserves unknown attributes on `RevitAddIns`, `AddIn` and `ManifestSettings`, and appends newly added entries at the end instead of moving everything into a fixed order.
+- Installed Revit versions are read from the registry (`HKLM\SOFTWARE\Autodesk\Revit`): the version chips, the new-file dialog and the move/copy dialogs offer only the versions installed on this computer (the newest one is preselected); a version whose Revit was uninstalled keeps its chip while `.addin` files remain, and a file can always be moved to its own version, so leftovers can still be filtered and cleaned up.
+- Switching to another file while the editor has unsaved changes asks whether to save them, discard them or cancel the switch; cancelling keeps the previous file selected.
 
 ### Changed
 
-- The development policy now has a constructor rule: dependency-only types use a primary constructor, explicit constructors are reserved for validation, computed/guarded defaults, overloads and `base(...)` calls, and source-generated constructors (`AutoConstructor`-style) are not used. `architecture.md` repeats the rule next to the DI conventions. In the same pass, `FileCatalog`, `LinqToXmlAddinManifestParser`, the confirm/add-entry/update dialog view models and `ToastRequestedEventArgs` were converted to primary constructors; explicit ones remain where they validate, compute defaults, wire events or create commands.
-- Launcher dialogs are grouped by feature: `Views/Dialogs/` and `ViewModels/Dialogs/` now hold the five dialog views, their view models and resx pairs; namespaces follow the folders and `CompositionRoot`/`WpfDialogService` consume the new namespaces. No behaviour or registration change.
-- The `.addin` file-name rule (trim plus extension) is one Core helper, `AddinFileNames.Normalize`, used by `FileSystemAddinStore` and by `FakeAddinStore` instead of copied logic; the fake now also documents that disk semantics (atomicity, recycle bin, Revit guard) stay covered by real-store tests, and only the contract-visible collision/overwrite outcomes are simulated.
-- Documentation now matches the implemented behaviour: `FEATURES.md` no longer calls the entries list read-only or claims raw-XML warnings block saving, installation names both shortcuts and runtime-only files; `architecture.md` describes `IThemeService` without a non-existent `ThemeChanged` event, lists every undoable action and the explicit pipeline mode.
-- Test doubles were tightened: `RecordingLogger` keeps the `EventId`, message template and structured properties (so assertions no longer depend on log wording or Russian pluralization), `TestCulture` pins both `CurrentUICulture` and `DefaultThreadCurrentUICulture` for background/async paths, and `FakeAddinStore` is purely in-memory. Deleting and undoing a file on real disk is now covered by a `FileSystemAddinStore` integration test.
-- The build pipeline selects its mode from the first non-option argument (`compile` default, `pack`, `publish`, `version`) and fails on an unknown mode instead of silently compiling; paths, configuration, target framework, MSI and release-notes names are centralized in `BuildPaths`, and the launcher build no longer emits `.pdb`/`.xml` files.
-- The installer no longer creates the obsolete per-user Quick Launch shortcut, and it stages only runtime files into Program Files (debug symbols and XML documentation are excluded regardless of how the source was built).
-- `PackIcon` sizing and focusability moved into its implicit style (`IconSize`, default 14; `Focusable=False`), so 25 icon usages no longer repeat `Width`/`Height`/`Focusable`; an unknown `Kind` now renders the `Icon.Fallback` placeholder instead of empty space, and a test guarantees every `PackIconKind` has its `Icon.*` template (and no orphan templates exist).
-- Launcher editor-zone tests build `EntriesViewModel` and `FormViewModel` through the shared `EditorZoneFixture` instead of fourteen inline copies of the dependency graph; changing those constructors is now a one-place fix.
-- `App.xaml` is down to the merged style dictionaries and the application icon. `FieldLabelStyle`, `FieldGroupStyle` and the new `MonoFontFamily` resource live in `Styles/Inputs.xaml`, `LayoutIconButton` in `Styles/Buttons.xaml`, the `PackIcon` implicit style in `Styles/Icons.xaml`, row containers and selection checkboxes in `Styles/Lists.xaml`, the scrollbar retemplate in `Styles/ScrollBars.xaml`; the monospace font is one resource instead of nine attribute copies in views.
-- Warning and error cards share one `WarningCardStyle` (previously the same border was copied twelve times across the list, entries, editor, main window and dialogs). `ErrorBrush`, `WarningIconBrush` and `CaptionCloseHoverBrush` are theme tokens used by field validation messages, the warning icon and the window close button; the markup diagnostic underline takes its colour from `ErrorBrush` instead of a hardcoded red.
-- Markup-editor mechanics (text sync without echo, selected-entry block and diagnostic highlighting, the find bar, `Ctrl+F`/`F3`/`Shift+F3`, focus on mode switch and the theme-aware syntax palette) moved from the 349-line `MarkupView` code-behind into two attached behaviors, `AvalonEditMarkupBehavior` and `AvalonEditSearchBehavior`; the view's code-behind is composition only.
-- Markup diagnostics (empty required fields, unknown entry type, duplicate `AddInId` inside the file or across files of one version, and the selected entry's block span) are one headless `MarkupDiagnostics` in Core returning `MarkupSpan`; the editor view model only maps spans for AvalonEdit, and the XML grammar no longer lives in the UI.
-- The Revit version chips in the plugin-list toolbar, the new-file dialog and the move/copy dialog are one data-driven `FilterChipViewModel` collection built from `RevitVersionCatalog`: adding a supported version no longer needs XAML copies in three files, and the active chip is a style trigger instead of per-button opacity bindings.
-- File operations (create, delete, move/copy and the unsaved-editor guard) live in `FileOperations`: it owns the dialogs, store mutations and undo records and returns a `FileOperationOutcome` (refresh, selection, reveal, banner, toast) that the list zone applies. `ListViewModel` no longer writes to the store itself.
-- The scanned file list lives in `FileCatalog`: it scans every supported Revit version, recreates rows through the factory, keeps bulk marks by identity and recalculates cross-file warnings. `ListViewModel` keeps the selection, view state, row actions and the `IAddinFileCatalog` facade other zones consume.
-- Plugin-list filtering, sorting and grouping live in one `FileListViewState` over the `ICollectionView`, driven by a `FileListQuery` snapshot; `ListViewModel` only builds the snapshot and recalculates its labels instead of carrying the filter predicate, comparer and group code itself.
-- The launcher composition root is one `CompositionRoot.AddLauncherServices()` with a shared `AddDialog<TViewModel, TView>()` for the five dialogs: `App.OnStartup` is back to logging, the single-instance guard and window lifetime instead of a 130-line service-registration block in the entry point.
-- Undo is one `IUndoService` in the launcher: the action records and their store mutations live in the service, while `ListViewModel` only refreshes the list, restores selection and shows the toast. The list's private undo record types and its direct `IAddinStore.Restore` calls are gone.
-- File identity (`FileName`, `Scope`, `Version`) is one `AddinFileIdentity` record in Core, used by the plugin list to restore selection and bulk marks across rescans and by the cross-file duplicate rules, instead of repeated tuple, field-by-field and `"{scope}/{name}"` string comparisons.
-- Cross-file duplicate `AddInId` detection is now one shared Core algorithm (`AddinFileDuplicates`) used by the plugin list, the entries zone and the markup editor, instead of three separate copies.
-- Test helpers (`TestCulture`, `TestLocalization`, `RecordingLogger`) now live once in `tests/Shared/` and are linked into both headless test projects instead of being copied per project.
-- Per-test temporary-directory cleanup (`TempDirectorySet`) is shared too, replacing the `NewRoot`/`Dispose` pair copied into 13 test classes.
-- The valid-manifest XML used by the headless tests comes from one `TestManifestXml` builder instead of ten local copies.
-- The launcher tests build `ListViewModel` through one `ListViewModelFixture` with fake defaults and explicit overrides, replacing every inline copy of the twelve-dependency graph.
-- The supported Revit version list and the picker default now come from one `RevitVersionCatalog` in Core instead of the array and the `"2027"` defaults repeated in the launcher.
-- The visibility converters share one `ConverterParameter="Invert"` rule and the opacity converters share one pair of active/inactive values.
+- Machine-scope files (ProgramData) are read-only when the launcher runs without administrator rights: editing, moving, renaming, enabling and deleting them are disabled up front, and the list explains that a restart as administrator is required.
+- Saving the raw manifest text refuses only malformed XML: empty required fields and duplicate `AddInId` values are warnings shown in the editor, no longer a reason to block the save.
 
 ### Fixed
 
-- Selecting another file with unsaved editor changes now asks to save, discard or cancel instead of dropping the changes silently; cancelling keeps the previous file selected and the list returns to it.
-- Undo (`Ctrl+Z`) restores deleted files and overwritten move/copy targets through `IAddinStore.Restore` — atomic write, Revit-running refusal and a log entry — instead of writing bytes straight from the list view model; the overwrite-then-undo path is covered by a regression test on a real temporary folder.
-- A partially failed bulk deletion keeps its error banner: the message is set after the refresh that clears it.
-- Deleting or saving an entry whose `AddInId` duplicates another entry no longer touches the neighbouring entry; entries are matched by position/instance, not by identifier, and bulk deletion of duplicate-id entries is covered by tests.
-- Core exception messages are localized (neutral English + Russian satellite) instead of hardcoded Russian text, so an English UI no longer shows Russian error banners; the permanent-delete fallback without a recycler is logged as a warning.
-- The change watcher retries when the Revit add-in folder is created after startup instead of staying silent until the next launch.
-- A file with a duplicate `AddInId` between its entries no longer disappears from the list: the manifest stays readable and the duplicate is shown as a warning. Structural checks (empty required fields, unknown entry type, duplicate identifier) now come from one `AddinManifestValidator` in Core, and the Markup editor marks an unknown entry type too.
-- The store and the change watcher share one `AddinFolderLayout` for the Revit add-in folder paths and the disabled-folder rule; the store's five Revit-running refusals and two file-name normalizations are each one helper now.
-- The manifest parser defines each `AddIn` field once in a tag metadata table; the canonical write order and the write value lookup are derived from it, and reading uses the same tag constants.
+- The bulk panel of the list and entries zones stays visible when the window is maximized: a maximized window now covers the monitor work area instead of the whole screen, so the panel is no longer hidden behind the Windows taskbar.
+- The main window title is aligned with the application icon.
 
 ## [1.4.0] - 2026-10-20
 
@@ -116,10 +81,6 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - Manifest-entries bulk selection: same checkbox column (shared `Icon.Check` glyph in `Resources/Icons.xaml` — the Material Design Icons check path with a matching outline — shared `SelectionCheckBoxStyle` in `App.xaml`) with a bottom bulk bar (`Selected N` inline with select-all toggle + `Delete` wrapping into two lines when narrow — entries have no toggles, so no enable/disable); bulk delete removes all marked entries in a single file save after one confirmation, selection survives reloads by `AddInId`.
 
 ## [1.0.0] - 2026-09-21
-
-### Changed
-
-- Reduced architecture documentation to current decisions and stable rules; removed implementation history and duplicated rationale.
 
 ### Added
 
@@ -207,6 +168,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Changed
 
+- Reduced architecture documentation to current decisions and stable rules; removed implementation history and duplicated rationale.
 - Form and Settings zones: field-group spacing tightened (`FieldGroupStyle` bottom margin 16→8, in both views at once since the styles are local copies), at the user's request — long entry forms read as one denser rhythm instead of loosely scattered groups.
 - Form zone: the outer `Border` wrapping the field editor no longer paints `AppBackgroundBrush`/a `CaptionHoverBrush` border/`CornerRadius`, at the user's request — the form panel now sits flush against the shared window background instead of standing out as its own bordered card (Entries and Markup panels keep the bordered-card look unchanged).
 - Settings zone: `ManifestSettingsView.xaml`'s outer `Border` gets the same treatment as the Form zone's above, at the user's request — no `AppBackgroundBrush`/border/`CornerRadius`, flush against the shared window background instead of its own bordered card.

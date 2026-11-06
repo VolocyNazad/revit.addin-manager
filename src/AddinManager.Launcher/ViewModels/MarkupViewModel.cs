@@ -151,6 +151,7 @@ public sealed partial class MarkupViewModel : ObservableObject, ISavablePane
 
         SelectedFile = row;
         _boundFile = row?.File;
+        SyncEditLock();
 
         _loading = true;
         try
@@ -264,8 +265,9 @@ public sealed partial class MarkupViewModel : ObservableObject, ISavablePane
         DiscardCommand.NotifyCanExecuteChanged();
     }
 
-    /// <summary>Разносит <see cref="IRevitProcessGuard.IsRunning"/> на себя.</summary>
-    private void SyncEditLock() => IsLocked = _guard.IsRunning;
+    /// <summary>Разносит <see cref="IRevitProcessGuard.IsRunning"/> и недоступность файла по правам на себя.</summary>
+    private void SyncEditLock() =>
+        IsLocked = _guard.IsRunning || SelectedFile?.IsReadOnly == true;
 
     /// <summary>
     /// Пересчитывает <see cref="SelectedEntrySpan"/> по текущей записи и тексту. Вызывается

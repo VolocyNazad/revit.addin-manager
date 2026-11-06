@@ -7,6 +7,7 @@ using System.Windows.Threading;
 using AddinManager.Launcher.ViewModels;
 using AddinManager.Launcher.Views.Highlighting;
 using ICSharpCode.AvalonEdit;
+using VolocyNazad.Wpf.DependencyProperties;
 
 namespace AddinManager.Launcher.Behaviors;
 
@@ -16,28 +17,19 @@ namespace AddinManager.Launcher.Behaviors;
 /// Поведение висит на виде и находит редактор и поле поиска в его дереве, поэтому code-behind
 /// вида остаётся только композицией.
 /// </summary>
-public static class AvalonEditSearchBehavior
+[GenerateAttachedDependencyProperty<MarkupSearchViewModel>(
+    "Search",
+    IsNullable = true,
+    XmlDocumentation = "Состояние поиска панели.",
+    GetterXmlDocumentation = "<summary>Читает состояние поиска.</summary>",
+    SetterXmlDocumentation = "<summary>Задаёт состояние поиска.</summary>")]
+public static partial class AvalonEditSearchBehavior
 {
-    /// <summary>Состояние поиска панели.</summary>
-    public static readonly DependencyProperty SearchProperty = DependencyProperty.RegisterAttached(
-        "Search",
-        typeof(MarkupSearchViewModel),
-        typeof(AvalonEditSearchBehavior),
-        new PropertyMetadata(null, OnSearchChanged));
-
     private static readonly DependencyProperty StateProperty = DependencyProperty.RegisterAttached(
         "State",
         typeof(SearchState),
         typeof(AvalonEditSearchBehavior),
         new PropertyMetadata(null));
-
-    /// <summary>Читает состояние поиска.</summary>
-    public static MarkupSearchViewModel? GetSearch(DependencyObject element) =>
-        (MarkupSearchViewModel?)element.GetValue(SearchProperty);
-
-    /// <summary>Задаёт состояние поиска.</summary>
-    public static void SetSearch(DependencyObject element, MarkupSearchViewModel? value) =>
-        element.SetValue(SearchProperty, value);
 
     private static void OnSearchChanged(DependencyObject dependencyObject, DependencyPropertyChangedEventArgs e)
     {

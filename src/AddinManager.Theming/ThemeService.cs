@@ -14,11 +14,11 @@ public sealed class ThemeService : IThemeService
 
     /// <summary>Создает сервис.</summary>
     /// <param name="isSystemDark">Делегат: темная ли сейчас системная тема.</param>
-    /// <param name="storagePath">Файл выбора. По умолчанию — в %APPDATA%.</param>
-    public ThemeService(Func<bool> isSystemDark, string? storagePath = null)
+    /// <param name="storagePath">Файл выбора темы; путь собирает композиция.</param>
+    public ThemeService(Func<bool> isSystemDark, string storagePath)
     {
         _isSystemDark = isSystemDark;
-        _storagePath = storagePath ?? DefaultPath();
+        _storagePath = storagePath;
     }
 
     /// <inheritdoc />
@@ -68,11 +68,4 @@ public sealed class ThemeService : IThemeService
 
         return AppTheme.System;
     }
-
-    /// <summary>Путь хранения по умолчанию.</summary>
-    public static string DefaultPath() => Path.Combine(
-        Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
-        "Volocy",
-        "Revit.AddinManager",
-        "theme.txt");
 }

@@ -66,6 +66,14 @@ public sealed partial class AddinFileRowViewModel : ObservableObject
     private bool _isLocked;
 
     /// <summary>
+    /// Файл нельзя изменить текущим процессом: машинная область (<c>%PROGRAMDATA%</c>) требует
+    /// прав администратора. Выставляется фабрикой строк (<c>AddinFileRowViewModelFactory</c>) и
+    /// блокирует удаление, переименование и переключение enabled/disabled заранее — без попытки
+    /// записи и последующего предупреждения.
+    /// </summary>
+    public bool IsReadOnly { get; init; }
+
+    /// <summary>
     /// В файле есть проблемы (пустые обязательные поля, неизвестный тип, дубли <c>AddInId</c>
     /// внутри файла или в других файлах той же версии Revit) — вид показывает иконку
     /// предупреждения с <see cref="WarningMessage"/> в тултипе. Пересчитывается в конструкторе
@@ -101,7 +109,7 @@ public sealed partial class AddinFileRowViewModel : ObservableObject
     /// <summary>Начинает встроенное переименование: в поле подставляется текущее имя.</summary>
     public void BeginRename()
     {
-        if (IsLocked)
+        if (IsLocked || IsReadOnly)
             return;
 
         RenameText = _file.FileName;
@@ -154,7 +162,7 @@ public sealed partial class AddinFileRowViewModel : ObservableObject
     /// <summary>Тултип крестика (хоткей: Delete — удаляет отмеченные файлы).</summary>
     public string DeleteButtonTooltip => $"{_localizer["DeleteButtonTooltip"]} (Delete)";
 
-    private bool CanDelete() => !IsLocked;
+    private bool CanDelete() => !IsLocked && !IsReadOnly;
 
     /// <summary>
     /// Сообщение о последней неудачной попытке переключить <see cref="IsEnabled"/> — например,
@@ -181,6 +189,17 @@ public sealed partial class AddinFileRowViewModel : ObservableObject
             _logger.LogDebug(
                 "Toggle {FileName} ({Scope}, {Version}): программный откат до IsEnabled={Value}, SetEnabled не вызываем",
                 _file.FileName, _file.Scope, _file.Version, value);
+            return;
+        }
+
+        if (IsReadOnly)
+        {
+            _logger.LogInformation(
+                "Toggle {FileName} ({Scope}, {Version}): файл только для чтения, SetEnabled не вызываем",
+                _file.FileName, _file.Scope, _file.Version);
+
+            ErrorMessage = _localizer["ReadOnlyMessage"];
+            RevertToggle(value);
             return;
         }
 

@@ -19,11 +19,11 @@ public sealed class LocalizationService : ILocalizationService
 
     /// <summary>Создает сервис.</summary>
     /// <param name="systemCulture">Делегат: текущая системная UI-культура.</param>
-    /// <param name="storagePath">Файл выбора. По умолчанию — в %APPDATA%.</param>
-    public LocalizationService(Func<CultureInfo> systemCulture, string? storagePath = null)
+    /// <param name="storagePath">Файл выбора языка; путь собирает композиция.</param>
+    public LocalizationService(Func<CultureInfo> systemCulture, string storagePath)
     {
         _systemCulture = systemCulture;
-        _storagePath = storagePath ?? DefaultPath();
+        _storagePath = storagePath;
     }
 
     /// <inheritdoc />
@@ -80,11 +80,4 @@ public sealed class LocalizationService : ILocalizationService
 
         return AppLanguage.System;
     }
-
-    /// <summary>Путь хранения по умолчанию.</summary>
-    public static string DefaultPath() => Path.Combine(
-        Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
-        "Volocy",
-        "Revit.AddinManager",
-        "language.txt");
 }

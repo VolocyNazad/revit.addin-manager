@@ -1,3 +1,4 @@
+using AddinManager.Core.Abstractions;
 using AddinManager.Core.Abstractions.Guard;
 using AddinManager.Launcher.Abstractions.Services;
 using AddinManager.Localization;
@@ -18,14 +19,6 @@ public sealed partial class MainViewModel : ObservableObject
 {
     /// <summary>Сколько висит тост-подтверждение смены темы/языка.</summary>
     private static readonly TimeSpan ToastLifetime = TimeSpan.FromSeconds(2.5);
-
-#pragma warning disable S1075 // Намеренные ссылки на GitHub-страницы приложения.
-    /// <summary>Страница issues репозитория — куда ведёт кнопка "Поддержка".</summary>
-    private const string SupportUrl = "https://github.com/VolocyNazad/revit.addin-manager/issues";
-
-    /// <summary>Страница спонсорства — куда ведёт кнопка "Спонсорство".</summary>
-    private const string SponsorUrl = "https://github.com/sponsors/VolocyNazad";
-#pragma warning restore S1075
 
     private readonly IThemeService _themeService;
     private readonly ILocalizationService _localizationService;
@@ -57,13 +50,6 @@ public sealed partial class MainViewModel : ObservableObject
     /// <summary>Предупреждение о запущенном Revit скрыто крестиком до его закрытия.</summary>
     [ObservableProperty]
     private bool _isRevitWarningDismissed;
-
-    partial void OnListFractionChanged(double value)
-    {
-        var clamped = double.IsNaN(value) ? 0.6 : Math.Clamp(value, 0.1, 0.9);
-        if (Math.Abs(clamped - value) > 0.0001 || double.IsNaN(value))
-            ListFraction = clamped;
-    }
 
     /// <summary>Создает модель.</summary>
     /// <param name="themeService">Сервис темы.</param>
@@ -295,11 +281,18 @@ public sealed partial class MainViewModel : ObservableObject
 
     /// <summary>Открывает страницу issues репозитория (помощь и баги) в браузере.</summary>
     [RelayCommand]
-    private void OpenSupport() => _urlOpener.Open(SupportUrl);
+    private void OpenSupport() => _urlOpener.Open(ProductIdentity.SupportUrl);
 
     /// <summary>Открывает страницу спонсорства в браузере.</summary>
     [RelayCommand]
-    private void OpenSponsor() => _urlOpener.Open(SponsorUrl);
+    private void OpenSponsor() => _urlOpener.Open(ProductIdentity.SponsorUrl);
+
+    partial void OnListFractionChanged(double value)
+    {
+        var clamped = double.IsNaN(value) ? 0.6 : Math.Clamp(value, 0.1, 0.9);
+        if (Math.Abs(clamped - value) > 0.0001 || double.IsNaN(value))
+            ListFraction = clamped;
+    }
 
     partial void OnIsRevitRunningChanged(bool value) => RefreshSnapshot();
 

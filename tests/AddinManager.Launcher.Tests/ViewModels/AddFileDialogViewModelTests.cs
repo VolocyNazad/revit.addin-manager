@@ -38,6 +38,17 @@ public sealed class AddFileDialogViewModelTests
     }
 
     [Fact]
+    public void VersionChips_ShowOnlyInstalledVersions_AndDefaultToNewestInstalled()
+    {
+        AddFileDialogViewModel model = null!;
+        TestCulture.RunIn("en", () => model = NewModel(new FakeInstalledRevitVersions("2021", "2025")));
+
+        Assert.Equal(["2021", "2025"], model.VersionChips.Select(chip => chip.Value));
+        Assert.Equal("2025", model.Version);
+        Assert.True(model.VersionChips.Single(chip => chip.Value == "2025").IsActive);
+    }
+
+    [Fact]
     public void Add_EmptyName_ShowsErrorAndStaysOpen()
     {
         var model = NewModel();
@@ -88,6 +99,8 @@ public sealed class AddFileDialogViewModelTests
         Assert.False(model.Result);
     }
 
-    private static AddFileDialogViewModel NewModel() =>
-        new(TestLocalization.For<AddFileDialogViewModel>());
+    private static AddFileDialogViewModel NewModel(FakeInstalledRevitVersions? installedVersions = null) =>
+        new(
+            TestLocalization.For<AddFileDialogViewModel>(),
+            installedVersions ?? new FakeInstalledRevitVersions());
 }

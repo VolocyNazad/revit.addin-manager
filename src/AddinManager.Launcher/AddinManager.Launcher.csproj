@@ -30,6 +30,14 @@
     <PackageReference Include="Serilog" />
     <PackageReference Include="Serilog.Extensions.Hosting" />
     <PackageReference Include="Serilog.Sinks.File" />
+    <PackageReference Include="VolocyNazad.Wpf.DependencyPropertyGenerator">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+  </ItemGroup>
+
+  <ItemGroup>
+    <InternalsVisibleTo Include="AddinManager.Launcher.Tests" />
   </ItemGroup>
 
   <ItemGroup>

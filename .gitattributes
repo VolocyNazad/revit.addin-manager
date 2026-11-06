@@ -1,0 +1,16 @@
+# Normalize line endings: the repository stores LF, the working tree uses CRLF, matching .editorconfig.
+* text=auto eol=crlf
+
+# Binary assets are never line-ending converted.
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.ico binary
+*.msi binary
+*.dll binary
+*.exe binary
+*.zip binary
+*.7z binary
+*.rfa binary
+*.rvt binary

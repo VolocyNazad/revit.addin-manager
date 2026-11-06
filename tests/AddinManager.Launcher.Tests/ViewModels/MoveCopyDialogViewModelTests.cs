@@ -12,6 +12,16 @@ namespace AddinManager.Launcher.Tests.ViewModels;
 public sealed class MoveCopyDialogViewModelTests
 {
     [Fact]
+    public void VersionChips_IncludeInstalledVersionsAndKeepSourceVersion()
+    {
+        var vm = NewDialog(installed: new FakeInstalledRevitVersions("2021", "2025"));
+        vm.Initialize(new MoveCopyRequest(NewFile("A.addin", "2026"), MoveCopyKind.Move));
+
+        Assert.Equal(["2021", "2025", "2026"], vm.VersionChips.Select(chip => chip.Value));
+        Assert.True(vm.VersionChips.Single(chip => chip.Value == "2026").IsActive);
+    }
+
+    [Fact]
     public void Initialize_DefaultsToSourceFolder_AndDisablesConfirm()
     {
         var vm = NewDialog();
@@ -121,11 +131,14 @@ public sealed class MoveCopyDialogViewModelTests
         Assert.False(vm.Result);
     }
 
-    private static MoveCopyDialogViewModel NewDialog(FakeAddinStore? store = null) =>
+    private static MoveCopyDialogViewModel NewDialog(
+        FakeAddinStore? store = null,
+        FakeInstalledRevitVersions? installed = null) =>
         new(
             store ?? new FakeAddinStore(),
             new RevitManifestSchema(),
-            TestLocalization.For<MoveCopyDialogViewModel>());
+            TestLocalization.For<MoveCopyDialogViewModel>(),
+            installed ?? new FakeInstalledRevitVersions());
 
     private static AddinFile NewFile(string fileName, string version) =>
         new(fileName, AddinScope.User, version, Enabled: true,

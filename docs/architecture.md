@@ -8,8 +8,8 @@ This document records stable architectural rules. Implementation details belong 
 - Zone view models are independent. Shared state is exposed through services, not root-model forwarding.
 - Zone selection and the file catalog cross zone boundaries through narrow contracts, not concrete neighbors: `IFileSelection`/`IEntrySelection` (single slots with change notifications) and `IAddinFileCatalog` (live rows plus rescan), exposed by the owning zones and resolved from the container; the list zone's catalog is the `FileCatalog` service. Selection flows one way, list → entries; zones never reference each other back.
 - Code-behind contains view mechanics only. Prefer bindings, converters and Blend behaviors for state and reusable mechanics.
-- Filtering, sorting and grouping use one `ListCollectionView` over the source collection, owned by `FileListViewState` and driven by a `FileListQuery` snapshot; the zone builds the snapshot and keeps the chip labels/counters. Version chips are data-driven `FilterChipViewModel` collections built from `RevitVersionCatalog`, so the supported-version list is not copied into XAML.
-- Codes and view models share one set of chips; the active chip is a style trigger on `IsActive` rather than a per-button opacity binding.
+- Filtering, sorting and grouping use one `ListCollectionView` over the source collection, owned by `FileListViewState` and driven by a `FileListQuery` snapshot; the zone builds the snapshot and keeps the chip labels/counters. Version chips are data-driven `FilterChipViewModel` collections built from the installed-version probe and `RevitVersionCatalog`, so the version list is not copied into XAML.
+- The active chip is a style trigger on `IsActive`, not a per-button opacity binding; chip labels and counters are built by the zone, not hard-coded in XAML.
 - View-model diagnostics are available through `ToString()`.
 
 ## Dependency injection
@@ -22,13 +22,14 @@ This document records stable architectural rules. Implementation details belong 
 - Runtime views expose parameterless design-time constructors and `d:DataContext` over `Design*` stubs; design-time data lives in `AddinManager.Launcher.Design`, and every composed view with bindings carries it (see the development policy).
 - Rows and option view models are created through DI factories because their data is runtime-specific.
 - UI-specific contracts (dialogs, clipboard, folder opener, editor dirty state) live in the launcher's `Abstractions/Services` tree and may use Core types; Core stays WPF- and Windows-UI-free.
+- Product-wide names and destinations (vendor, product directory, GitHub URLs, MSI asset, mutex/event names) live in `ProductIdentity` in `AddinManager.Core.Abstractions`. The launcher references Core normally; the build pipeline and installer compile the same file by source link because they are separate build units. Each module composes its own file-system paths from those segments.
 - Dialogs are transient and created through `IDialogService`; composition registers them with `AddDialog<TViewModel, TView>()` (transient view model and view plus a `Func<TView>` factory), and views use `DialogResultBehavior` and bindings instead of code-behind state.
 
 ## Themes
 
 - `ThemeService` persists `System`, `Light` or `Dark` under `%APPDATA%`; `IThemeService` exposes the chosen `Theme` and the effective `IsDark`. `MainWindow` applies the matching dictionary and re-applies it when the window reports a system theme change.
 - WPF dictionaries define the same keys for light and dark themes. Consumers use `DynamicResource`.
-- Each theme composes shared chrome (`Themes/Chrome/`, без привязки к приложению) and app-specific parts (`Themes/App/`, подсветка AvalonEdit); key parity inside both pairs is enforced by `AddinManager.Theming.Wpf.Tests`.
+- Each theme composes shared chrome (`Themes/Chrome/`, no application ties) and app-specific parts (`Themes/App/`, AvalonEdit highlighting); key parity inside both pairs is enforced by `AddinManager.Theming.Wpf.Tests`.
 - The system theme is read from the registry. Missing or invalid settings fall back to `System`.
 
 ## Styles
@@ -47,10 +48,12 @@ This document records stable architectural rules. Implementation details belong 
 
 - `FileCatalog` owns the scanned file rows: it scans every supported version, recreates rows through the factory, preserves bulk marks by identity and recalculates cross-file warnings. `ListViewModel` owns the selection, the view state and the row actions, and exposes `IAddinFileCatalog` to other zones. A file's identity is `AddinFileIdentity` (`FileName`, `Scope`, `Version`) in Core: selection restore, bulk marks, undo records and cross-file duplicate rules all use it instead of ad-hoc tuples or paths.
 - `IAddinChangeWatcher` debounces file-system notifications and triggers a refresh. Refreshes preserve selection by file identity. A missing add-in folder at startup is not final: the watcher keeps retrying until the folder appears (fresh machine, Revit installed later).
+- Installed Revit versions come from `IInstalledRevitVersions` (registry `HKLM\SOFTWARE\Autodesk\Revit`): version chips and the add-file/move-copy pickers offer only installed versions, and the probe is re-read on every list refresh so a Revit installed later shows up. The list still keeps a chip for a version that has no installation but still has `.addin` files (leftovers after an uninstall), so they can be filtered and cleaned up. When the probe finds nothing or fails to read the registry, every supported version is offered and the fallback is logged.
 - Disk operations go through `IAddinStore`. Writes are atomic and keep a `.bak` copy where applicable. The `.addin` suffix/trim rule is one Core helper (`AddinFileNames.Normalize`), shared by the real store and test doubles. `Delete` delegates to `IFileRecycler` in the launcher (Windows Recycle Bin); the permanent-delete branch exists only for Core tests, while production composition always supplies a recycler. Undo is single-level and owned by `IUndoService`: enable/disable (single and bulk), deletion, copy, move and rename are undoable; the service keeps the last action and performs its store mutations, while `ListViewModel` only refreshes the list and restores selection.
 - `Move`/`Copy` in `IAddinStore` create missing target folders, validate collisions and optionally replace the target via the recycler. `MoveCopyDialogViewModel` shows the target path and compatibility warnings; `IEditorDirtyState` lets the list save or explicitly discard unsaved editor changes before moving. The same guard runs when the user selects another file: unsaved changes are saved, explicitly discarded or the switch is cancelled and the previous selection stays.
 - File mutations are one `IFileOperations` service (`FileOperations`): it owns the confirmation/target dialogs, the `IAddinStore` mutations and the undo records, and returns a `FileOperationOutcome` (refresh, selection, reveal, banner error, toast). The list zone applies the outcome to the view and never touches the store for these commands.
 - File-safety rules: deleting and replacing target files goes through `IFileRecycler` (Windows Recycle Bin); an overwritten target stays recoverable; undo is single-level and restores file content and replaced targets through `IAddinStore.Restore` (atomic write, blocked while Revit runs, never written straight from a view model); all disk mutations stay blocked while Revit runs.
+- Machine-scope files (`%PROGRAMDATA%`) are read-only when the launcher runs without administrator rights: `IFileMutationPolicy` marks such rows, and delete, enable/disable, rename, move and every editor save are disabled up front instead of failing with an "access denied" after the attempt. The list shows a banner asking for a restart as administrator; copying a machine file into a user folder stays available. The check is scope plus elevation, not an ACL probe, so an administrator-modified folder ACL is not honoured.
 
 ## Editor
 
@@ -92,5 +95,6 @@ This document records stable architectural rules. Implementation details belong 
 - `installer/` builds one per-machine WixSharp MSI for the launcher with Start Menu and Desktop shortcuts; only runtime files are installed (symbols and XML documentation are filtered out).
 - `build/` resolves GitVersion, builds the launcher without symbol/documentation files, packs the MSI and publishes releases. The pipeline mode is an explicit first argument (`compile` default, `pack`, `publish`, `version`); an unknown mode fails instead of silently compiling.
 - A release is described by its `CHANGELOG.md` version section: the tagged commit carries that
-  section with an empty `Unreleased`, and the pipeline publishes it as the GitHub release notes.
+  section with an empty `Unreleased`, and the pipeline publishes it, plus a link to the full
+  changelog, as the GitHub release notes.
 - Installer and build areas keep their own solutions and package configuration.

@@ -1,6 +1,7 @@
 using System.IO;
 using System.Reflection;
 using System.Windows;
+using AddinManager.Core.Abstractions;
 using AddinManager.Launcher.Abstractions.Services;
 using AddinManager.Launcher.Composition;
 using AddinManager.Launcher.Services;
@@ -26,7 +27,10 @@ public partial class App
     {
         var logPath = Path.Combine(
             Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
-            "Volocy", "Revit.AddinManager", "logs", "launcher-.log");
+            ProductIdentity.CompanyDirectoryName,
+            ProductIdentity.ProductDirectoryName,
+            ProductIdentity.LogsFolderName,
+            ProductIdentity.LauncherLogFileName);
 
         var loggerConfiguration = new LoggerConfiguration();
 #if DEBUG
