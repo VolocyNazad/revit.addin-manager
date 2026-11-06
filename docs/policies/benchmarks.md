@@ -2,8 +2,13 @@
 
 Paths mentioned in this policy are relative to the repository root unless a Markdown link specifies otherwise.
 
+Read when: making a performance claim, changing a hot path, or adding a benchmark project.
+
 Performance work is measured, not estimated. A claim about speed is backed by numbers from a
 repeatable run on a stated environment.
+
+The repository does not carry a benchmark project yet. This policy applies from the change that adds
+one; until then a performance claim still needs a measured before/after, even if it is a one-off run.
 
 ## When
 

@@ -13,7 +13,7 @@ Prerequisites: Windows and the .NET SDK from `global.json` (10.0.100+, `latestFe
 
 ```powershell
 dotnet build Revit.AddinManager.slnx -c Release
-dotnet test Revit.AddinManager.slnx -c Release --no-build
+./scripts/Invoke-HeadlessTests.ps1 -Configuration Release
 dotnet run --project src/AddinManager.Launcher -c Release
 ```
 
@@ -21,14 +21,11 @@ Single MSI and releases: [build/README.md](build/README.md).
 
 ## Development documentation
 
-- [Development policy](docs/policies/development.md)
+- [Repository policies](docs/policies/README.md) — the index of the policies a change must follow
 - [Repository guide and technology stack](docs/repository.md)
-- [Branching policy](docs/policies/branching.md)
-- [Commit message policy](docs/policies/commits.md)
-- [Changelog policy](docs/policies/changelog.md)
-- [Testing policy](docs/policies/testing.md)
-- [Benchmark policy](docs/policies/benchmarks.md)
-- [Wiki policy](docs/policies/wiki.md)
+- [Architecture decisions](docs/architecture.md)
+- [Glossary](GLOSSARY.md)
+- [Plan and future work](TODO.md)
 
 ## Contributing
 

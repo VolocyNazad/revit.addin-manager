@@ -65,10 +65,6 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [1.0.0] - 2026-09-21
 
-### Changed
-
-- Reduced architecture documentation to current decisions and stable rules; removed implementation history and duplicated rationale.
-
 ### Added
 
 - GitHub Actions workflow to publish the user guide to Wiki Home, with manual dispatch, unchanged-content detection and repository link rewriting.
@@ -155,6 +151,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Changed
 
+- Reduced architecture documentation to current decisions and stable rules; removed implementation history and duplicated rationale.
 - Form and Settings zones: field-group spacing tightened (`FieldGroupStyle` bottom margin 16→8, in both views at once since the styles are local copies), at the user's request — long entry forms read as one denser rhythm instead of loosely scattered groups.
 - Form zone: the outer `Border` wrapping the field editor no longer paints `AppBackgroundBrush`/a `CaptionHoverBrush` border/`CornerRadius`, at the user's request — the form panel now sits flush against the shared window background instead of standing out as its own bordered card (Entries and Markup panels keep the bordered-card look unchanged).
 - Settings zone: `ManifestSettingsView.xaml`'s outer `Border` gets the same treatment as the Form zone's above, at the user's request — no `AppBackgroundBrush`/border/`CornerRadius`, flush against the shared window background instead of its own bordered card.

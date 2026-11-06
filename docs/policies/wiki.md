@@ -2,6 +2,8 @@
 
 Paths mentioned in this policy are relative to the repository root unless a Markdown link specifies otherwise.
 
+Read when: editing the user guide, publishing the wiki, or enabling the wiki in a repository.
+
 The GitHub wiki is a published mirror of documentation that lives in this repository, not a
 second source. It is never edited on GitHub: the next publish replaces the pages.
 
@@ -12,7 +14,7 @@ A repository uses one of two conventions:
 - **Single page**: `docs/WIKI.md` is published as `Home`.
 - **Page per file**: `wiki/**/*.md` is published one page per file, named without the extension.
 
-This repository uses **single page**: `docs/WIKI.md` is published as `Home` by `.github/workflows/publish-wiki.yml`, and links to repository files are absolute `blob/main` URLs.
+This repository uses **single page**: `docs/WIKI.md` is published as `Home` by `.github/workflows/publish-wiki.yml`. The source keeps relative links to repository files (`repository.md`, `FEATURES.md`) so the GitHub renderer resolves them inside `docs/`; the publish step rewrites exactly those links to absolute `blob/main` URLs, because a wiki page has no relative path back to the repository.
 
 ## Rules
 
@@ -24,8 +26,9 @@ This repository uses **single page**: `docs/WIKI.md` is published as `Home` by `
 - Do not edit the wiki in the browser. A manual page is overwritten at the next publish, and the
   change is lost without a trace.
 - The publish workflow is the only writer and commits as `github-actions[bot]`.
-- Links to repository files are absolute `blob/main` URLs, because a wiki page has no relative
-  path back to the repository.
+- Do not use absolute repository URLs in `docs/WIKI.md`; keep the repository links relative and
+  let the publish step rewrite them. A new repository-file link in the guide must be added to the
+  rewrite in `publish-wiki.yml` in the same change.
 - The first page is created manually once, because GitHub does not create the wiki repository
   until then; after that the workflow maintains it.
 - When the wiki or its source is removed, the publish workflow is removed in the same change.
