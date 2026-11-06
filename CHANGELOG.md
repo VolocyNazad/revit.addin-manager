@@ -6,6 +6,23 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+## [1.5.0] - 2026-11-06
+
+### Added
+
+- Installed Revit versions are read from the registry (`HKLM\SOFTWARE\Autodesk\Revit`): the version chips, the new-file dialog and the move/copy dialogs offer only the versions installed on this computer (the newest one is preselected); a version whose Revit was uninstalled keeps its chip while `.addin` files remain, and a file can always be moved to its own version, so leftovers can still be filtered and cleaned up.
+- Switching to another file while the editor has unsaved changes asks whether to save them, discard them or cancel the switch; cancelling keeps the previous file selected.
+
+### Changed
+
+- Machine-scope files (ProgramData) are read-only when the launcher runs without administrator rights: editing, moving, renaming, enabling and deleting them are disabled up front, and the list explains that a restart as administrator is required.
+- Saving the raw manifest text refuses only malformed XML: empty required fields and duplicate `AddInId` values are warnings shown in the editor, no longer a reason to block the save.
+
+### Fixed
+
+- The bulk panel of the list and entries zones stays visible when the window is maximized: a maximized window now covers the monitor work area instead of the whole screen, so the panel is no longer hidden behind the Windows taskbar.
+- The main window title is aligned with the application icon.
+
 ## [1.4.0] - 2026-10-20
 
 ### Added

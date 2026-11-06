@@ -1,1 +1,0 @@
-Machine-scope files (ProgramData) are read-only when the launcher runs without administrator rights: editing, moving, renaming, enabling and deleting them are disabled up front, and the list explains that a restart as administrator is required.
