@@ -74,6 +74,41 @@ public sealed class AddinFileRowViewModelTests
         Assert.Equal(2, store.SetEnabledCallCount);
     }
 
+    [Fact]
+    public void Delete_ReadOnlyFile_CommandIsDisabled()
+    {
+        var row = new AddinFileRowViewModel(
+            new FakeAddinStore(),
+            NewFile("Machine.addin", AddinScope.Machine, "2024", enabled: true),
+            NullLogger<AddinFileRowViewModel>.Instance,
+            TestLocalization.For<AddinFileRowViewModel>())
+        {
+            IsReadOnly = true,
+        };
+
+        Assert.False(row.DeleteCommand.CanExecute(null));
+    }
+
+    [Fact]
+    public void IsEnabled_ReadOnlyFile_RevertsAndExplainsWhy()
+    {
+        var store = new FakeAddinStore();
+        var row = new AddinFileRowViewModel(
+            store,
+            NewFile("Machine.addin", AddinScope.Machine, "2024", enabled: true),
+            NullLogger<AddinFileRowViewModel>.Instance,
+            TestLocalization.For<AddinFileRowViewModel>())
+        {
+            IsReadOnly = true,
+        };
+
+        row.IsEnabled = false;
+
+        Assert.True(row.IsEnabled, "Файл только для чтения: чекбокс обязан вернуться в исходное состояние.");
+        Assert.NotNull(row.ErrorMessage);
+        Assert.Equal(0, store.SetEnabledCallCount);
+    }
+
     /// <summary>
     /// Часть плотного логирования "сервисов обновления данных аддинов": успешный тоггл — на
     /// уровне Information (и до, и после SetEnabled — оба факта важны отдельно: намерение

@@ -163,4 +163,7 @@
   <data name="DiscardBeforeSwitchConfirm" xml:space="preserve">
     <value>Switch to another file without saving the changes?</value>
   </data>
+  <data name="ElevationHint" xml:space="preserve">
+    <value>Files in the machine scope (ProgramData) cannot be changed without administrator rights. Restart the application as administrator to edit, move, rename or delete them.</value>
+  </data>
 </root>

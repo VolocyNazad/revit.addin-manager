@@ -76,7 +76,8 @@ public sealed class FileCatalogTests
         new(
             store,
             new AddinFileRowViewModelFactory(
-                store, NullLoggerFactory.Instance, TestLocalization.For<AddinFileRowViewModel>()),
+                store, NullLoggerFactory.Instance, TestLocalization.For<AddinFileRowViewModel>(),
+                new FileMutationPolicy(isElevated: true)),
             NullLogger<FileCatalog>.Instance);
 
     private static AddinFile NewFile(string fileName, string version, params Guid[] addInIds)

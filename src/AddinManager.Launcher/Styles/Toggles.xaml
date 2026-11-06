@@ -31,6 +31,10 @@
                         <DataTrigger Binding="{Binding IsLocked}" Value="True">
                             <Setter Property="IsEnabled" Value="False" />
                         </DataTrigger>
+                        <!--  Машинная область без прав администратора: файл только для чтения.  -->
+                        <DataTrigger Binding="{Binding IsReadOnly}" Value="True">
+                            <Setter Property="IsEnabled" Value="False" />
+                        </DataTrigger>
                     </ControlTemplate.Triggers>
                 </ControlTemplate>
             </Setter.Value>

@@ -163,4 +163,7 @@
   <data name="DiscardBeforeSwitchConfirm" xml:space="preserve">
     <value>Перейти к другому файлу без сохранения изменений?</value>
   </data>
+  <data name="ElevationHint" xml:space="preserve">
+    <value>Файлы в машинной области (ProgramData) нельзя менять без прав администратора. Перезапустите приложение от имени администратора, чтобы редактировать, переносить, переименовывать или удалять их.</value>
+  </data>
 </root>

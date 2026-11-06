@@ -112,4 +112,7 @@
   <data name="WarningDuplicateAcrossFiles" xml:space="preserve">
     <value>Duplicate AddInId in other files (Revit {0})</value>
   </data>
+  <data name="ReadOnlyMessage" xml:space="preserve">
+    <value>This file is in the machine scope (ProgramData). Restart the application as administrator to change it.</value>
+  </data>
 </root>
