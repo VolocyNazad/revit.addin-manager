@@ -31,8 +31,12 @@ files and edit their manifests — everything happens before Revit starts.
   copy of the manager) are also picked up automatically through a file-system watcher —
   no manual refresh needed. After every rescan the previous selection is restored by file
   identity, falling back to the first visible row.
-- A toggle that fails (e.g. no administrator rights for a Machine-scope file, or a locked
-  file) rolls the checkbox back and shows the reason right under the row instead of crashing.
+- A toggle that still fails (e.g. the file is locked by another process) rolls the checkbox
+  back and shows the reason right under the row instead of crashing.
+- Machine-scope rows are read-only when the launcher runs without administrator rights:
+  toggling, deleting, renaming, moving and saving edits are disabled up front, and a banner
+  above the list explains that a restart as administrator is required. Copying such a file
+  into a user scope remains available.
 - Rows with problems carry a yellow warning badge next to the name (a card tooltip with a title, a separator and the reasons explains why):
   a file with no entries, empty `Assembly`/`FullClassName`, unknown entry `Type`, or a
   duplicate `AddInId` within the file or in other files of the same Revit version.
