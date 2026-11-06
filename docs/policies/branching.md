@@ -2,6 +2,8 @@
 
 Paths mentioned in this policy are relative to the repository root unless a Markdown link specifies otherwise.
 
+Read when: creating a branch, merging it, tagging a release, or changing branch protection.
+
 The repository follows [Git Flow](https://nvie.com/posts/a-successful-git-branching-model/).
 `main` always reflects a released state, `dev` integrates the changes for the next
 release, and every other branch is short-lived. Branch names, base branches and merge
@@ -19,14 +21,15 @@ The integration branch is always `dev`.
 | `dev` | `main` | - | permanent | Integration branch: the state of the next release. |
 | `feature/<ticket>-<slug>` | `dev` | `dev` | days | New behaviour. |
 | `fix/<ticket>-<slug>` | `dev` | `dev` | days | Defect that is not urgent in production. |
+| `chore/<slug>` | `dev` | `dev` | days | Maintenance that changes neither behaviour nor user-visible text: tooling, CI, documentation, dependency bumps. |
 | `release/<version>` | `dev` | `main` and `dev` | hours | Release preparation: changelog, final fixes. |
 | `hotfix/<version>` | `main` | `main` and `dev` | hours | Urgent production defect. |
 
 `<ticket>` is the issue number when the repository has an issue tracker and is omitted
 otherwise. `<slug>` is a short lowercase kebab-case description, for example
-`feature/123-parameter-dependency-creator` or `fix/207-null-selection`. No other
-prefixes (`bugfix/`, `topic/`, `wip/`): review and tooling expect the six branch kinds
-above.
+`feature/123-parameter-dependency-creator`, `fix/207-null-selection` or
+`chore/ci-action-pins`. No other prefixes (`bugfix/`, `topic/`, `wip/`): review and
+tooling expect the seven branch kinds above.
 
 `main` and `dev` are permanent; every other branch is deleted after it is merged,
 locally and on the remote.
@@ -66,7 +69,7 @@ git branch -d feature/123-parameter-dependency-creator
 git push origin --delete feature/123-parameter-dependency-creator
 ```
 
-`fix/` branches work the same way and differ only in intent.
+`fix/` and `chore/` branches work the same way and differ only in intent.
 
 ## Release branches
 
@@ -104,7 +107,8 @@ reaches `dev` when the release is finished.
 
 - no direct pushes, no force-push, no deletion;
 - a pull request with at least one approval is required;
-- the `build-and-test` and `repository-policy` workflows must pass;
+- the `CI gate` job of the `build-and-test` workflow and the `repository-policy` workflow must
+  pass; a documentation-only pull request keeps `CI gate` green while its Windows jobs are skipped;
 - only maintainers merge into `main`.
 
 Release and hotfix pull requests keep the same checks but may use a single reviewer, so

@@ -9,7 +9,7 @@ This document records stable architectural rules. Implementation details belong 
 - Zone selection and the file catalog cross zone boundaries through narrow contracts, not concrete neighbors: `IFileSelection`/`IEntrySelection` (single slots with change notifications) and `IAddinFileCatalog` (live rows plus rescan), exposed by the owning zones and resolved from the container; the list zone's catalog is the `FileCatalog` service. Selection flows one way, list → entries; zones never reference each other back.
 - Code-behind contains view mechanics only. Prefer bindings, converters and Blend behaviors for state and reusable mechanics.
 - Filtering, sorting and grouping use one `ListCollectionView` over the source collection, owned by `FileListViewState` and driven by a `FileListQuery` snapshot; the zone builds the snapshot and keeps the chip labels/counters. Version chips are data-driven `FilterChipViewModel` collections built from the installed-version probe and `RevitVersionCatalog`, so the version list is not copied into XAML.
-- Codes and view models share one set of chips; the active chip is a style trigger on `IsActive` rather than a per-button opacity binding.
+- The active chip is a style trigger on `IsActive`, not a per-button opacity binding; chip labels and counters are built by the zone, not hard-coded in XAML.
 - View-model diagnostics are available through `ToString()`.
 
 ## Dependency injection
@@ -29,7 +29,7 @@ This document records stable architectural rules. Implementation details belong 
 
 - `ThemeService` persists `System`, `Light` or `Dark` under `%APPDATA%`; `IThemeService` exposes the chosen `Theme` and the effective `IsDark`. `MainWindow` applies the matching dictionary and re-applies it when the window reports a system theme change.
 - WPF dictionaries define the same keys for light and dark themes. Consumers use `DynamicResource`.
-- Each theme composes shared chrome (`Themes/Chrome/`, без привязки к приложению) and app-specific parts (`Themes/App/`, подсветка AvalonEdit); key parity inside both pairs is enforced by `AddinManager.Theming.Wpf.Tests`.
+- Each theme composes shared chrome (`Themes/Chrome/`, no application ties) and app-specific parts (`Themes/App/`, AvalonEdit highlighting); key parity inside both pairs is enforced by `AddinManager.Theming.Wpf.Tests`.
 - The system theme is read from the registry. Missing or invalid settings fall back to `System`.
 
 ## Styles
@@ -94,5 +94,6 @@ This document records stable architectural rules. Implementation details belong 
 - `installer/` builds one per-machine WixSharp MSI for the launcher with Start Menu and Desktop shortcuts; only runtime files are installed (symbols and XML documentation are filtered out).
 - `build/` resolves GitVersion, builds the launcher without symbol/documentation files, packs the MSI and publishes releases. The pipeline mode is an explicit first argument (`compile` default, `pack`, `publish`, `version`); an unknown mode fails instead of silently compiling.
 - A release is described by its `CHANGELOG.md` version section: the tagged commit carries that
-  section with an empty `Unreleased`, and the pipeline publishes it as the GitHub release notes.
+  section with an empty `Unreleased`, and the pipeline publishes it, plus a link to the full
+  changelog, as the GitHub release notes.
 - Installer and build areas keep their own solutions and package configuration.

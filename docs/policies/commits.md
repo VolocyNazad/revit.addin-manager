@@ -2,6 +2,8 @@
 
 Paths mentioned in this policy are relative to the repository root unless a Markdown link specifies otherwise.
 
+Read when: writing or amending a commit message.
+
 Every commit message follows [Conventional Commits](https://www.conventionalcommits.org/en/v1.0.0/):
 `<type>(<scope>): <description>`. The message is read by people and by tooling: the type
 tells a reader what changed and how it affects a consumer of the release. It is a
@@ -51,6 +53,6 @@ feat(sdk)!: drop the Revit 2021 target
 BREAKING CHANGE: the SDK no longer builds for Revit 2021.
 ```
 
-The changelog rules are in the [changelog policy](changelog.md); tests and the build are
-in the [development policy](development.md); branches and merge rules are in the
-[branching policy](branching.md).
+The changelog rules are in the [changelog policy](changelog.md), the build and toolchain rules in
+the [build and toolchain policy](build.md), tests in the [testing policy](testing.md), and branches
+and merge rules in the [branching policy](branching.md).

@@ -17,4 +17,4 @@ lands; user-visible release notes still belong in `CHANGELOG.md`, not here.
 ## Release tooling
 
 - [ ] Verify the MSI end to end with the WiX toolchain (install, upgrade, uninstall) before the next release; local builds only compile the generator.
-- [ ] Review whether the publish pipeline should compose the changelog from Conventional Commits instead of requiring a hand-written release section.
+- [x] Compose the release section from `changelog.d/` fragments (`Update-Changelog.ps1 -Compose`/`-Finalize`) instead of parsing Conventional Commits: a commit subject answers "what did the author do", a fragment answers "what changed for the consumer".

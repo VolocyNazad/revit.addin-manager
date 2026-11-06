@@ -2,6 +2,9 @@
 
 Paths mentioned in this policy are relative to the repository root unless a Markdown link specifies otherwise.
 
+Read when: adding tests, choosing a test kind, running a suite, or changing a user-interface
+behaviour that needs a manual check.
+
 Tests are the evidence that a change works. The repository separates them by what they need
 to run: a normal process, or a person in front of the product.
 
@@ -38,14 +41,44 @@ but the build must pass.
 
 ## Running the tests
 
-Headless: `dotnet test tests/<Project>.Tests/<Project>.Tests.csproj --configuration Release`,
-or the built executable, which is what CI may use.
+A test project is an executable xUnit v3 runner that targets Microsoft.Testing.Platform, so both
+`dotnet test` and running the built executable work. CI takes the script path, because it is the same
+locally and on the runner and it guarantees the report and the failure rules:
+
+```powershell
+dotnet build Revit.AddinManager.slnx --configuration Release /nologo -warnaserror
+./scripts/Invoke-HeadlessTests.ps1 -Configuration Release
+```
+
+`dotnet test Revit.AddinManager.slnx --no-build` is a convenience for a local run; CI uses the script
+because it also enforces the report and the failure rules the same way on every machine.
+
+The script selects the executable built for the configuration, writes one TRX report per project
+under `TestResults/<Configuration>/`, and fails when a project has no executable, when an executable
+exits with a non-zero code, or when a run discovers no tests. A single project can be run directly
+from its build output with the same runner arguments (`-noLogo -noColor -result-trx <path>`).
+
+## Test infrastructure
+
+- A test project is built as an executable (`OutputType: Exe` is required) and targets
+  Microsoft.Testing.Platform, selected by the `test` section of `global.json`; that is how
+  `dotnet test` discovers it. Do not reference `Microsoft.NET.Test.Sdk` or the VSTest adapter
+  (`xunit.runner.visualstudio`): with the Microsoft.Testing.Platform runner they are dead weight.
+- CI builds the solution and runs `scripts/Invoke-HeadlessTests.ps1`; a test project that is not
+  executed by that script is not covered by CI.
+- Shared test helpers live in `tests/Shared/` and are linked into the test projects that need them,
+  so a helper has one source.
+- The test selection is a contract: a project whose name does not end in `*.Tests` is invisible to CI.
 
 ## Manual smoke check
 
-For a change that affects the user interface or the command line, start the product, run the
-main scenario, repeat the file operation that the change touches and confirm that nothing is
-left in a broken state. A library without a UI has no manual step.
+A UI change is not done because the XAML compiles. For a change that affects the user interface,
+start the product, run the main scenario and repeat the file operation that the change touches:
+open the affected menu or dialog, check focus and keyboard paths (`Enter`, `Esc`, `F2`, `Ctrl+Z`),
+switch theme and language, and confirm the empty, disabled and conflict states. Confirm that nothing
+is left in a broken state. Automatic startup update checks must not block local checks: Debug builds
+skip the startup update dialog, while the manual `Ctrl+U` check still works. A library without a UI
+has no manual step.
 
 ## Flaky and skipped tests
 
