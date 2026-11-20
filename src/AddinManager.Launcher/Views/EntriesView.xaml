@@ -351,6 +351,7 @@
 
             <ListBox
                 Padding="0,0,12,0"
+                behaviors:PlainClickSelectionBehavior.Enabled="True"
                 behaviors:RightClickSelectionBehavior.Enabled="True"
                 Background="Transparent"
                 BorderThickness="0"

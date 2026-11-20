@@ -1,5 +1,6 @@
 using System.ComponentModel;
 using AddinManager.Core.Manifests;
+using AddinManager.Launcher.Abstractions;
 using Microsoft.Extensions.Localization;
 
 namespace AddinManager.Launcher.ViewModels;
@@ -31,7 +32,7 @@ public sealed class AddinEntryRowViewModel(
     int index,
     IStringLocalizer<AddinEntryRowViewModel> localizer,
     bool duplicateInFile = false,
-    bool duplicateAcrossFiles = false) : INotifyPropertyChanged
+    bool duplicateAcrossFiles = false) : INotifyPropertyChanged, IBulkSelectableRow
 {
     private bool _isSelected;
 
