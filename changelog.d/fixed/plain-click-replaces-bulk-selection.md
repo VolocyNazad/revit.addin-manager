@@ -1,0 +1,1 @@
+A plain click on a row of the plugin list or the entries list now leaves only that row marked, so a mark on a row scrolled out of view no longer survives; clicking the row checkbox still accumulates marks.

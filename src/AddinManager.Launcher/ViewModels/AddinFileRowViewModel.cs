@@ -3,6 +3,7 @@ using AddinManager.Core.Abstractions.Storage;
 using AddinManager.Core.Guard;
 using AddinManager.Core.Manifests;
 using AddinManager.Core.Storage;
+using AddinManager.Launcher.Abstractions;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Microsoft.Extensions.Localization;
@@ -11,7 +12,7 @@ using Microsoft.Extensions.Logging;
 namespace AddinManager.Launcher.ViewModels;
 
 /// <summary>Строка списка: один <see cref="AddinFile"/> (план, раздел 6 — "Row").</summary>
-public sealed partial class AddinFileRowViewModel : ObservableObject
+public sealed partial class AddinFileRowViewModel : ObservableObject, IBulkSelectableRow
 {
     private readonly IAddinStore _store;
     private readonly ILogger<AddinFileRowViewModel> _logger;
